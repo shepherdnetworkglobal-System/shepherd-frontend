@@ -67,6 +67,11 @@ interface Receipt {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"verifications" | "missions" | "donations" | "receipts">("verifications");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loginEmail, setLoginEmail] = useState("admin@shepherd.network");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -104,8 +109,51 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    loadData();
+    const token = localStorage.getItem("shepherd_token");
+    const role = localStorage.getItem("shepherd_role");
+    if (token && role === "ADMIN") {
+      setIsAuthenticated(true);
+      loadData();
+    }
   }, []);
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const data = await apiRequest("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPassword,
+        }),
+      });
+
+      if (data.role !== "ADMIN") {
+        throw new Error("Access denied: You must be an administrator.");
+      }
+
+      localStorage.setItem("shepherd_token", data.access_token);
+      localStorage.setItem("shepherd_role", data.role);
+      setIsAuthenticated(true);
+      await loadData();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setAuthError(err.message);
+      } else {
+        setAuthError("Login failed");
+      }
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("shepherd_token");
+    localStorage.removeItem("shepherd_role");
+    setIsAuthenticated(false);
+  };
 
   const handleReview = async (profileId: number, status: "APPROVED" | "REJECTED") => {
     try {
@@ -156,6 +204,69 @@ export default function AdminDashboard() {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl text-white">
+          <div className="flex items-center gap-3 mb-6">
+            <ShieldCheck className="w-8 h-8 text-blue-400" />
+            <div>
+              <h2 className="text-xl font-bold">Shepherd Command</h2>
+              <p className="text-xs text-slate-400">Restricted Admin Access</p>
+            </div>
+          </div>
+
+          {authError && (
+            <div className="mb-4 p-3 rounded-lg bg-red-900/50 border border-red-700 text-red-200 text-xs">
+              {authError}
+            </div>
+          )}
+
+          <form onSubmit={handleAdminLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                Admin Email
+              </label>
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="Enter password..."
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-sm transition"
+            >
+              {authLoading ? "Authenticating..." : "Enter Command Center"}
+            </button>
+          </form>
+
+          <p className="text-[11px] text-slate-500 text-center mt-6">
+            Default test credentials: admin@shepherd.network / ShepherdAdmin2026!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Admin Top Header */}
@@ -168,12 +279,20 @@ export default function AdminDashboard() {
           </span>
         </div>
 
-        <button
-          onClick={loadData}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-700 transition"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={loadData}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-700 transition"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
+          </button>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600/80 hover:bg-red-600 text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       {/* Main Container */}

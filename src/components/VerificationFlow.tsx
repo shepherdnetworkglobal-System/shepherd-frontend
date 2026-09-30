@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, Circle, Clock, AlertCircle, FileText, Send } from "lucide-react";
 import { apiRequest } from "@/lib/api";
+import FileUpload from "@/components/FileUpload";
 
 export default function VerificationFlow() {
   const [step, setStep] = useState(1);
@@ -197,46 +198,23 @@ export default function VerificationFlow() {
 
       {step === 2 && (
         <form onSubmit={handleUploadDocs} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
-              Government ID Document URL / Key
-            </label>
-            <input
-              type="text"
-              value={idUrl}
-              onChange={(e) => setIdUrl(e.target.value)}
-              placeholder="https://storage.../passport.pdf"
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm"
-              required
-            />
-          </div>
+          <FileUpload
+            label="Government ID (Passport / National ID)"
+            onUploadComplete={(url) => setIdUrl(url)}
+            acceptedTypes=".jpg,.jpeg,.png,.pdf"
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
-              Live Verification Selfie URL / Key
-            </label>
-            <input
-              type="text"
-              value={selfieUrl}
-              onChange={(e) => setSelfieUrl(e.target.value)}
-              placeholder="https://storage.../selfie.jpg"
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm"
-              required
-            />
-          </div>
+          <FileUpload
+            label="Live Verification Selfie"
+            onUploadComplete={(url) => setSelfieUrl(url)}
+            acceptedTypes=".jpg,.jpeg,.png"
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
-              Organization Registration Certificate URL
-            </label>
-            <input
-              type="text"
-              value={certUrl}
-              onChange={(e) => setCertUrl(e.target.value)}
-              placeholder="https://storage.../org_cert.pdf"
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm"
-            />
-          </div>
+          <FileUpload
+            label="Organization Registration Certificate"
+            onUploadComplete={(url) => setCertUrl(url)}
+            acceptedTypes=".jpg,.jpeg,.png,.pdf"
+          />
 
           <div className="flex gap-3 pt-2">
             <button

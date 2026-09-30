@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { CreditCard, Wallet, CheckCircle2, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
+import { connectWallet, sendTestnetPayment, DEFAULT_PLATFORM_RECIPIENT } from "@/lib/stellarWallet";
 
 interface PaymentWallProps {
   missionId: number;
@@ -43,19 +44,26 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry 
           `Redirecting to MoonPay On-Ramp for $${amount} USD settlement directly into the missionary's verified ${recipientCountry} Stellar account.`
         );
       } else {
-        // Direct Stellar Wallet Signing (Testnet Mock Tx for Verification)
-        const mockHash = "3389e9f0f73b68f140f93f3027f61be59a833ab9d720fa5745823679af79f583";
+        // Real Stellar Wallet Signing via Freighter (Testnet)
+        const senderPublicKey = await connectWallet();
         
-        // 2. Verify on-chain with backend
+        const { hash } = await sendTestnetPayment({
+          senderPublicKey,
+          recipientPublicKey: DEFAULT_PLATFORM_RECIPIENT,
+          amount,
+          memoText: `DONATION #${donation.id}`,
+        });
+
+        // 2. Verify real on-chain hash with backend
         await apiRequest("/api/donations/verify-onchain", {
           method: "POST",
           body: JSON.stringify({
             donation_id: donation.id,
-            stellar_tx_hash: mockHash,
+            stellar_tx_hash: hash,
           }),
         });
 
-        setTxHash(mockHash);
+        setTxHash(hash);
         setCompleted(true);
       }
     } catch (err: unknown) {
