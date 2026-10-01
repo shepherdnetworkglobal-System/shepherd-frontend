@@ -206,46 +206,53 @@ export default function AdminDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl text-white">
-          <div className="flex items-center gap-3 mb-6">
-            <ShieldCheck className="w-8 h-8 text-blue-400" />
+      <div className="min-h-screen bg-slate-50 relative overflow-hidden flex items-center justify-center p-4">
+        {/* Ambient glows */}
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] glow-blue rounded-full pointer-events-none -z-10" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10" />
+
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-8 shadow-xl shadow-slate-200/60 text-slate-900">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md shadow-blue-500/20">
+              <ShieldCheck className="w-6 h-6 text-white" />
+            </div>
             <div>
-              <h2 className="text-xl font-bold">Shepherd Command</h2>
-              <p className="text-xs text-slate-400">Restricted Admin Access</p>
+              <h2 className="text-xl font-extrabold tracking-tight">Shepherd Admin</h2>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Command Center</p>
             </div>
           </div>
 
           {authError && (
-            <div className="mb-4 p-3 rounded-lg bg-red-900/50 border border-red-700 text-red-200 text-xs">
+            <div className="mb-6 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold flex items-center gap-2">
+              <XCircle className="w-4 h-4 shrink-0" />
               {authError}
             </div>
           )}
 
-          <form onSubmit={handleAdminLogin} className="space-y-4">
+          <form onSubmit={handleAdminLogin} className="space-y-5">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
                 Admin Email
               </label>
               <input
                 type="email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
-                Password
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                Admin Password
               </label>
               <input
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="Enter password..."
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                placeholder="Enter passphrase..."
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                 required
               />
             </div>
@@ -253,14 +260,14 @@ export default function AdminDashboard() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-sm transition"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
             >
-              {authLoading ? "Authenticating..." : "Enter Command Center"}
+              {authLoading ? "Authenticating..." : "Authorize Access"}
             </button>
           </form>
 
-          <p className="text-[11px] text-slate-500 text-center mt-6">
-            Default test credentials: admin@shepherd.network / ShepherdAdmin2026!
+          <p className="text-[10px] text-slate-400 font-semibold text-center mt-8 uppercase tracking-widest">
+            Default credentials: admin@shepherd.network
           </p>
         </div>
       </div>
@@ -268,13 +275,15 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50">
       {/* Admin Top Header */}
-      <header className="bg-slate-900 text-white px-8 py-4 border-b border-slate-800 flex items-center justify-between sticky top-0 z-20">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/80 px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
         <div className="flex items-center gap-3">
-          <ShieldCheck className="w-6 h-6 text-blue-400" />
-          <span className="font-bold text-lg tracking-tight">Shepherd Admin Command</span>
-          <span className="bg-blue-500/20 text-blue-300 text-xs px-2.5 py-0.5 rounded border border-blue-500/30">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md">
+            <ShieldCheck className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-extrabold text-lg tracking-tight text-slate-900">Shepherd Command</span>
+          <span className="bg-blue-50 text-blue-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-blue-200 ml-2">
             Internal Operations
           </span>
         </div>
@@ -282,137 +291,145 @@ export default function AdminDashboard() {
         <div className="flex items-center gap-3">
           <button
             onClick={loadData}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-700 transition"
+            className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg border border-slate-200 shadow-sm transition"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
+            <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${loading ? "animate-spin" : ""}`} /> Refresh
           </button>
           <button
             onClick={handleLogout}
-            className="bg-red-600/80 hover:bg-red-600 text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-4 py-2 rounded-lg transition"
           >
-            Logout
+            Terminate Session
           </button>
         </div>
       </header>
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-8 py-8">
+      <div className="max-w-7xl mx-auto px-8 py-10">
         {/* KPI Metric Overview */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pending Vetting</span>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-bold text-gray-900">
+        <div className="grid grid-cols-4 gap-5 mb-10">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending Vetting</span>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-3xl font-extrabold text-slate-900 num-tabular">
                 {applications.filter((a) => a.verification_status !== "APPROVED" && a.verification_status !== "REJECTED").length}
               </span>
-              <UserCheck className="w-6 h-6 text-amber-500" />
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
+                <UserCheck className="w-5 h-5 text-amber-500" />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active Missions</span>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-bold text-gray-900">{missions.length}</span>
-              <Layers className="w-6 h-6 text-blue-500" />
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Missions</span>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-3xl font-extrabold text-slate-900 num-tabular">{missions.length}</span>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <Layers className="w-5 h-5 text-blue-500" />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Donations</span>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-bold text-gray-900">{donations.length}</span>
-              <DollarSign className="w-6 h-6 text-green-500" />
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Donations</span>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-3xl font-extrabold text-slate-900 num-tabular">{donations.length}</span>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-emerald-500" />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Field Receipts Audited</span>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-bold text-gray-900">{receipts.length}</span>
-              <ReceiptIcon className="w-6 h-6 text-purple-500" />
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Field Receipts</span>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-3xl font-extrabold text-slate-900 num-tabular">{receipts.length}</span>
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                <ReceiptIcon className="w-5 h-5 text-indigo-500" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-semibold">
+        <div className="flex border-b border-slate-200 mb-8 gap-8 text-sm font-bold">
           <button
             onClick={() => setActiveTab("verifications")}
-            className={`pb-3 transition flex items-center gap-2 ${
+            className={`pb-4 transition flex items-center gap-2 ${
               activeTab === "verifications"
                 ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-900"
+                : "text-slate-500 hover:text-slate-900"
             }`}
           >
-            <UserCheck className="w-4 h-4" /> Missionary Verification Queue
+            <UserCheck className="w-4 h-4" /> Operator Vetting
           </button>
 
           <button
             onClick={() => setActiveTab("missions")}
-            className={`pb-3 transition flex items-center gap-2 ${
+            className={`pb-4 transition flex items-center gap-2 ${
               activeTab === "missions"
                 ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-900"
+                : "text-slate-500 hover:text-slate-900"
             }`}
           >
-            <Layers className="w-4 h-4" /> Mission Management
+            <Layers className="w-4 h-4" /> Active Deployments
           </button>
 
           <button
             onClick={() => setActiveTab("donations")}
-            className={`pb-3 transition flex items-center gap-2 ${
+            className={`pb-4 transition flex items-center gap-2 ${
               activeTab === "donations"
                 ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-900"
+                : "text-slate-500 hover:text-slate-900"
             }`}
           >
-            <DollarSign className="w-4 h-4" /> Settlement & Donations
+            <DollarSign className="w-4 h-4" /> Inbound Settlement
           </button>
 
           <button
             onClick={() => setActiveTab("receipts")}
-            className={`pb-3 transition flex items-center gap-2 ${
+            className={`pb-4 transition flex items-center gap-2 ${
               activeTab === "receipts"
                 ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-900"
+                : "text-slate-500 hover:text-slate-900"
             }`}
           >
-            <ReceiptIcon className="w-4 h-4" /> Field Receipts Audit
+            <ReceiptIcon className="w-4 h-4" /> Cryptographic Ledger
           </button>
         </div>
 
         {/* Tab 1: Verification Queue */}
         {activeTab === "verifications" && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-200 bg-gray-50 font-bold text-xs uppercase tracking-wider text-gray-600">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-slate-200 bg-slate-50 font-bold text-[10px] uppercase tracking-widest text-slate-500">
               Vetting Applications ({applications.length})
             </div>
 
             {applications.length === 0 ? (
-              <div className="p-8 text-center text-sm text-gray-500">No applications in queue.</div>
+              <div className="p-10 text-center text-sm font-medium text-slate-500">No applications in queue.</div>
             ) : (
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-slate-100">
                 {applications.map((app) => (
-                  <div key={app.id} className="p-6 space-y-4">
+                  <div key={app.id} className="p-6 space-y-5 hover:bg-slate-50/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-xs font-mono text-gray-400 block">Profile #{app.id} (User #{app.user_id})</span>
-                        <h4 className="text-base font-bold text-gray-900 mt-0.5">
-                          {app.organization_name || "Independent Missionary"} • {app.country}
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400 block">System Entry #{app.id} (Operator #{app.user_id})</span>
+                        <h4 className="text-lg font-extrabold text-slate-900 mt-1">
+                          {app.organization_name || "Independent Sovereign"} • {app.country}
                         </h4>
                         {app.shepherd_id && (
-                          <span className="inline-block mt-1 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded border border-green-200">
-                            Shepherd ID: {app.shepherd_id}
+                          <span className="inline-block mt-2 bg-emerald-50 text-emerald-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded border border-emerald-200">
+                            Hash: {app.shepherd_id}
                           </span>
                         )}
                       </div>
                       <span
-                        className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                        className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-md border ${
                           app.verification_status === "APPROVED"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : app.verification_status === "REJECTED"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-amber-100 text-amber-800"
+                            ? "bg-red-50 text-red-700 border-red-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                       >
                         {app.verification_status}
@@ -420,14 +437,14 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Rails and Documents */}
-                    <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg text-xs font-mono">
+                    <div className="grid grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-5 rounded-xl text-xs font-mono">
                       <div>
-                        <span className="text-gray-500 block mb-1 font-sans font-semibold">Stellar Payout Address:</span>
-                        <span className="break-all">{app.stellar_payout_address || "Not set"}</span>
+                        <span className="text-slate-500 block mb-1.5 font-sans font-bold uppercase tracking-wider text-[10px]">Stellar Settlement Rail:</span>
+                        <span className="break-all font-semibold text-slate-900">{app.stellar_payout_address || "Awaiting configuration"}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500 block mb-1 font-sans font-semibold">M-Pesa Number:</span>
-                        <span>{app.mpesa_phone_number || "Not set"}</span>
+                        <span className="text-slate-500 block mb-1.5 font-sans font-bold uppercase tracking-wider text-[10px]">Mobile Fiat Fallback:</span>
+                        <span className="font-semibold text-slate-900">{app.mpesa_phone_number || "None"}</span>
                       </div>
                     </div>
 
@@ -436,22 +453,22 @@ export default function AdminDashboard() {
                       <div className="pt-2 flex items-center gap-3">
                         <input
                           type="text"
-                          placeholder="Assign Shepherd ID (e.g. MARIA-KENYA-1042)"
+                          placeholder="Assign Operator Hash (e.g. ALPHA-1042)"
                           value={assignedShepherdId}
                           onChange={(e) => setAssignedShepherdId(e.target.value)}
-                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-xs w-64"
+                          className="border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 w-72 shadow-sm"
                         />
                         <button
                           onClick={() => handleReview(app.id, "APPROVED")}
-                          className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg flex items-center gap-1.5"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition"
                         >
-                          <CheckCircle2 className="w-4 h-4" /> Approve & Issue ID
+                          <CheckCircle2 className="w-4 h-4" /> Authorize
                         </button>
                         <button
                           onClick={() => handleReview(app.id, "REJECTED")}
-                          className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg flex items-center gap-1.5"
+                          className="bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition"
                         >
-                          <XCircle className="w-4 h-4" /> Reject
+                          <XCircle className="w-4 h-4" /> Decline
                         </button>
                       </div>
                     )}
@@ -468,100 +485,102 @@ export default function AdminDashboard() {
             <div className="flex justify-end">
               <button
                 onClick={() => setShowCreateMission(!showCreateMission)}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-blue-500/20 transition-all"
               >
-                <Plus className="w-4 h-4" /> Launch New Mission
+                <Plus className="w-4 h-4" /> Initialize Deployment
               </button>
             </div>
 
             {showCreateMission && (
-              <form onSubmit={handleCreateMission} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Create Mission for Approved Missionary</h3>
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleCreateMission} className="bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm space-y-5">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-4 mb-2">Configure New Deployment</h3>
+                <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Missionary Profile ID</label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Operator Internal ID</label>
                     <input
                       type="number"
                       value={missionaryId}
                       onChange={(e) => setMissionaryId(e.target.value)}
                       placeholder="e.g. 1"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                      className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-sm"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Target Country</label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Target Area</label>
                     <input
                       type="text"
                       value={missionCountry}
                       onChange={(e) => setMissionCountry(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                      className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-sm"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Mission Title</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Deployment Title</label>
                   <input
                     type="text"
                     value={missionTitle}
                     onChange={(e) => setMissionTitle(e.target.value)}
                     placeholder="e.g. Clean Water Well - Turkana East"
-                    className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-sm"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Description</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Parameters</label>
                   <textarea
                     value={missionDesc}
                     onChange={(e) => setMissionDesc(e.target.value)}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-sm"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Goal Amount (USD)</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Hard Limit Cap (USD)</label>
                   <input
                     type="number"
                     value={missionGoal}
                     onChange={(e) => setMissionGoal(e.target.value)}
                     placeholder="12000"
-                    className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-sm"
                     required
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg text-sm hover:bg-blue-700"
-                >
-                  Publish Mission to Live Public Site
-                </button>
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs uppercase tracking-wider font-bold py-3 px-6 rounded-xl shadow-md transition-colors"
+                  >
+                    Commit to Public Ledger
+                  </button>
+                </div>
               </form>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               {missions.map((m) => (
-                <div key={m.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
+                <div key={m.id} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-xs font-mono text-gray-400">Mission #{m.id}</span>
-                      <h4 className="text-base font-bold text-gray-900">{m.title}</h4>
-                      <p className="text-xs text-gray-500">Target Country: {m.target_country}</p>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Deployment #{m.id}</span>
+                      <h4 className="text-base font-extrabold text-slate-900 mt-1">{m.title}</h4>
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mt-1">Area: {m.target_country}</p>
                     </div>
-                    <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded">
+                    <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md">
                       {m.status}
                     </span>
                   </div>
 
-                  <div className="pt-2 border-t border-gray-100 flex justify-between text-xs font-medium">
-                    <span className="text-gray-500">Goal: ${m.goal_amount_usd}</span>
-                    <span className="text-green-600 font-bold">Raised: ${m.raised_amount_usd}</span>
+                  <div className="pt-4 border-t border-slate-100 flex justify-between text-xs font-bold">
+                    <span className="text-slate-500">Cap: <span className="text-slate-900 num-tabular">${m.goal_amount_usd}</span></span>
+                    <span className="text-emerald-600">Settled: <span className="num-tabular">${m.raised_amount_usd}</span></span>
                   </div>
                 </div>
               ))}
@@ -571,28 +590,28 @@ export default function AdminDashboard() {
 
         {/* Tab 3: Donations & Settlement */}
         {activeTab === "donations" && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="p-3">ID</th>
-                  <th className="p-3">Mission ID</th>
-                  <th className="p-3">Donor</th>
-                  <th className="p-3">Amount</th>
-                  <th className="p-3">Stellar Hash</th>
-                  <th className="p-3">Status</th>
+                  <th className="p-4">Tx ID</th>
+                  <th className="p-4">Deployment</th>
+                  <th className="p-4">Origin Entity</th>
+                  <th className="p-4">Volume</th>
+                  <th className="p-4">Stellar cryptographic hash</th>
+                  <th className="p-4">State</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {donations.map((d) => (
-                  <tr key={d.id}>
-                    <td className="p-3 font-mono">#{d.id}</td>
-                    <td className="p-3">Mission #{d.mission_id}</td>
-                    <td className="p-3">{d.donor_email}</td>
-                    <td className="p-3 font-semibold">${d.amount_usd} {d.asset_type}</td>
-                    <td className="p-3 font-mono text-gray-500">{d.stellar_tx_hash ? `${d.stellar_tx_hash.slice(0, 12)}...` : "—"}</td>
-                    <td className="p-3">
-                      <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded font-semibold text-[11px]">
+                  <tr key={d.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4 font-bold text-slate-900">#{d.id}</td>
+                    <td className="p-4 font-bold text-blue-600">Mission #{d.mission_id}</td>
+                    <td className="p-4 font-medium text-slate-700">{d.donor_email}</td>
+                    <td className="p-4 font-black text-slate-900 num-tabular">${d.amount_usd} <span className="text-[10px] text-slate-400 font-bold">{d.asset_type}</span></td>
+                    <td className="p-4 font-mono text-slate-400 font-medium">{d.stellar_tx_hash ? `${d.stellar_tx_hash.slice(0, 16)}...` : "—"}</td>
+                    <td className="p-4">
+                      <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider text-[9px]">
                         {d.status}
                       </span>
                     </td>
@@ -605,27 +624,27 @@ export default function AdminDashboard() {
 
         {/* Tab 4: Receipts Audit */}
         {activeTab === "receipts" && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="p-3">ID</th>
-                  <th className="p-3">Mission ID</th>
-                  <th className="p-3">Expense Title</th>
-                  <th className="p-3">Category</th>
-                  <th className="p-3">Amount</th>
-                  <th className="p-3">Vendor</th>
+                  <th className="p-4">Log ID</th>
+                  <th className="p-4">Deployment</th>
+                  <th className="p-4">Allocation Record</th>
+                  <th className="p-4">Classification</th>
+                  <th className="p-4">Volume</th>
+                  <th className="p-4">Counterparty</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {receipts.map((r) => (
-                  <tr key={r.id}>
-                    <td className="p-3 font-mono">#{r.id}</td>
-                    <td className="p-3">Mission #{r.mission_id}</td>
-                    <td className="p-3 font-medium">{r.title}</td>
-                    <td className="p-3">{r.category}</td>
-                    <td className="p-3 font-bold text-gray-900">${r.amount_spent_usd}</td>
-                    <td className="p-3 text-gray-500">{r.vendor_name || "—"}</td>
+                  <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4 font-bold text-slate-900">#{r.id}</td>
+                    <td className="p-4 font-bold text-blue-600">Mission #{r.mission_id}</td>
+                    <td className="p-4 font-bold text-slate-900">{r.title}</td>
+                    <td className="p-4 font-semibold text-slate-500">{r.category}</td>
+                    <td className="p-4 font-black text-emerald-600 num-tabular">${r.amount_spent_usd}</td>
+                    <td className="p-4 text-slate-500 font-medium">{r.vendor_name || "—"}</td>
                   </tr>
                 ))}
               </tbody>
