@@ -79,10 +79,10 @@ export default function MissionaryProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0C0E0D] text-[#E6DED3]">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-8 h-8 text-[#8FA68E] animate-spin" />
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
         </div>
       </div>
     );
@@ -90,11 +90,11 @@ export default function MissionaryProfilePage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-[#0C0E0D] text-[#E6DED3]">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <Navbar />
         <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-xl font-light text-[#E6DED3]">Operator Credentials Unresolved</h2>
-          <Link href="/missions" className="text-xs uppercase tracking-wider font-semibold text-[#8FA68E] mt-4 inline-block">
+          <h2 className="text-xl font-bold text-slate-900">Missionary Profile Not Found</h2>
+          <Link href="/missions" className="text-xs uppercase tracking-wider font-bold text-blue-600 hover:text-blue-700 mt-4 inline-block">
             Browse Active Missions
           </Link>
         </div>
@@ -105,92 +105,92 @@ export default function MissionaryProfilePage() {
   const flag = COUNTRY_FLAGS[data.country] || "🌍";
 
   return (
-    <div className="min-h-screen bg-[#0C0E0D] text-[#E6DED3] selection:bg-[#8FA68E]/30 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50">
       <Navbar />
 
-      {/* Atmospheric Glowing Backdrops */}
-      <div className="absolute top-24 left-[15%] w-[500px] h-[500px] glow-sage rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-[40%] right-[10%] w-[600px] h-[600px] glow-clay rounded-full pointer-events-none -z-10" />
+      {/* Ambient glows */}
+      <div className="absolute top-24 left-[15%] w-[500px] h-[500px] glow-blue rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-[40%] right-[10%] w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10" />
 
       {/* Magazine Hero Block */}
-      <section className="relative border-b border-white/[0.05] py-16 lg:py-24">
+      <section className="relative border-b border-slate-200/60 bg-white/60 backdrop-blur-sm py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <Link
             href="/missions"
-            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#9A9690] hover:text-[#E6DED3] font-semibold mb-10 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-slate-500 hover:text-slate-900 font-bold mb-10 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> <span>Back to Active Deployments</span>
           </Link>
 
           <div className="flex flex-col lg:flex-row items-start gap-10">
-            {/* Operator Portrait Frame */}
+            {/* Portrait */}
             <div className="shrink-0 mx-auto lg:mx-0">
-              <div className="relative w-40 h-40 lg:w-48 lg:h-48 rounded-2xl overflow-hidden bg-white/[0.01] border border-white/[0.1] p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
-                <div className="w-full h-full rounded-xl overflow-hidden relative">
+              <div className="relative w-40 h-40 lg:w-48 lg:h-48 rounded-2xl overflow-hidden bg-white border border-slate-200 p-1.5 shadow-xl shadow-slate-200/60">
+                <div className="w-full h-full rounded-xl overflow-hidden relative bg-slate-100">
                   {data.profile_photo_url ? (
                     <img
                       src={data.profile_photo_url}
                       alt={data.full_name}
-                      className="w-full h-full object-cover filter brightness-[0.95] contrast-[1.05]"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-white/[0.02] flex items-center justify-center">
-                      <Users className="w-14 h-14 text-[#9A9690]" />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Users className="w-14 h-14 text-slate-400" />
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Core Credentials metadata */}
+            {/* Credentials */}
             <div className="flex-1 space-y-5 text-center lg:text-left">
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.07]">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
                   <span className="text-sm select-none">{flag}</span>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9A9690]">
-                    {data.country} Base
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-600">
+                    {data.country}
                   </span>
                 </div>
-                <span className="bg-[#8FA68E]/10 text-[#8FA68E] text-[9px] uppercase tracking-wider font-bold px-3 py-1 rounded-md border border-[#8FA68E]/20 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Checked Identity
+                <span className="bg-emerald-50 text-emerald-700 text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Verified Missionary
                 </span>
               </div>
 
               <div className="space-y-1">
-                <h1 className="text-3xl lg:text-4xl font-light text-[#E6DED3] tracking-tight leading-tight">
+                <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                   {data.full_name}
                 </h1>
-                <p className="text-sm uppercase tracking-wider text-[#8FA68E] font-medium">
+                <p className="text-sm uppercase tracking-wider text-blue-600 font-bold">
                   {data.organization_name}
                 </p>
               </div>
 
-              <p className="text-xs text-[#9A9690] uppercase tracking-widest font-mono">
-                System Hash: <span className="text-[#E6DED3]">{data.shepherd_id}</span> • {data.years_of_service} Active Years
+              <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">
+                Shepherd ID: <span className="text-slate-800">{data.shepherd_id}</span> • {data.years_of_service} Years of Service
               </p>
 
               {data.calling_description && (
-                <blockquote className="text-sm sm:text-base text-[#9A9690] italic font-serif leading-relaxed max-w-2xl border-l border-white/[0.08] pl-4 lg:pl-5 text-left mx-auto lg:mx-0">
+                <blockquote className="text-sm sm:text-base text-slate-600 italic font-serif leading-relaxed max-w-2xl border-l-2 border-blue-200 pl-4 lg:pl-5 text-left mx-auto lg:mx-0">
                   &ldquo;{data.calling_description}&rdquo;
                 </blockquote>
               )}
 
-              {/* Cryptographic Key Performance metrics */}
+              {/* KPI metrics */}
               <div className="grid grid-cols-3 gap-4 pt-6 max-w-2xl">
-                <div className="bg-white/[0.015] border border-white/[0.06] rounded-xl p-4 text-left backdrop-blur-md">
-                  <DollarSign className="w-4 h-4 text-[#8FA68E] mb-2" />
-                  <span className="text-lg sm:text-xl font-semibold text-[#E6DED3] block num-tabular">${data.total_funds_deployed.toLocaleString()}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-[#9A9690] font-medium block mt-1">Routed channels</span>
+                <div className="bg-white border border-slate-200 rounded-xl p-4 text-left shadow-sm">
+                  <DollarSign className="w-4 h-4 text-blue-600 mb-2" />
+                  <span className="text-lg sm:text-xl font-extrabold text-slate-900 block num-tabular">${data.total_funds_deployed.toLocaleString()}</span>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mt-1">Funds Deployed</span>
                 </div>
-                <div className="bg-white/[0.015] border border-white/[0.06] rounded-xl p-4 text-left backdrop-blur-md">
-                  <Users className="w-4 h-4 text-[#C08A6A] mb-2" />
-                  <span className="text-lg sm:text-xl font-semibold text-[#E6DED3] block num-tabular">{data.total_people_served.toLocaleString()}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-[#9A9690] font-medium block mt-1">Direct impacts</span>
+                <div className="bg-white border border-slate-200 rounded-xl p-4 text-left shadow-sm">
+                  <Users className="w-4 h-4 text-emerald-600 mb-2" />
+                  <span className="text-lg sm:text-xl font-extrabold text-slate-900 block num-tabular">{data.total_people_served.toLocaleString()}</span>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mt-1">Lives Impacted</span>
                 </div>
-                <div className="bg-white/[0.015] border border-white/[0.06] rounded-xl p-4 text-left backdrop-blur-md">
-                  <Briefcase className="w-4 h-4 text-[#8FA68E] mb-2" />
-                  <span className="text-lg sm:text-xl font-semibold text-[#E6DED3] block num-tabular">{data.past_projects.length}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-[#9A9690] font-medium block mt-1">Audited stations</span>
+                <div className="bg-white border border-slate-200 rounded-xl p-4 text-left shadow-sm">
+                  <Briefcase className="w-4 h-4 text-indigo-600 mb-2" />
+                  <span className="text-lg sm:text-xl font-extrabold text-slate-900 block num-tabular">{data.past_projects.length}</span>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mt-1">Projects Done</span>
                 </div>
               </div>
             </div>
@@ -198,35 +198,35 @@ export default function MissionaryProfilePage() {
         </div>
       </section>
 
-      {/* Main Narrative Blocks */}
+      {/* Main content */}
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 space-y-16">
-        {/* Biography Block */}
+        {/* Biography */}
         {data.biography && (
           <section className="space-y-6">
             <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-[#8FA68E]" />
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-blue-600" />
               </div>
-              <h2 className="text-lg font-semibold text-[#E6DED3]">Narrative & Biography</h2>
+              <h2 className="text-xl font-extrabold text-slate-900">Biography</h2>
             </div>
-            <div className="rounded-2xl bg-white/[0.015] border border-white/[0.07] p-8 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] backdrop-blur-xl">
-              <p className="text-sm sm:text-base text-[#9A9690] font-light leading-relaxed whitespace-pre-wrap">{data.biography}</p>
+            <div className="rounded-2xl bg-white border border-slate-200/80 p-8 shadow-sm">
+              <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{data.biography}</p>
             </div>
           </section>
         )}
 
-        {/* Active Deployments */}
+        {/* Active Missions */}
         <section className="space-y-6">
           <div className="flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
-              <Heart className="w-4 h-4 text-[#C08A6A]" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+              <Heart className="w-5 h-5 text-emerald-600" />
             </div>
-            <h2 className="text-lg font-semibold text-[#E6DED3]">Active Deployments</h2>
+            <h2 className="text-xl font-extrabold text-slate-900">Active Missions</h2>
           </div>
 
           {data.active_missions.length === 0 ? (
-            <div className="rounded-2xl bg-white/[0.01] border border-dashed border-white/[0.08] py-12 text-center text-[#9A9690] text-xs font-light">
-              No active deployments assigned currently.
+            <div className="rounded-2xl bg-white border border-dashed border-slate-300 py-12 text-center text-slate-500 text-sm font-medium">
+              No active missions at this time.
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -245,16 +245,16 @@ export default function MissionaryProfilePage() {
           )}
         </section>
 
-        {/* Historical Archive Accordions */}
+        {/* Project Portfolio */}
         <section className="space-y-6">
           <div className="flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
-              <Briefcase className="w-4 h-4 text-[#8FA68E]" />
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+              <Briefcase className="w-5 h-5 text-indigo-600" />
             </div>
             <div className="flex items-baseline gap-2">
-              <h2 className="text-lg font-semibold text-[#E6DED3]">Historical Projects</h2>
-              <span className="text-[10px] uppercase tracking-wider text-[#9A9690] font-semibold">
-                ({data.past_projects.length} Verified Records)
+              <h2 className="text-xl font-extrabold text-slate-900">Project Portfolio</h2>
+              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                ({data.past_projects.length} completed)
               </span>
             </div>
           </div>
@@ -267,39 +267,39 @@ export default function MissionaryProfilePage() {
               return (
                 <div
                   key={project.id}
-                  className="rounded-2xl bg-white/[0.015] border border-white/[0.07] overflow-hidden transition-all duration-300"
+                  className="rounded-2xl bg-white border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
                 >
                   <button
                     onClick={() => setExpandedProject(isExpanded ? null : project.id)}
-                    className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-white/[0.03] transition-colors"
+                    className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-slate-50/80 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2.5">
-                        <span className="bg-[#8FA68E]/10 text-[#8FA68E] text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded border border-[#8FA68E]/20">
-                          {project.year_completed} Completed
+                        <span className="bg-indigo-50 text-indigo-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-indigo-200">
+                          {project.year_completed}
                         </span>
                         {project.location && (
-                          <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-[#9A9690]">
-                            <MapPin className="w-3 h-3 text-[#C08A6A]" /> {project.location}
+                          <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-slate-500">
+                            <MapPin className="w-3 h-3 text-blue-500" /> {project.location}
                           </span>
                         )}
                       </div>
-                      <h3 className="text-base font-semibold text-[#E6DED3] group-hover:text-white transition duration-200">{project.title}</h3>
-                      <p className="text-xs text-[#9A9690] mt-1.5 line-clamp-2 font-light leading-relaxed">
+                      <h3 className="text-base font-bold text-slate-900">{project.title}</h3>
+                      <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 font-medium leading-relaxed">
                         {project.description}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="text-base sm:text-lg font-semibold text-[#8FA68E] block num-tabular">
+                      <span className="text-base sm:text-lg font-extrabold text-indigo-600 block num-tabular">
                         {project.people_impacted.toLocaleString()}
                       </span>
-                      <span className="text-[9px] uppercase tracking-wider text-[#9A9690] font-medium block">Impacted</span>
+                      <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">People Served</span>
                     </div>
                   </button>
 
                   {isExpanded && (
-                    <div className="px-6 pb-6 border-t border-white/[0.05] pt-5 space-y-5 animate-in fade-in duration-200">
-                      <p className="text-xs sm:text-sm text-[#9A9690] leading-relaxed font-light">
+                    <div className="px-6 pb-6 border-t border-slate-100 pt-5 space-y-5">
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
                         {project.description}
                       </p>
 
@@ -308,12 +308,12 @@ export default function MissionaryProfilePage() {
                           {mediaList.map((url, i) => (
                             <div
                               key={i}
-                              className="aspect-video rounded-xl overflow-hidden bg-white/[0.01] border border-white/[0.07] relative"
+                              className="aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative"
                             >
                               <img
                                 src={url.trim()}
-                                alt={`${project.title} reference frame ${i + 1}`}
-                                className="w-full h-full object-cover filter brightness-[0.9]"
+                                alt={`${project.title} photo ${i + 1}`}
+                                className="w-full h-full object-cover"
                               />
                             </div>
                           ))}
