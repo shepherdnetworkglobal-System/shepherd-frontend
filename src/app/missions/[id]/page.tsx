@@ -81,10 +81,10 @@ export default function MissionDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50/50">
+      <div className="min-h-screen bg-[#0C0E0D] text-[#E6DED3]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#8FA68E] animate-spin" />
         </div>
       </div>
     );
@@ -92,12 +92,12 @@ export default function MissionDetailPage() {
 
   if (!mission) {
     return (
-      <div className="min-h-screen bg-gray-50/50">
+      <div className="min-h-screen bg-[#0C0E0D] text-[#E6DED3]">
         <Navbar />
         <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-2xl font-bold text-gray-900">Mission Not Found</h2>
-          <Link href="/missions" className="text-blue-600 text-sm font-semibold mt-4 inline-block">
-            Back to Missions
+          <h2 className="text-xl font-light text-[#E6DED3]">Mission Pipeline Not Found</h2>
+          <Link href="/missions" className="text-xs uppercase tracking-wider font-semibold text-[#8FA68E] mt-4 inline-block">
+            Return to Active Deployments
           </Link>
         </div>
       </div>
@@ -112,65 +112,76 @@ export default function MissionDetailPage() {
   const flag = COUNTRY_FLAGS[mission.target_country] || "🌍";
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-[#0C0E0D] text-[#E6DED3] selection:bg-[#8FA68E]/30 selection:text-white">
       <Navbar />
 
+      {/* Atmospheric glowing backdrop vectors */}
+      <div className="absolute top-24 left-[10%] w-[500px] h-[500px] glow-sage rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/2 right-[5%] w-[600px] h-[600px] glow-clay rounded-full pointer-events-none -z-10" />
+
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
-        {/* Breadcrumb */}
+        {/* Navigation Breadcrumb */}
         <Link
           href="/missions"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 font-medium mb-6 transition"
+          className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#9A9690] hover:text-[#E6DED3] font-semibold mb-8 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> All Missions
+          <ArrowLeft className="w-4 h-4" /> <span>Back to Active Fields</span>
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content (2 cols) */}
+          {/* Main Content Column */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Mission Header Card */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-              <div className="h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+            {/* Primary Campaign Header Card */}
+            <div className="relative rounded-2xl bg-white/[0.015] border border-white/[0.07] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03),0_8px_32px_rgba(0,0,0,0.15)] overflow-hidden">
+              <div className="h-[2px] w-full bg-gradient-to-r from-[#8FA68E] via-[#B8C7B7] to-[#C08A6A]" />
               <div className="p-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-2xl">{flag}</span>
-                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                    {mission.target_country}
-                  </span>
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.07]">
+                    <span className="text-base leading-none">{flag}</span>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9A9690]">
+                      {mission.target_country} Region
+                    </span>
+                  </div>
                   <span
-                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                    className={`text-[9px] uppercase tracking-widest font-bold px-2.5 py-1.5 rounded-md border ${
                       mission.status === "ACTIVE"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-blue-50 text-blue-700 border border-blue-200"
+                        ? "bg-[#8FA68E]/10 text-[#8FA68E] border-[#8FA68E]/20"
+                        : "bg-[#C08A6A]/10 text-[#C08A6A] border-[#C08A6A]/20"
                     }`}
                   >
                     {mission.status}
                   </span>
                 </div>
 
-                <h1 className="text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight mb-4">
+                <h1 className="text-2xl sm:text-3xl font-light text-[#E6DED3] tracking-tight leading-tight mb-5">
                   {mission.title}
                 </h1>
 
-                <p className="text-gray-600 leading-relaxed mb-8">{mission.description}</p>
+                <p className="text-sm text-[#9A9690] leading-relaxed font-light mb-8 whitespace-pre-wrap">
+                  {mission.description}
+                </p>
 
-                {/* Progress */}
-                <div className="bg-gray-50 rounded-xl p-6 space-y-3">
-                  <div className="flex items-center justify-between">
+                {/* Progress Visualizer Grid */}
+                <div className="bg-white/[0.01] border border-white/[0.05] rounded-xl p-6 space-y-4">
+                  <div className="flex items-end justify-between">
                     <div>
-                      <span className="text-2xl font-extrabold text-gray-900">
+                      <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9A9690] block mb-1">
+                        Sovereign Allocation Reached
+                      </span>
+                      <span className="text-2xl sm:text-3xl font-semibold text-[#E6DED3] num-tabular">
                         ${Number(mission.raised_amount_usd).toLocaleString()}
                       </span>
-                      <span className="text-gray-400 font-medium ml-1">
-                        of ${Number(mission.goal_amount_usd).toLocaleString()}
+                      <span className="text-xs text-[#9A9690] font-light ml-1.5">
+                        of ${Number(mission.goal_amount_usd).toLocaleString()} Cap
                       </span>
                     </div>
-                    <span className="text-lg font-extrabold text-blue-600">
+                    <span className="text-xl font-semibold text-[#8FA68E] num-tabular">
                       {progress.toFixed(0)}%
                     </span>
                   </div>
-                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000"
+                      className="h-full bg-gradient-to-r from-[#8FA68E] to-[#C08A6A] rounded-full transition-all duration-1000"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -178,53 +189,60 @@ export default function MissionDetailPage() {
               </div>
             </div>
 
-            {/* Transparency Section */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-white" />
+            {/* Cryptographic Accountability Section */}
+            <div className="rounded-2xl bg-white/[0.015] border border-white/[0.07] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03),0_8px_32px_rgba(0,0,0,0.15)] p-8">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-[#8FA68E]" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Transparency Ledger</h2>
-                  <p className="text-xs text-gray-500">Verified field expenditures</p>
+                  <h2 className="text-base font-semibold text-[#E6DED3]">Transparency Ledger</h2>
+                  <p className="text-xs text-[#9A9690]">Verified field operator transactions</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                  <DollarSign className="w-4 h-4 text-emerald-600 mb-1" />
-                  <span className="text-xl font-extrabold text-gray-900 block">
+              {/* Financial Breakdown Cells */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-[#8FA68E]/5 border border-[#8FA68E]/10 rounded-xl p-5">
+                  <DollarSign className="w-4 h-4 text-[#8FA68E] mb-2" />
+                  <span className="text-2xl font-semibold text-[#E6DED3] block num-tabular">
                     ${totalSpent.toLocaleString()}
                   </span>
-                  <span className="text-xs text-emerald-600 font-medium">Verified Spent</span>
+                  <span className="text-[10px] uppercase tracking-wider text-[#9A9690] font-medium block mt-1">Verified Expenditures</span>
                 </div>
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                  <TrendingUp className="w-4 h-4 text-blue-600 mb-1" />
-                  <span className="text-xl font-extrabold text-gray-900 block">
-                    ${(Number(mission.raised_amount_usd) - totalSpent).toLocaleString()}
+                <div className="bg-[#C08A6A]/5 border border-[#C08A6A]/10 rounded-xl p-5">
+                  <TrendingUp className="w-4 h-4 text-[#C08A6A] mb-2" />
+                  <span className="text-2xl font-semibold text-[#E6DED3] block num-tabular">
+                    ${Math.max(0, Number(mission.raised_amount_usd) - totalSpent).toLocaleString()}
                   </span>
-                  <span className="text-xs text-blue-600 font-medium">Unallocated</span>
+                  <span className="text-[10px] uppercase tracking-wider text-[#9A9690] font-medium block mt-1">Pending Field Allocations</span>
                 </div>
               </div>
 
+              {/* Itemized Receipts */}
               {receipts.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">
-                  No field receipts uploaded yet. Check back soon.
-                </p>
+                <div className="py-12 border border-dashed border-white/[0.06] rounded-xl text-center">
+                  <Receipt className="w-8 h-8 text-[#9A9690]/40 mx-auto mb-3" />
+                  <p className="text-xs text-[#9A9690] font-light">
+                    No field receipts uploaded to this deployment rail yet.
+                  </p>
+                </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="space-y-3.5">
                   {receipts.map((r) => (
-                    <div key={r.id} className="py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Receipt className="w-4 h-4 text-gray-400" />
+                    <div key={r.id} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05] flex items-center justify-between">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-8 h-8 rounded-lg bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
+                          <Receipt className="w-4 h-4 text-[#9A9690]" />
+                        </div>
                         <div>
-                          <span className="text-sm font-semibold text-gray-900">{r.title}</span>
-                          <span className="text-xs text-gray-400 block">
+                          <span className="text-xs font-semibold text-[#E6DED3] block tracking-wide">{r.title}</span>
+                          <span className="text-[10px] text-[#9A9690] block mt-0.5 font-light">
                             {r.category} {r.vendor_name ? `• ${r.vendor_name}` : ""}
                           </span>
                         </div>
                       </div>
-                      <span className="text-sm font-bold text-gray-900">
+                      <span className="text-xs font-bold text-[#8FA68E] num-tabular">
                         ${Number(r.amount_spent_usd).toLocaleString()}
                       </span>
                     </div>
@@ -234,76 +252,81 @@ export default function MissionDetailPage() {
             </div>
           </div>
 
-          {/* Sidebar (1 col) */}
+          {/* Right Column / Sidebar */}
           <div className="space-y-6">
-            {/* Donate Card */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Support This Mission</h3>
-              <p className="text-sm text-gray-500 mb-6">
-                100% of your gift settles directly to the field via Stellar.
+            {/* support Portal Card */}
+            <div className="rounded-2xl bg-white/[0.015] border border-white/[0.07] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03),0_8px_32px_rgba(0,0,0,0.15)] p-6 sticky top-24">
+              <h3 className="text-base font-semibold text-[#E6DED3] mb-2">Fund This Deployment</h3>
+              <p className="text-xs text-[#9A9690] font-light leading-relaxed mb-6">
+                100% of your gift settles instantly on-chain. Shepherd maintains a strict zero-custody routing configuration.
               </p>
 
               <button
                 onClick={() => setShowPayment(true)}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all flex items-center justify-center gap-2"
+                className="w-full group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#C08A6A] to-[#D9A487] text-[#0C0E0D] text-xs uppercase tracking-wider font-bold py-4 rounded-xl shadow-[0_0_25px_rgba(192,138,106,0.15)] hover:shadow-[0_0_35px_rgba(192,138,106,0.35)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-200"
               >
-                <Heart className="w-4 h-4" /> Give Now
+                <Heart className="w-3.5 h-3.5 fill-[#0C0E0D]" />
+                <span>Deploy Support</span>
               </button>
 
-              <div className="mt-6 space-y-3">
+              <div className="mt-8 pt-6 border-t border-white/[0.05] space-y-3.5">
                 {[
-                  { icon: ShieldCheck, text: "Verified Missionary" },
-                  { icon: Wallet, text: "Stellar USDC Settlement" },
-                  { icon: FileText, text: "Public Receipt Tracking" },
+                  { icon: ShieldCheck, text: "Verified Mission Operator" },
+                  { icon: Wallet, text: "Direct Stellar USDC settlement" },
+                  { icon: FileText, text: "Verified Cryptographic Ledgering" },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2.5 text-xs text-gray-500">
-                    <item.icon className="w-4 h-4 text-emerald-500" />
-                    {item.text}
+                  <div key={i} className="flex items-center gap-2.5 text-[10px] uppercase tracking-wider text-[#9A9690] font-medium">
+                    <item.icon className="w-4 h-4 text-[#8FA68E]" />
+                    <span>{item.text}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Missionary Card */}
+            {/* Operator/Missionary Profile Selector */}
             <Link
               href={`/missionaries/${mission.missionary_id}`}
-              className="block bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-blue-200 transition-all group"
+              className="block rounded-2xl bg-white/[0.015] border border-white/[0.07] hover:border-[#8FA68E]/30 p-6 transition-all duration-300 group"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-                  J
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1C221F] to-[#121614] border border-white/[0.1] flex items-center justify-center text-[#8FA68E] font-medium text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                  M
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900 group-hover:text-blue-700 transition">
-                    View Missionary Profile
+                  <h3 className="text-xs uppercase tracking-wider font-semibold text-[#E6DED3] group-hover:text-white transition duration-200">
+                    Sovereign Operator Profile
                   </h3>
-                  <span className="text-xs text-gray-500">Biography, portfolio & track record</span>
+                  <span className="text-[10px] text-[#9A9690] block mt-0.5 font-light">Biography, portfolio & credentials</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 ml-auto transition" />
               </div>
-              <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5" /> Verified Missionary
+              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold text-[#8FA68E] group-hover:text-[#B8C7B7] transition duration-200">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Checked Identity
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </div>
             </Link>
 
-            {/* Mission Info Card */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                Mission Details
+            {/* Technical Parameters Card */}
+            <div className="rounded-2xl bg-white/[0.015] border border-white/[0.07] p-6 space-y-4">
+              <h3 className="text-[10px] uppercase tracking-widest font-bold text-[#9A9690]">
+                Deployment specifications
               </h3>
               {[
-                { icon: MapPin, label: "Location", value: mission.target_country },
+                { icon: MapPin, label: "Target Area", value: mission.target_country },
                 {
                   icon: Calendar,
-                  label: "Created",
+                  label: "Initialized",
                   value: new Date(mission.created_at).toLocaleDateString(),
                 },
-                { icon: DollarSign, label: "Goal", value: `$${Number(mission.goal_amount_usd).toLocaleString()}` },
+                { icon: DollarSign, label: "Hard Limit", value: `$${Number(mission.goal_amount_usd).toLocaleString()}` },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm">
-                  <item.icon className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-500 w-20">{item.label}</span>
-                  <span className="font-semibold text-gray-900">{item.value}</span>
+                <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-white/[0.03] last:border-0">
+                  <div className="flex items-center gap-2.5 text-[#9A9690] font-light">
+                    <item.icon className="w-3.5 h-3.5 text-[#9A9690]/80" />
+                    <span>{item.label}</span>
+                  </div>
+                  <span className="font-medium text-[#E6DED3]">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -311,15 +334,15 @@ export default function MissionDetailPage() {
         </div>
       </div>
 
-      {/* Payment Modal */}
+      {/* Payment Overlay Modal */}
       {showPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0C0E0D]/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
           <div className="relative max-w-lg w-full">
             <button
               onClick={() => setShowPayment(false)}
-              className="absolute -top-10 right-0 text-white/80 hover:text-white text-sm font-semibold"
+              className="absolute -top-11 right-0 text-xs uppercase tracking-widest font-bold text-[#9A9690] hover:text-[#E6DED3] transition"
             >
-              Close
+              Close Portal
             </button>
             <PaymentWall
               missionId={missionId}
