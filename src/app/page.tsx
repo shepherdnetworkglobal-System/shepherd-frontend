@@ -270,8 +270,8 @@ export default function Home() {
                 className="w-full h-full object-contain p-0.5"
               />
             </div>
-            <span className="text-sm font-semibold tracking-tight text-white">
-              Shepherd Network
+            <span className="text-xs font-bold uppercase tracking-wider text-white">
+              SHEPHERD NETWORK
             </span>
           </div>
           <p className="text-xs text-slate-500 font-medium">

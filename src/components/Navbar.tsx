@@ -30,8 +30,8 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col leading-tight">
               <div className="flex items-center gap-2">
-                <span className="text-base font-semibold text-slate-900 tracking-tight">
-                  Shepherd Network
+                <span className="text-sm font-bold uppercase tracking-wider text-slate-900">
+                  SHEPHERD NETWORK
                 </span>
                 <span className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                   Verified
