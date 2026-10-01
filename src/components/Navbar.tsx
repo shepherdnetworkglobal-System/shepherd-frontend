@@ -2,8 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ShieldCheck, Compass, Activity, ArrowUpRight, Menu, X } from "lucide-react";
+import { Compass, Activity, ArrowUpRight, Menu, X } from "lucide-react";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -20,20 +21,27 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand */}
-          <Link href="/" className="flex items-center gap-3.5 group">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 border border-blue-500/20 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-all duration-300">
-              <ShieldCheck className="w-5 h-5 text-white transition-transform duration-300 group-hover:scale-105" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:border-slate-300 transition-all duration-300">
+              <Image
+                src="/logo.png"
+                alt="Shepherd Network"
+                width={44}
+                height={44}
+                priority
+                className="w-full h-full object-contain p-1"
+              />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold text-slate-900 tracking-tight">
-                  Shepherd
+            <div className="flex flex-col leading-tight">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-semibold text-slate-900 tracking-tight">
+                  Shepherd Network
                 </span>
-                <span className="text-xs uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                <span className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                   Verified
                 </span>
               </div>
-              <span className="text-[11px] text-slate-500 tracking-wider uppercase font-medium">
+              <span className="text-[10px] text-slate-500 tracking-wider uppercase font-medium mt-0.5">
                 Humanitarian Rails
               </span>
             </div>
