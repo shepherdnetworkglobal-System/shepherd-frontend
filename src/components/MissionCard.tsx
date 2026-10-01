@@ -38,13 +38,9 @@ export default function MissionCard({
 
   return (
     <Link href={`/missions/${id}`} className="group block">
-      <div className="relative rounded-2xl bg-white/[0.015] border border-white/[0.07] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03),0_8px_32px_rgba(0,0,0,0.15)] hover:bg-white/[0.035] hover:border-[#8FA68E]/30 transition-all duration-300 overflow-hidden group">
-        {/* Subtle top indicator bar */}
-        <div className={`h-[2px] w-full transition-colors duration-300 ${
-          status === "ACTIVE" 
-            ? "bg-[#8FA68E]/30 group-hover:bg-[#8FA68E]" 
-            : "bg-[#C08A6A]/30 group-hover:bg-[#C08A6A]"
-        }`} />
+      <div className="relative rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200/80 transition-all duration-300 overflow-hidden group">
+        {/* Fintech Gradient Top Bar */}
+        <div className="h-[3px] w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="p-6 space-y-5">
           {/* Header */}
@@ -52,21 +48,21 @@ export default function MissionCard({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-base select-none leading-none">{flag}</span>
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9A9690]">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500">
                   {targetCountry}
                 </span>
               </div>
-              <h3 className="text-base font-medium text-[#E6DED3] group-hover:text-white transition-colors duration-200 line-clamp-2 leading-snug">
+              <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-700 transition-colors duration-200 line-clamp-2 leading-snug">
                 {title}
               </h3>
             </div>
             <span
-              className={`shrink-0 text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border ${
+              className={`shrink-0 text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-md border ${
                 status === "ACTIVE"
-                  ? "bg-[#8FA68E]/10 text-[#8FA68E] border-[#8FA68E]/20"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                   : status === "FUNDED"
-                  ? "bg-[#C08A6A]/10 text-[#C08A6A] border-[#C08A6A]/20"
-                  : "bg-white/[0.04] text-[#9A9690] border-white/[0.08]"
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  : "bg-slate-50 text-slate-600 border-slate-200"
               }`}
             >
               {status}
@@ -76,29 +72,29 @@ export default function MissionCard({
           {/* Progress Bar & Ledger Snapshot */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[#9A9690] font-medium text-[11px] uppercase tracking-wider">
-                <span className="text-[#E6DED3] font-semibold num-tabular">${raisedAmount.toLocaleString()}</span>
-                <span className="opacity-60"> / ${goalAmount.toLocaleString()}</span>
+              <span className="text-slate-500 font-medium text-[11px] uppercase tracking-wider">
+                <span className="text-slate-900 font-bold num-tabular">${raisedAmount.toLocaleString()}</span>
+                <span className="opacity-70"> / ${goalAmount.toLocaleString()}</span>
               </span>
-              <span className={`font-semibold num-tabular ${status === "ACTIVE" ? "text-[#8FA68E]" : "text-[#C08A6A]"}`}>
+              <span className="font-bold text-blue-600 num-tabular">
                 {progress.toFixed(0)}%
               </span>
             </div>
-            <div className="w-full h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
               <div
-                className="h-full bg-gradient-to-r from-[#8FA68E] to-[#C08A6A] rounded-full transition-all duration-700"
+                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
           {/* Card Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#9A9690] font-medium">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#8FA68E]/85" />
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
               <span>Verified Rail</span>
             </div>
-            <span className="text-[10px] uppercase tracking-wider font-semibold text-[#8FA68E] group-hover:text-[#B8C7B7] flex items-center gap-1 transition-all">
+            <span className="text-[10px] uppercase tracking-wider font-bold text-blue-600 group-hover:text-indigo-600 flex items-center gap-1 transition-all">
               <span>Inspect Deployment</span> 
               <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </span>
