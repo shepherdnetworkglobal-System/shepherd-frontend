@@ -42,20 +42,20 @@ export default function Home() {
   const activeCount = missions.filter((m) => m.status === "ACTIVE").length;
 
   return (
-    <div className="min-h-screen bg-[#0C0E0D] text-[#E6DED3] selection:bg-[#8FA68E]/30 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50">
       <Navbar />
 
-      {/* Ambient background blurs */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] glow-sage rounded-full pointer-events-none -translate-y-1/2 -z-10" />
-      <div className="absolute top-[20%] right-10 w-[600px] h-[600px] glow-clay rounded-full pointer-events-none -z-10" />
+      {/* Bright Ambient background blurs */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] glow-blue rounded-full pointer-events-none -translate-y-1/2 -z-10" />
+      <div className="absolute top-[20%] right-10 w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10" />
 
       {/* Hero Section */}
-      <section className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 border-b border-white/[0.04]">
+      <section className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 border-b border-slate-200/60">
         {/* Subtle decorative dot pattern */}
         <div 
-          className="absolute inset-0 opacity-[0.02] pointer-events-none -z-10"
+          className="absolute inset-0 opacity-[0.03] pointer-events-none -z-10"
           style={{
-            backgroundImage: "radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(#0F172A 1px, transparent 1px)",
             backgroundSize: "24px 24px"
           }}
         />
@@ -63,37 +63,37 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="max-w-4xl">
             {/* Tag / Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.07] backdrop-blur-md mb-8 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
-              <Sparkles className="w-3.5 h-3.5 text-[#8FA68E]" />
-              <span className="text-[10px] uppercase tracking-widest font-semibold text-[#9A9690]">
-                Non-Custodial Protocol • Stellar Network rails
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/60 border border-slate-200 backdrop-blur-md mb-8 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              <span className="text-[10px] uppercase tracking-widest font-bold text-slate-600">
+                Non-Custodial • Built on Stellar Network
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-light tracking-tight leading-[1.08] mb-8 text-[#E6DED3]">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-8 text-slate-900">
               Removing the cloak from <br />
-              <span className="font-semibold italic text-transparent bg-clip-text bg-gradient-to-r from-[#8FA68E] via-[#B8C7B7] to-[#C08A6A]">
+              <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600">
                 Humanitarian Giving
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg text-[#9A9690] max-w-2xl mb-12 leading-relaxed">
+            <p className="text-base sm:text-lg text-slate-600 max-w-2xl mb-12 leading-relaxed font-medium">
               Every transaction is signed directly, routed on-chain, and matched instantly to verified field receipts. Zero middlemen. Direct custody. Sovereign transparency.
             </p>
 
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/missions"
-                className="group inline-flex items-center gap-2.5 bg-gradient-to-r from-[#C08A6A] to-[#D9A487] text-[#0C0E0D] text-xs uppercase tracking-wider font-bold px-7 py-4 rounded-xl shadow-[0_0_30px_rgba(192,138,106,0.15)] hover:shadow-[0_0_35px_rgba(192,138,106,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                className="group inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs uppercase tracking-wider font-bold px-7 py-4 rounded-xl shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
               >
                 <span>Deploy To Active Missions</span>
                 <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
               <Link
                 href="/transparency"
-                className="inline-flex items-center gap-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.08] hover:border-white/[0.15] text-[#E6DED3] text-xs uppercase tracking-wider font-semibold px-7 py-4 rounded-xl transition-all duration-200 shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+                className="inline-flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs uppercase tracking-wider font-bold px-7 py-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                <Eye className="w-4 h-4 text-[#9A9690]" /> <span>Audit Ledger</span>
+                <Eye className="w-4 h-4 text-slate-500" /> <span>Audit Ledger</span>
               </Link>
             </div>
           </div>
@@ -101,21 +101,23 @@ export default function Home() {
           {/* Core Stats Metric Array */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-20 lg:mt-28">
             {[
-              { icon: DollarSign, label: "Total Handled", value: `$${totalRaised.toLocaleString()}`, color: "text-[#8FA68E]", accent: "border-[#8FA68E]/10" },
-              { icon: Compass, label: "Active Deployments", value: activeCount.toString(), color: "text-[#C08A6A]", accent: "border-[#C08A6A]/10" },
-              { icon: Users, label: "Sovereign Operators", value: "12", color: "text-[#8FA68E]", accent: "border-white/[0.05]" },
-              { icon: MapPin, label: "Assisted Regions", value: "4", color: "text-[#C08A6A]", accent: "border-white/[0.05]" },
+              { icon: DollarSign, label: "Total Handled", value: `$${totalRaised.toLocaleString()}`, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
+              { icon: Compass, label: "Active Deployments", value: activeCount.toString(), color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
+              { icon: Users, label: "Verified Operators", value: "12", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+              { icon: MapPin, label: "Assisted Regions", value: "4", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100" },
             ].map((stat, i) => (
               <div
                 key={i}
-                className={`bg-white/[0.015] border ${stat.accent} rounded-2xl p-6 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)]`}
+                className="bg-white/80 border border-slate-200/80 rounded-2xl p-6 backdrop-blur-xl shadow-sm hover:shadow-md transition-shadow duration-300"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <stat.icon className={`w-5 h-5 ${stat.color} opacity-80`} />
-                  <span className="text-[9px] uppercase tracking-widest text-[#9A9690] font-bold">Live</span>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${stat.bg} ${stat.border} border`}>
+                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                  </div>
+                  <span className="text-[9px] uppercase tracking-widest text-slate-400 font-bold">Live</span>
                 </div>
-                <div className="text-3xl font-semibold tracking-tight text-[#E6DED3] num-tabular">{stat.value}</div>
-                <div className="text-[10px] uppercase tracking-wider text-[#9A9690] font-medium mt-1">{stat.label}</div>
+                <div className="text-3xl font-extrabold tracking-tight text-slate-900 num-tabular">{stat.value}</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-1">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -123,14 +125,14 @@ export default function Home() {
       </section>
 
       {/* Protocol Pipeline / How It Works */}
-      <section className="relative py-24 border-b border-white/[0.04]">
+      <section className="relative py-24 border-b border-slate-200/60 bg-white/40">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-16">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-[#8FA68E]">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-blue-600">
               Operational Framework
             </span>
-            <h2 className="text-2xl sm:text-4xl font-light text-[#E6DED3] tracking-tight mt-2">
-              Absolute Transparency. <span className="font-semibold italic text-[#C08A6A]">By Architecture.</span>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
+              Absolute Transparency. <span className="text-indigo-600">By Architecture.</span>
             </h2>
           </div>
 
@@ -141,40 +143,40 @@ export default function Home() {
                 title: "Vetted Identities",
                 desc: "Every operator undergoes an exhaustive, multi-tier vetting protocol. Only validated accounts launch smart initiatives on our rails.",
                 icon: ShieldCheck,
-                color: "text-[#8FA68E]",
-                border: "border-[#8FA68E]/10"
+                color: "text-blue-600",
+                bg: "bg-blue-50"
               },
               {
                 step: "02",
                 title: "Direct Pipeline Settlement",
-                desc: "Donations are instantly converted into stable asset channels (USDC) and settled on-chain directly to designated regional wallets. No custody.",
+                desc: "Donations are instantly converted into stable asset channels (USDC) and settled on-chain directly to designated regional wallets.",
                 icon: Zap,
-                color: "text-[#C08A6A]",
-                border: "border-[#C08A6A]/10"
+                color: "text-emerald-600",
+                bg: "bg-emerald-50"
               },
               {
                 step: "03",
                 title: "Cryptographic Accountability",
                 desc: "Operators upload real-time field receipts, expenditure milestones, and geo-tagged images directly mapped to transactions on the public ledger.",
                 icon: Eye,
-                color: "text-[#8FA68E]",
-                border: "border-white/[0.06]"
+                color: "text-indigo-600",
+                bg: "bg-indigo-50"
               },
             ].map((item, i) => (
               <div
                 key={i}
-                className={`relative bg-white/[0.01] border ${item.border} rounded-2xl p-8 backdrop-blur-xl hover:bg-white/[0.02] hover:border-white/[0.12] transition-all duration-300 group shadow-[0_8px_30px_rgba(0,0,0,0.1)]`}
+                className="relative bg-white border border-slate-200/80 rounded-2xl p-8 hover:border-slate-300 transition-all duration-300 group shadow-sm hover:shadow-lg"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
-                    <item.icon className={`w-5 h-5 ${item.color}`} />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${item.bg}`}>
+                    <item.icon className={`w-6 h-6 ${item.color}`} />
                   </div>
-                  <span className="text-2xl font-light text-white/10 tracking-widest uppercase">
+                  <span className="text-2xl font-black text-slate-100 tracking-widest uppercase">
                     {item.step}
                   </span>
                 </div>
-                <h3 className="text-lg font-medium text-[#E6DED3] mb-3">{item.title}</h3>
-                <p className="text-xs sm:text-sm text-[#9A9690] leading-relaxed font-light">{item.desc}</p>
+                <h3 className="text-lg font-bold text-slate-900 mb-3">{item.title}</h3>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -182,20 +184,20 @@ export default function Home() {
       </section>
 
       {/* Featured Deployments */}
-      <section className="relative py-24 border-b border-white/[0.04]">
+      <section className="relative py-24 border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
             <div>
-              <span className="text-[10px] uppercase tracking-widest font-bold text-[#8FA68E]">
+              <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-600">
                 Active Initiatives
               </span>
-              <h2 className="text-2xl sm:text-4xl font-light text-[#E6DED3] tracking-tight mt-2">
-                Field Campaigns <span className="font-semibold italic text-[#C08A6A]">Awaiting Fuel</span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
+                Field Campaigns <span className="text-blue-600">Awaiting Fuel</span>
               </h2>
             </div>
             <Link
               href="/missions"
-              className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider font-semibold text-[#8FA68E] hover:text-[#B8C7B7] transition duration-200"
+              className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold text-blue-600 hover:text-blue-700 transition duration-200"
             >
               <span>View All Field Stations</span>
               <ArrowRight className="w-4 h-4" />
@@ -203,10 +205,10 @@ export default function Home() {
           </div>
 
           {missions.length === 0 ? (
-            <div className="bg-white/[0.015] rounded-2xl border border-white/[0.06] p-16 text-center backdrop-blur-xl">
-              <Activity className="w-10 h-10 text-[#9A9690] mx-auto mb-4" />
-              <h3 className="text-base font-semibold text-[#E6DED3] mb-2">No Active Missions</h3>
-              <p className="text-xs text-[#9A9690] max-w-md mx-auto leading-relaxed">
+            <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center shadow-sm">
+              <Activity className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-base font-bold text-slate-900 mb-2">No Active Missions</h3>
+              <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
                 No campaigns are active currently. Check back shortly as vetted missions complete verification.
               </p>
             </div>
@@ -229,47 +231,46 @@ export default function Home() {
       </section>
 
       {/* Trust Quote / Biblical Anchor */}
-      <section className="relative py-28 overflow-hidden">
-        {/* Soft atmospheric gradient glow */}
-        <div className="absolute top-1/2 left-1/2 w-[700px] h-[350px] -translate-x-1/2 -translate-y-1/2 bg-[#3F4F42]/10 rounded-full blur-[100px] pointer-events-none" />
+      <section className="relative py-28 overflow-hidden bg-white">
+        <div className="absolute top-1/2 left-1/2 w-[700px] h-[350px] -translate-x-1/2 -translate-y-1/2 bg-blue-50 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <p className="text-xs uppercase tracking-widest text-[#8FA68E] font-semibold mb-6">
+          <p className="text-xs uppercase tracking-widest text-blue-600 font-bold mb-6">
             The Covenant Core
           </p>
-          <blockquote className="text-xl sm:text-2xl font-light italic leading-relaxed text-[#E6DED3] mb-6 font-serif">
+          <blockquote className="text-xl sm:text-2xl font-medium italic leading-relaxed text-slate-800 mb-6 font-serif">
             &ldquo;For we aim at what is honorable not only in the Lord&apos;s sight but also in the sight of man.&rdquo;
           </blockquote>
-          <cite className="block text-xs uppercase tracking-widest text-[#9A9690] font-semibold not-italic mb-12">
+          <cite className="block text-xs uppercase tracking-widest text-slate-500 font-bold not-italic mb-12">
             2 Corinthians 8:21
           </cite>
 
-          <div className="flex flex-wrap justify-center gap-y-3 gap-x-8 text-[11px] uppercase tracking-wider text-[#9A9690] font-medium border-t border-white/[0.06] pt-12">
+          <div className="flex flex-wrap justify-center gap-y-3 gap-x-8 text-[11px] uppercase tracking-wider text-slate-600 font-bold border-t border-slate-200 pt-12">
             <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#8FA68E]" /> Non-Custodial Channels
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Non-Custodial Channels
             </span>
             <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#8FA68E]" /> Stellar Settlement Base
+              <CheckCircle2 className="w-4 h-4 text-blue-500" /> Stellar Settlement Base
             </span>
             <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#8FA68E]" /> Cryptographic Accounting
+              <CheckCircle2 className="w-4 h-4 text-indigo-500" /> Cryptographic Accounting
             </span>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0A0C0B] text-[#9A9690] py-16 border-t border-white/[0.05]">
+      <footer className="bg-slate-900 text-slate-400 py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 text-[#8FA68E]" />
+            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-blue-400" />
             </div>
-            <span className="text-sm font-semibold tracking-tight text-[#E6DED3]">
+            <span className="text-sm font-bold tracking-tight text-white">
               The Shepherd&apos;s Network
             </span>
           </div>
-          <p className="text-xs text-[#9A9690]/60">
+          <p className="text-xs text-slate-500 font-medium">
             Sovereign Humanitarian Rails • Powered by the Stellar Blockchain
           </p>
         </div>

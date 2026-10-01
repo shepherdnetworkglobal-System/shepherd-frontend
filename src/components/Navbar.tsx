@@ -16,76 +16,76 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full backdrop-blur-2xl bg-[#0C0E0D]/75 border-b border-white/[0.07] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+    <header className="sticky top-0 z-50 w-full backdrop-blur-2xl bg-white/80 border-b border-slate-200/80 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3.5 group">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#1C221F] to-[#121614] border border-white/[0.1] flex items-center justify-center shadow-[0_0_20px_rgba(143,166,142,0.12)] group-hover:border-[#8FA68E]/40 group-hover:shadow-[0_0_25px_rgba(143,166,142,0.25)] transition-all duration-300">
-              <ShieldCheck className="w-5 h-5 text-[#8FA68E] transition-transform duration-300 group-hover:scale-105" />
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 border border-blue-500/20 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-all duration-300">
+              <ShieldCheck className="w-5 h-5 text-white transition-transform duration-300 group-hover:scale-105" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-semibold text-[#E6DED3] tracking-tight">
+                <span className="text-base font-bold text-slate-900 tracking-tight">
                   Shepherd
                 </span>
-                <span className="text-xs uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-[#8FA68E]/10 text-[#8FA68E] border border-[#8FA68E]/20 font-medium">
-                  Protocol
+                <span className="text-xs uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                  Verified
                 </span>
               </div>
-              <span className="text-[11px] text-[#9A9690] tracking-wider uppercase font-medium">
-                Verified Humanitarian Rails
+              <span className="text-[11px] text-slate-500 tracking-wider uppercase font-medium">
+                Humanitarian Rails
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-white/[0.025] border border-white/[0.06] backdrop-blur-xl">
+          <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-slate-100/50 border border-slate-200/60">
             <Link
               href="/"
-              className={`px-4 py-2 text-xs uppercase tracking-wider font-medium rounded-full transition-all duration-200 ${
+              className={`px-4 py-2 text-xs uppercase tracking-wider font-bold rounded-full transition-all duration-200 ${
                 isActive("/")
-                  ? "bg-white/[0.08] text-[#E6DED3] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
-                  : "text-[#9A9690] hover:text-[#E6DED3] hover:bg-white/[0.04]"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
               }`}
             >
               Overview
             </Link>
             <Link
               href="/missions"
-              className={`px-4 py-2 text-xs uppercase tracking-wider font-medium rounded-full transition-all duration-200 flex items-center gap-1.5 ${
+              className={`px-4 py-2 text-xs uppercase tracking-wider font-bold rounded-full transition-all duration-200 flex items-center gap-1.5 ${
                 isActive("/missions")
-                  ? "bg-white/[0.08] text-[#E6DED3] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
-                  : "text-[#9A9690] hover:text-[#E6DED3] hover:bg-white/[0.04]"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
               }`}
             >
-              <Compass className="w-3.5 h-3.5 text-[#8FA68E]" />
-              Field Missions
+              <Compass className="w-3.5 h-3.5 text-blue-600" />
+              Active Missions
             </Link>
             <Link
               href="/transparency"
-              className={`px-4 py-2 text-xs uppercase tracking-wider font-medium rounded-full transition-all duration-200 flex items-center gap-1.5 ${
+              className={`px-4 py-2 text-xs uppercase tracking-wider font-bold rounded-full transition-all duration-200 flex items-center gap-1.5 ${
                 isActive("/transparency")
-                  ? "bg-white/[0.08] text-[#E6DED3] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
-                  : "text-[#9A9690] hover:text-[#E6DED3] hover:bg-white/[0.04]"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
               }`}
             >
-              <Activity className="w-3.5 h-3.5 text-[#C08A6A]" />
+              <Activity className="w-3.5 h-3.5 text-emerald-600" />
               Public Ledger
             </Link>
           </nav>
 
           {/* CTA Group */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-4">
             <Link
               href="/admin"
-              className="text-xs uppercase tracking-wider text-[#9A9690] hover:text-[#E6DED3] px-3.5 py-2 font-medium transition-colors"
+              className="text-xs uppercase tracking-wider text-slate-500 hover:text-slate-900 font-bold transition-colors"
             >
-              Admin Portal
+              Admin
             </Link>
             <Link
               href="/missions"
-              className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#C08A6A] to-[#D9A487] text-[#0C0E0D] text-xs uppercase tracking-wider font-semibold shadow-[0_0_25px_rgba(192,138,106,0.25)] hover:shadow-[0_0_35px_rgba(192,138,106,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs uppercase tracking-wider font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               <span>Deploy Funds</span>
               <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -95,7 +95,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-[#E6DED3] hover:bg-white/[0.06] transition"
+            className="md:hidden p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
             aria-label="Toggle Navigation"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -104,32 +104,32 @@ export default function Navbar() {
 
         {/* Mobile Dropdown Panel */}
         {mobileOpen && (
-          <div className="md:hidden pb-6 pt-3 border-t border-white/[0.08] space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="md:hidden pb-6 pt-3 border-t border-slate-100 space-y-2 animate-in fade-in duration-200">
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
-              className="block px-4 py-3 rounded-xl text-sm font-medium text-[#E6DED3] hover:bg-white/[0.05] transition"
+              className="block px-4 py-3 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition"
             >
               Overview
             </Link>
             <Link
               href="/missions"
               onClick={() => setMobileOpen(false)}
-              className="block px-4 py-3 rounded-xl text-sm font-medium text-[#E6DED3] hover:bg-white/[0.05] transition"
+              className="block px-4 py-3 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition"
             >
-              Field Missions
+              Active Missions
             </Link>
             <Link
               href="/transparency"
               onClick={() => setMobileOpen(false)}
-              className="block px-4 py-3 rounded-xl text-sm font-medium text-[#E6DED3] hover:bg-white/[0.05] transition"
+              className="block px-4 py-3 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition"
             >
               Public Ledger
             </Link>
             <Link
               href="/admin"
               onClick={() => setMobileOpen(false)}
-              className="block px-4 py-3 rounded-xl text-sm font-medium text-[#9A9690] hover:text-[#E6DED3] transition"
+              className="block px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-900 transition"
             >
               Admin Portal
             </Link>
@@ -137,7 +137,7 @@ export default function Navbar() {
               <Link
                 href="/missions"
                 onClick={() => setMobileOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-[#C08A6A] to-[#D9A487] text-[#0C0E0D] text-xs uppercase tracking-wider font-semibold shadow-[0_0_20px_rgba(192,138,106,0.3)]"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs uppercase tracking-wider font-bold shadow-lg shadow-blue-500/25"
               >
                 <span>Deploy Funds</span>
                 <ArrowUpRight className="w-4 h-4" />
