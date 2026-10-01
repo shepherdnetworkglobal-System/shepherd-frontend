@@ -38,62 +38,69 @@ export default function MissionCard({
 
   return (
     <Link href={`/missions/${id}`} className="group block">
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200/60 transition-all duration-300 overflow-hidden">
-        {/* Top Gradient Bar */}
-        <div className="h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+      <div className="relative rounded-2xl bg-white/[0.015] border border-white/[0.07] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03),0_8px_32px_rgba(0,0,0,0.15)] hover:bg-white/[0.035] hover:border-[#8FA68E]/30 transition-all duration-300 overflow-hidden group">
+        {/* Subtle top indicator bar */}
+        <div className={`h-[2px] w-full transition-colors duration-300 ${
+          status === "ACTIVE" 
+            ? "bg-[#8FA68E]/30 group-hover:bg-[#8FA68E]" 
+            : "bg-[#C08A6A]/30 group-hover:bg-[#C08A6A]"
+        }`} />
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-5">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-lg">{flag}</span>
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base select-none leading-none">{flag}</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9A9690]">
                   {targetCountry}
                 </span>
               </div>
-              <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-2 leading-snug">
+              <h3 className="text-base font-medium text-[#E6DED3] group-hover:text-white transition-colors duration-200 line-clamp-2 leading-snug">
                 {title}
               </h3>
             </div>
             <span
-              className={`shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full ${
+              className={`shrink-0 text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border ${
                 status === "ACTIVE"
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  ? "bg-[#8FA68E]/10 text-[#8FA68E] border-[#8FA68E]/20"
                   : status === "FUNDED"
-                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                  : "bg-gray-50 text-gray-600 border border-gray-200"
+                  ? "bg-[#C08A6A]/10 text-[#C08A6A] border-[#C08A6A]/20"
+                  : "bg-white/[0.04] text-[#9A9690] border-white/[0.08]"
               }`}
             >
               {status}
             </span>
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar & Ledger Snapshot */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-gray-900">
-                ${raisedAmount.toLocaleString()}
-                <span className="text-gray-400 font-normal"> / ${goalAmount.toLocaleString()}</span>
+              <span className="text-[#9A9690] font-medium text-[11px] uppercase tracking-wider">
+                <span className="text-[#E6DED3] font-semibold num-tabular">${raisedAmount.toLocaleString()}</span>
+                <span className="opacity-60"> / ${goalAmount.toLocaleString()}</span>
               </span>
-              <span className="font-bold text-blue-600">{progress.toFixed(0)}%</span>
+              <span className={`font-semibold num-tabular ${status === "ACTIVE" ? "text-[#8FA68E]" : "text-[#C08A6A]"}`}>
+                {progress.toFixed(0)}%
+              </span>
             </div>
-            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700"
+                className="h-full bg-gradient-to-r from-[#8FA68E] to-[#C08A6A] rounded-full transition-all duration-700"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Verified Mission</span>
+          {/* Card Footer */}
+          <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#9A9690] font-medium">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#8FA68E]/85" />
+              <span>Verified Rail</span>
             </div>
-            <span className="text-xs font-semibold text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-              View Details <ArrowRight className="w-3.5 h-3.5" />
+            <span className="text-[10px] uppercase tracking-wider font-semibold text-[#8FA68E] group-hover:text-[#B8C7B7] flex items-center gap-1 transition-all">
+              <span>Inspect Deployment</span> 
+              <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </span>
           </div>
         </div>
