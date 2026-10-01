@@ -19,6 +19,10 @@ import {
   Briefcase,
   BookOpen,
   ArrowRight,
+  Award,
+  Building2,
+  CreditCard,
+  UserCheck,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MissionCard from "@/components/MissionCard";
@@ -35,6 +39,12 @@ interface MissionaryData {
   years_of_service: number;
   calling_description: string;
   verification_status: string;
+  affiliation_path?: string;
+  risk_tier?: string;
+  badge_identity_verified?: boolean;
+  badge_org_verified?: boolean;
+  badge_payout_verified?: boolean;
+  badge_mission_verified?: boolean;
   active_missions: {
     id: number;
     title: string;
@@ -144,16 +154,44 @@ export default function MissionaryProfilePage() {
 
             {/* Credentials */}
             <div className="flex-1 space-y-5 text-center lg:text-left">
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
-                  <span className="text-sm select-none">{flag}</span>
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                {/* Country */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+                  <span className="text-xs select-none">{flag}</span>
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-600">
                     {data.country}
                   </span>
                 </div>
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-md border border-emerald-200 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Verified Missionary
-                </span>
+
+                {/* Affiliation Path */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] uppercase tracking-wider font-bold text-slate-700">
+                  {data.affiliation_path === "ORG_AFFILIATED" ? "Org-Affiliated" : "Independent Missionary"}
+                </div>
+
+                {/* 4 Granular Verification Badges */}
+                {data.badge_identity_verified && (
+                  <span className="bg-emerald-50 text-emerald-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-emerald-200 flex items-center gap-1">
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> Identity Verified
+                  </span>
+                )}
+
+                {data.badge_org_verified && (
+                  <span className="bg-blue-50 text-blue-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-blue-200 flex items-center gap-1">
+                    <Building2 className="w-3.5 h-3.5 text-blue-600" /> Org Verified
+                  </span>
+                )}
+
+                {data.badge_payout_verified && (
+                  <span className="bg-purple-50 text-purple-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-purple-200 flex items-center gap-1">
+                    <CreditCard className="w-3.5 h-3.5 text-purple-600" /> Payout Verified
+                  </span>
+                )}
+
+                {data.badge_mission_verified && (
+                  <span className="bg-amber-50 text-amber-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-amber-200 flex items-center gap-1">
+                    <Award className="w-3.5 h-3.5 text-amber-600" /> Mission Verified
+                  </span>
+                )}
               </div>
 
               <div className="space-y-1">
