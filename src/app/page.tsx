@@ -265,7 +265,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div className="relative w-8 h-8 rounded-lg bg-white flex items-center justify-center overflow-hidden">
               <img
-                src="/logo.png"
+                src="/logo.jpg"
                 alt="Shepherd Network"
                 className="w-full h-full object-contain p-0.5"
               />
