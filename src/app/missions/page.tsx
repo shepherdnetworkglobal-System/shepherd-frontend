@@ -21,8 +21,8 @@ export default function MissionsPage() {
   const [filterCountry, setFilterCountry] = useState("All");
 
   useEffect(() => {
-    apiRequest("/api/missions/")
-      .then(setMissions)
+    apiRequest("/api/missions")
+      .then((data) => setMissions(data as Mission[]))
       .catch(() => setMissions([]));
   }, []);
 
