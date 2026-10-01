@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Compass, Activity, ArrowUpRight, Menu, X } from "lucide-react";
 
@@ -23,12 +22,9 @@ export default function Navbar() {
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:border-slate-300 transition-all duration-300">
-              <Image
+              <img
                 src="/logo.png"
                 alt="Shepherd Network"
-                width={44}
-                height={44}
-                priority
                 className="w-full h-full object-contain p-1"
               />
             </div>

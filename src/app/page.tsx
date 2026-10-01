@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ShieldCheck,
   Compass,
@@ -265,11 +264,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="relative w-8 h-8 rounded-lg bg-white flex items-center justify-center overflow-hidden">
-              <Image
+              <img
                 src="/logo.png"
                 alt="Shepherd Network"
-                width={32}
-                height={32}
                 className="w-full h-full object-contain p-0.5"
               />
             </div>
