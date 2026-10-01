@@ -21,7 +21,7 @@ import {
 import { apiRequest } from "@/lib/api";
 
 const OS_MODULES = [
-  { id: "overview", label: "Command Dashboard", icon: Home, path: "/admin/overview" },
+  { id: "overview", label: "Command Dashboard", icon: Home, path: "/admin" },
   { id: "leadership", label: "01.01 Leadership", icon: Users, path: "/admin/leadership" },
   { id: "projects", label: "01.02 Projects", icon: Briefcase, path: "/admin/projects" },
   { id: "organization", label: "01.03 Organization", icon: Building, path: "/admin/organization" },
