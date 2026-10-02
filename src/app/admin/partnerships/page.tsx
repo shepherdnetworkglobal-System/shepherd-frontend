@@ -28,6 +28,8 @@ import { apiRequest } from "@/lib/api";
 interface Operator {
   id: number;
   user_id: number;
+  full_name: string;
+  email?: string | null;
   shepherd_id: string | null;
   country: string;
   organization_name: string | null;
@@ -257,9 +259,11 @@ export default function PartnershipsWorkstation() {
   const filteredOperators = operators.filter((o) => {
     const term = search.toLowerCase();
     return (
+      (o.full_name && o.full_name.toLowerCase().includes(term)) ||
       o.country.toLowerCase().includes(term) ||
       (o.organization_name && o.organization_name.toLowerCase().includes(term)) ||
-      (o.shepherd_id && o.shepherd_id.toLowerCase().includes(term))
+      (o.shepherd_id && o.shepherd_id.toLowerCase().includes(term)) ||
+      (o.email && o.email.toLowerCase().includes(term))
     );
   });
 
@@ -363,11 +367,14 @@ export default function PartnershipsWorkstation() {
                       </div>
                       <div>
                         <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest block">
-                          {op.shepherd_id || `#OPERATOR-${op.id}`}
+                          {op.shepherd_id || "SHEPHERD ID PENDING"}
                         </span>
                         <h3 className="text-sm font-semibold text-slate-900 line-clamp-1">
-                          {op.organization_name || "Independent Field Operator"}
+                          {op.full_name || "Unnamed Operator"}
                         </h3>
+                        <p className="text-[11px] text-slate-500 font-medium line-clamp-1">
+                          {op.organization_name || "Independent Field Operator"}
+                        </p>
                       </div>
                     </div>
                     <span className="text-sm">{flag}</span>
@@ -440,9 +447,11 @@ export default function PartnershipsWorkstation() {
                 >
                   <div className="truncate">
                     <span className="block font-bold text-slate-900 truncate">
-                      {op.organization_name || `Operator #${op.id}`}
+                      {op.full_name || "Unnamed Operator"}
                     </span>
-                    <span className="text-[10px] text-slate-500">{op.country} • {op.shepherd_id || "Unassigned"}</span>
+                    <span className="text-[10px] text-slate-500">
+                      {op.organization_name || "Independent"} • {op.country} • {op.shepherd_id || "ID Pending"}
+                    </span>
                   </div>
                   <span className="text-sm shrink-0 ml-2">{COUNTRY_FLAGS[op.country] || "🌍"}</span>
                 </button>
@@ -462,6 +471,11 @@ export default function PartnershipsWorkstation() {
                         Story & Credentials Editor
                       </span>
                       <h2 className="text-xl font-bold text-slate-900">{activePublicData.full_name}</h2>
+                      <p className="text-xs text-slate-500 font-medium mt-1">
+                        Shepherd ID: <span className="font-mono text-slate-800">{activePublicData.shepherd_id || "Pending"}</span>
+                        {" • "}
+                        Active Missions: <span className="text-slate-800 font-semibold">{activePublicData.active_missions?.length || 0}</span>
+                      </p>
                     </div>
                     {profileSavedMsg && (
                       <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
@@ -742,7 +756,7 @@ export default function PartnershipsWorkstation() {
             >
               {operators.map((op) => (
                 <option key={op.id} value={op.id}>
-                  {op.organization_name || `Operator #${op.id}`} ({op.country} - {op.shepherd_id || "Unassigned"})
+                  {op.full_name || "Unnamed Operator"} — {op.organization_name || "Independent"} ({op.country} • {op.shepherd_id || "ID Pending"})
                 </option>
               ))}
             </select>
