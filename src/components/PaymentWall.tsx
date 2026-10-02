@@ -20,7 +20,9 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
   const [isCustom, setIsCustom] = useState(false);
   const [assetType, setAssetType] = useState<"USDC" | "XLM">("XLM");
   const [method, setMethod] = useState<"wallet" | "card">("wallet");
+  const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
+  const [progressOptIn, setProgressOptIn] = useState(true);
   const [loading, setLoading] = useState(false);
   const [stepStatus, setStepStatus] = useState<string>("");
   const [txHash, setTxHash] = useState("");
@@ -61,12 +63,20 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
       setStepStatus("Connecting to Freighter wallet...");
       const senderPublicKey = await connectWallet();
 
+      if (progressOptIn && !donorEmail.trim()) {
+        setError("Please enter an email address if you want to receive mission progress updates.");
+        setLoading(false);
+        return;
+      }
+
       setStepStatus("Creating donation record...");
       const donation = await apiRequest("/api/donations/create", {
         method: "POST",
         body: JSON.stringify({
           mission_id: missionId,
-          donor_email: donorEmail,
+          donor_name: donorName.trim() || null,
+          donor_email: donorEmail.trim() || null,
+          progress_opt_in: progressOptIn,
           amount_usd: numericAmount,
           asset_type: assetType,
         }),
@@ -300,37 +310,64 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              {/* Donor Email */}
+            {/* Optional Donor Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Donor Email (Receipt)
+                  Your Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={donorName}
+                  onChange={(e) => setDonorName(e.target.value)}
+                  placeholder="e.g. Sarah Jenkins or Anonymous"
+                  className="w-full bg-white border border-slate-200 rounded-2xl p-3.5 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  Donor Email (Optional)
                 </label>
                 <input
                   type="email"
                   value={donorEmail}
                   onChange={(e) => setDonorEmail(e.target.value)}
                   placeholder="donor@example.com"
-                  className="w-full bg-white border border-slate-200 rounded-2xl p-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
-                  required
+                  className="w-full bg-white border border-slate-200 rounded-2xl p-3.5 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
                 />
               </div>
+            </div>
 
-              {/* Asset Type */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Settlement Asset
+            {/* Email Progress Updates Checkbox */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={progressOptIn}
+                  onChange={(e) => setProgressOptIn(e.target.checked)}
+                  className="mt-0.5 accent-blue-600 w-4 h-4 rounded"
+                />
+                <span className="text-xs font-semibold text-slate-700 leading-snug">
+                  Keep me updated on this mission's progress (receipts, milestones & field updates via email).
+                </span>
+              </label>
+            </div>
+
+            {/* Asset Type Selection */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                Settlement Asset
+              </label>
+              <div className="grid grid-cols-2 gap-2.5 h-[48px]">
+                <label className={`flex items-center justify-center gap-2 rounded-2xl border text-xs font-bold cursor-pointer transition-all ${assetType === "XLM" ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
+                  <input type="radio" name="asset" checked={assetType === "XLM"} onChange={() => setAssetType("XLM")} className="sr-only" />
+                  XLM
                 </label>
-                <div className="grid grid-cols-2 gap-2.5 h-[48px]">
-                  <label className={`flex items-center justify-center gap-2 rounded-2xl border text-xs font-bold cursor-pointer transition-all ${assetType === "XLM" ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
-                    <input type="radio" name="asset" checked={assetType === "XLM"} onChange={() => setAssetType("XLM")} className="sr-only" />
-                    XLM
-                  </label>
-                  <label className={`flex items-center justify-center gap-2 rounded-2xl border text-xs font-bold cursor-pointer transition-all ${assetType === "USDC" ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
-                    <input type="radio" name="asset" checked={assetType === "USDC"} onChange={() => setAssetType("USDC")} className="sr-only" />
-                    USDC
-                  </label>
-                </div>
+                <label className={`flex items-center justify-center gap-2 rounded-2xl border text-xs font-bold cursor-pointer transition-all ${assetType === "USDC" ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
+                  <input type="radio" name="asset" checked={assetType === "USDC"} onChange={() => setAssetType("USDC")} className="sr-only" />
+                  USDC
+                </label>
               </div>
             </div>
 
