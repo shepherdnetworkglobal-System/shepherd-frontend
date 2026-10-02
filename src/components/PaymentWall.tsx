@@ -29,7 +29,7 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const activeAmount = isCustom ? customAmount : amount;
+  const activeAmount = isCustom ? String(customAmount).trim() : String(amount).trim();
 
   const handleCopyHash = () => {
     if (txHash) {
@@ -44,7 +44,7 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
     setLoading(true);
     setError(null);
 
-    const numericAmount = parseFloat(activeAmount);
+    const numericAmount = parseFloat(activeAmount.replace(/[^0-9.]/g, ""));
     if (isNaN(numericAmount) || numericAmount <= 0) {
       setError("Please enter a valid donation amount greater than 0.");
       setLoading(false);
@@ -112,16 +112,14 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
           {/* Ambient Glow */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-100/60 via-transparent to-transparent opacity-70 pointer-events-none" />
           
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute top-6 right-6 p-2.5 text-slate-400 hover:text-slate-800 bg-slate-100/80 hover:bg-white rounded-full transition-all z-20 shadow-sm border border-slate-200/50"
-              aria-label="Close modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => onClose && onClose()}
+            className="absolute top-6 right-6 p-2.5 text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-full transition-all z-20 shadow-md border border-slate-200"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5" />
+          </button>
           
           <div className="relative text-center z-10">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/30">
@@ -198,17 +196,15 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
         {/* Background Ambient Glow */}
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-100/50 via-transparent to-transparent pointer-events-none" />
 
-        {/* Close Button Header */}
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-5 right-5 p-2.5 text-slate-400 hover:text-slate-800 bg-slate-100/80 hover:bg-white rounded-full transition-all z-30 shadow-sm border border-slate-200/60"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
+        {/* Always-visible Close Button */}
+        <button
+          type="button"
+          onClick={() => onClose && onClose()}
+          className="absolute top-5 right-5 p-2.5 text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-full transition-all z-30 shadow-md border border-slate-200"
+          aria-label="Close modal"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
         {/* Left Column: Context & Beauty */}
         <div className="md:w-5/12 bg-gradient-to-br from-slate-50/80 via-slate-100/40 to-blue-50/20 p-8 sm:p-10 md:p-12 border-b md:border-b-0 md:border-r border-slate-200/60 flex flex-col justify-between relative z-10">

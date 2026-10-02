@@ -334,23 +334,14 @@ export default function MissionDetailPage() {
         </div>
       </div>
 
-      {/* Payment Overlay Modal */}
+      {/* Payment Overlay Modal — PaymentWall owns its own full-screen glass shell */}
       {showPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative max-w-lg w-full">
-            <button
-              onClick={() => setShowPayment(false)}
-              className="absolute -top-11 right-0 text-xs uppercase tracking-widest font-bold text-slate-300 hover:text-white transition"
-            >
-              Close Portal
-            </button>
-            <PaymentWall
-              missionId={missionId}
-              missionTitle={mission.title}
-              recipientCountry={mission.target_country}
-            />
-          </div>
-        </div>
+        <PaymentWall
+          missionId={missionId}
+          missionTitle={mission.title}
+          recipientCountry={mission.target_country}
+          onClose={() => setShowPayment(false)}
+        />
       )}
     </div>
   );
