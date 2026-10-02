@@ -9,51 +9,46 @@ export const DEFAULT_PLATFORM_RECIPIENT = 'GDJ2Y5K65KFLXW743R3XTRJNZS24H7U77QUPB
 export async function connectWallet(): Promise<string> {
   console.log("Initializing Freighter connection handshake...");
   
-  // Direct window detection check as fallback to helper functions
-  const hasInjectedWallet = typeof window !== 'undefined' && (window as any).stellarKeystore;
-  
-  let connection = false;
-  try {
-    const connectionState = await isConnected();
-    connection = !!(
-      connectionState &&
-      typeof (connectionState as any).isConnected === 'boolean'
-        ? (connectionState as any).isConnected
-        : connectionState
-    );
-  } catch (e) {
-    console.warn("isConnected check threw error:", e);
-  }
+  // Promise wrapper with 15-second timeout to prevent infinite hanging
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("Freighter connection timed out. Please open the extension and unlock it."));
+    }, 15000);
+  });
 
-  if (!connection && !hasInjectedWallet) {
-    throw new Error('Freighter wallet extension not detected. Please install Freighter and verify it is enabled in your browser extensions.');
-  }
+  const connectLogic = async (): Promise<string> => {
+    const hasInjectedWallet = typeof window !== 'undefined' && ((window as any).stellarKeystore || (window as any).freighter);
 
-  console.log("Requesting account access from Freighter...");
-  try {
+    let connection = false;
+    try {
+      const connectionStatus = await isConnected();
+      connection = !!(connectionStatus && typeof connectionStatus === 'object'
+        ? (connectionStatus as { isConnected?: boolean }).isConnected
+        : connectionStatus);
+    } catch (e) { console.warn(e); }
+
+    if (!connection && !hasInjectedWallet) {
+      throw new Error("Freighter wallet extension not detected. Please install it.");
+    }
+
+    // Force access request which triggers the Freighter popup
     const accessObj = await requestAccess();
+    
+    if (typeof accessObj === 'string') return accessObj;
     if (accessObj && typeof accessObj === 'object' && 'address' in accessObj) {
-      console.log("Access granted via requestAccess:", (accessObj as any).address);
       return (accessObj as { address: string }).address;
     }
-  } catch (err: any) {
-    console.error("Freighter requestAccess failed:", err);
-  }
 
-  console.log("Attempting fallback address retrieval...");
-  try {
     const addressObj = await getAddress();
-    if (typeof addressObj === 'string' && addressObj) {
-      return addressObj;
-    }
+    if (typeof addressObj === 'string') return addressObj;
     if (addressObj && typeof addressObj === 'object' && 'address' in addressObj) {
       return (addressObj as { address: string }).address;
     }
-  } catch (err: any) {
-    console.error("Freighter getAddress failed:", err);
-  }
 
-  throw new Error('Could not retrieve wallet address. Please open Freighter, sign in, and refresh this page.');
+    throw new Error("Could not retrieve wallet address. Please ensure you are logged into Freighter.");
+  };
+
+  return Promise.race([connectLogic(), timeoutPromise]);
 }
 
 export async function sendTestnetPayment(params: {
