@@ -69,6 +69,15 @@ export async function sendTestnetPayment(params: {
     TESTNET_PASSPHRASE
   );
 
-  const result = await server.submitTransaction(transaction);
-  return { hash: result.hash };
+  try {
+    const result = await server.submitTransaction(transaction);
+    return { hash: result.hash };
+  } catch (error: any) {
+    if (error?.response?.data?.extras?.result_codes) {
+      const codes = error.response.data.extras.result_codes;
+      const opCodes = codes.operations ? ` (${codes.operations.join(', ')})` : '';
+      throw new Error(`Stellar network rejected transaction: ${codes.transaction}${opCodes}`);
+    }
+    throw error;
+  }
 }
