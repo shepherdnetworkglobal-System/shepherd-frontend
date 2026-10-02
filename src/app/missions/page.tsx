@@ -15,15 +15,28 @@ interface Mission {
   status: string;
 }
 
+import { Loader2 } from "lucide-react";
+
 export default function MissionsPage() {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [search, setSearch] = useState("");
   const [filterCountry, setFilterCountry] = useState("All");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     apiRequest("/api/missions")
-      .then((data) => setMissions(data as Mission[]))
-      .catch(() => setMissions([]));
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setMissions(data as Mission[]);
+        } else {
+          setMissions([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load public missions:", err);
+        setMissions([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const countries = ["All", ...Array.from(new Set(missions.map((m) => m.target_country)))];
@@ -88,12 +101,17 @@ export default function MissionsPage() {
         </div>
 
         {/* Mission Grid */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Syncing Live Field Deployments...</span>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center shadow-sm">
             <Globe2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-base font-bold text-slate-900 mb-2">No Matching Missions Found</h3>
             <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-              No field stations matched your filter criteria. Try adjusting your parameters or check back soon.
+              No active live missions found. Use the Admin Command Center to onboard a missionary and launch your first live deployment.
             </p>
           </div>
         ) : (

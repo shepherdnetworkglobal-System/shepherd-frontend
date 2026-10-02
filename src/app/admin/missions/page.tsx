@@ -88,18 +88,42 @@ export default function MissionsWorkstation() {
   const [editReportingPlan, setEditReportingPlan] = useState("");
   const [editLocalPartners, setEditLocalPartners] = useState("");
 
-  // New Mission Builder State
-  const [showBuilder, setShowBuilder] = useState(false);
-  const [newMissionTitle, setNewMissionTitle] = useState("");
-  const [newMissionDesc, setNewMissionDesc] = useState("");
-  const [newMissionGoal, setNewMissionGoal] = useState("5000");
-  const [newMissionCountry, setNewMissionCountry] = useState("Kenya");
-  
-  const [newOperatorName, setNewOperatorName] = useState("");
-  const [newOperatorEmail, setNewOperatorEmail] = useState("");
-  const [newOperatorOrg, setNewOperatorOrg] = useState("Independent");
-  const [newOperatorAddress, setNewOperatorAddress] = useState("");
-  const [creating, setCreating] = useState(false);
+  // Independent Modals State
+  const [showOpModal, setShowOpModal] = useState(false);
+  const [showMissionModal, setShowMissionModal] = useState(false);
+  const [availableOperators, setAvailableOperators] = useState<any[]>([]);
+
+  // Standalone Missionary Form
+  const [opName, setOpName] = useState("");
+  const [opEmail, setOpEmail] = useState("");
+  const [opCountry, setOpCountry] = useState("Kenya");
+  const [opOrg, setOpOrg] = useState("Independent");
+  const [opWallet, setOpWallet] = useState("");
+  const [creatingOp, setCreatingOp] = useState(false);
+
+  // Standalone Mission Form
+  const [selectedOpId, setSelectedOpId] = useState<string>("");
+  const [missionTitle, setMissionTitle] = useState("");
+  const [missionDesc, setMissionDesc] = useState("");
+  const [missionGoal, setMissionGoal] = useState("5000");
+  const [missionCountry, setMissionCountry] = useState("Kenya");
+  const [creatingMission, setCreatingMission] = useState(false);
+
+  const fetchOperators = async () => {
+    try {
+      const ops = await apiRequest("/api/verification/applications");
+      setAvailableOperators(ops || []);
+      if (ops && ops.length > 0 && !selectedOpId) {
+        setSelectedOpId(String(ops[0].id));
+      }
+    } catch {
+      setAvailableOperators([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchOperators();
+  }, []);
 
   const fetchMissions = async () => {
     setLoading(true);
@@ -148,52 +172,72 @@ export default function MissionsWorkstation() {
     fetchMissionDetails(m.id);
   };
 
-  const handleLaunchMission = async (e: React.FormEvent) => {
+  const handleCreateMissionary = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCreating(true);
+    setCreatingOp(true);
     try {
-      // 1. Create User
       const userRes = await apiRequest("/api/auth/register", {
         method: "POST",
         body: JSON.stringify({
-          email: newOperatorEmail,
-          password: "TempPassword123!", // Temp password for operator
-          full_name: newOperatorName,
-          role: "MISSIONARY"
-        })
+          email: opEmail,
+          password: "TempPassword123!",
+          full_name: opName,
+          role: "MISSIONARY",
+        }),
       });
 
-      // 2. Create Missionary Profile
-      const profileRes = await apiRequest("/api/verification/apply", {
+      await apiRequest("/api/verification/apply", {
         method: "POST",
         body: JSON.stringify({
           user_id: userRes.id || userRes.user_id,
-          country: newMissionCountry,
+          country: opCountry,
           affiliation_path: "INDEPENDENT",
-          organization_name: newOperatorOrg,
-          stellar_payout_address: newOperatorAddress || null,
-        })
+          organization_name: opOrg,
+          stellar_payout_address: opWallet || null,
+        }),
       });
 
-      // 3. Create Mission
+      setShowOpModal(false);
+      setOpName("");
+      setOpEmail("");
+      setOpWallet("");
+      await fetchOperators();
+      alert("Missionary Profile Onboarded Successfully!");
+    } catch (err: any) {
+      alert(err.message || "Failed to onboard missionary.");
+    } finally {
+      setCreatingOp(false);
+    }
+  };
+
+  const handleCreateMission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOpId) {
+      alert("Please select or onboard a missionary first.");
+      return;
+    }
+    setCreatingMission(true);
+    try {
       await apiRequest("/api/missions", {
         method: "POST",
         body: JSON.stringify({
-          missionary_id: profileRes.id,
-          title: newMissionTitle,
-          description: newMissionDesc,
-          goal_amount_usd: parseFloat(newMissionGoal),
-          target_country: newMissionCountry,
-        })
+          missionary_id: parseInt(selectedOpId, 10),
+          title: missionTitle,
+          description: missionDesc,
+          goal_amount_usd: parseFloat(missionGoal),
+          target_country: missionCountry,
+        }),
       });
 
-      setShowBuilder(false);
+      setShowMissionModal(false);
+      setMissionTitle("");
+      setMissionDesc("");
       await fetchMissions();
-      alert("Mission Launched Successfully! Check the queue.");
+      alert("Mission Campaign Created Successfully!");
     } catch (err: any) {
-      alert(err.message || "Failed to launch mission. Ensure email is unique.");
+      alert(err.message || "Failed to create mission.");
     } finally {
-      setCreating(false);
+      setCreatingMission(false);
     }
   };
 
@@ -262,15 +306,25 @@ export default function MissionsWorkstation() {
         
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowBuilder(true)}
-            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm"
+            onClick={() => setShowOpModal(true)}
+            className="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-1.5 shadow-sm"
           >
-            Launch Live Mission
+            + Onboard Missionary
+          </button>
+
+          <button
+            onClick={() => {
+              fetchOperators();
+              setShowMissionModal(true);
+            }}
+            className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all flex items-center gap-1.5 shadow-sm"
+          >
+            + Create Mission
           </button>
           
           <button
             onClick={fetchMissions}
-            className="px-4 py-2.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 flex items-center gap-1.5 shadow-sm transition-all uppercase tracking-wider"
+            className="px-3.5 py-2.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 flex items-center gap-1.5 shadow-sm transition-all uppercase tracking-wider"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             Sync
@@ -732,85 +786,120 @@ export default function MissionsWorkstation() {
         )}
       </div>
 
-      {/* Launch Mission Modal Builder */}
-      {showBuilder && (
+      {/* 1. Standalone Missionary Onboarding Modal */}
+      {showOpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-2xl w-full p-8 relative my-auto">
+          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-lg w-full p-8 relative my-auto">
             <button
-              onClick={() => setShowBuilder(false)}
-              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-full transition-all"
+              type="button"
+              onClick={() => setShowOpModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold"
             >
-              <CheckCircle2 className="w-5 h-5 hidden" /> {/* spacer */}
               ✕
             </button>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded">
+              Step 1: Operator Registry
+            </span>
+            <h2 className="text-xl font-bold text-slate-900 mt-2 mb-4">Onboard Field Missionary</h2>
             
-            <div className="mb-8">
-              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
-                Live Data Entry
-              </span>
-              <h2 className="text-2xl font-bold text-slate-900 mt-3">Launch New Mission</h2>
-              <p className="text-xs text-slate-500 font-medium mt-1">This will create a missionary user profile and an active mission instantly.</p>
-            </div>
-
-            <form onSubmit={handleLaunchMission} className="space-y-6">
-              
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operator Details</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Full Name</label>
-                    <input required type="text" value={newOperatorName} onChange={e => setNewOperatorName(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Email Address (Login)</label>
-                    <input required type="email" value={newOperatorEmail} onChange={e => setNewOperatorEmail(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-                  </div>
+            <form onSubmit={handleCreateMissionary} className="space-y-4">
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Full Name</label>
+                <input required type="text" value={opName} onChange={e => setOpName(e.target.value)} placeholder="e.g. John Doe" className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Email Address</label>
+                <input required type="email" value={opEmail} onChange={e => setOpEmail(e.target.value)} placeholder="john@mission.org" className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Country</label>
+                  <input required type="text" value={opCountry} onChange={e => setOpCountry(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Organization</label>
-                    <input required type="text" value={newOperatorOrg} onChange={e => setNewOperatorOrg(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Stellar Wallet Address</label>
-                    <input type="text" placeholder="G..." value={newOperatorAddress} onChange={e => setNewOperatorAddress(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none font-mono" />
-                  </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Organization</label>
+                  <input required type="text" value={opOrg} onChange={e => setOpOrg(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
                 </div>
               </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Stellar Wallet Address</label>
+                <input type="text" value={opWallet} onChange={e => setOpWallet(e.target.value)} placeholder="G..." className="w-full text-xs font-mono p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+              </div>
+              <button
+                type="submit"
+                disabled={creatingOp}
+                className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider hover:bg-slate-800 transition-all disabled:opacity-50"
+              >
+                {creatingOp ? "Saving..." : "Onboard Missionary"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mission Details</h3>
-                
-                <div>
-                  <label className="text-[11px] font-bold text-slate-500 mb-1 block">Mission Title</label>
-                  <input required type="text" value={newMissionTitle} onChange={e => setNewMissionTitle(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-                </div>
-                
-                <div>
-                  <label className="text-[11px] font-bold text-slate-500 mb-1 block">Description</label>
-                  <textarea required rows={3} value={newMissionDesc} onChange={e => setNewMissionDesc(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-                </div>
+      {/* 2. Standalone Mission Campaign Creation Modal */}
+      {showMissionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-lg w-full p-8 relative my-auto">
+            <button
+              type="button"
+              onClick={() => setShowMissionModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold"
+            >
+              ✕
+            </button>
+            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded">
+              Step 2: Campaign Deployment
+            </span>
+            <h2 className="text-xl font-bold text-slate-900 mt-2 mb-4">Create Mission Campaign</h2>
+            
+            <form onSubmit={handleCreateMission} className="space-y-4">
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Assigned Missionary</label>
+                {availableOperators.length === 0 ? (
+                  <p className="text-xs text-red-600 font-medium">No missionaries found. Please onboard a missionary first.</p>
+                ) : (
+                  <select
+                    value={selectedOpId}
+                    onChange={e => setSelectedOpId(e.target.value)}
+                    className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500"
+                  >
+                    {availableOperators.map(op => (
+                      <option key={op.id} value={op.id}>
+                        {op.full_name} ({op.organization_name || "Independent"} - {op.country})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Target Goal (USD)</label>
-                    <input required type="number" value={newMissionGoal} onChange={e => setNewMissionGoal(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Target Country</label>
-                    <input required type="text" value={newMissionCountry} onChange={e => setNewMissionCountry(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-                  </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Mission Title</label>
+                <input required type="text" value={missionTitle} onChange={e => setMissionTitle(e.target.value)} placeholder="e.g. Clean Water Wells" className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Description</label>
+                <textarea required rows={3} value={missionDesc} onChange={e => setMissionDesc(e.target.value)} placeholder="Mission scope and goals..." className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Funding Goal (USD)</label>
+                  <input required type="number" value={missionGoal} onChange={e => setMissionGoal(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Target Country</label>
+                  <input required type="text" value={missionCountry} onChange={e => setMissionCountry(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={creating}
-                className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50"
+                disabled={creatingMission || availableOperators.length === 0}
+                className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider hover:bg-indigo-700 transition-all disabled:opacity-50"
               >
-                {creating ? "Launching..." : "Launch Live Mission Data"}
+                {creatingMission ? "Deploying..." : "Deploy Mission Campaign"}
               </button>
             </form>
           </div>
