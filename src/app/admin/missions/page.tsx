@@ -88,6 +88,19 @@ export default function MissionsWorkstation() {
   const [editReportingPlan, setEditReportingPlan] = useState("");
   const [editLocalPartners, setEditLocalPartners] = useState("");
 
+  // New Mission Builder State
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [newMissionTitle, setNewMissionTitle] = useState("");
+  const [newMissionDesc, setNewMissionDesc] = useState("");
+  const [newMissionGoal, setNewMissionGoal] = useState("5000");
+  const [newMissionCountry, setNewMissionCountry] = useState("Kenya");
+  
+  const [newOperatorName, setNewOperatorName] = useState("");
+  const [newOperatorEmail, setNewOperatorEmail] = useState("");
+  const [newOperatorOrg, setNewOperatorOrg] = useState("Independent");
+  const [newOperatorAddress, setNewOperatorAddress] = useState("");
+  const [creating, setCreating] = useState(false);
+
   const fetchMissions = async () => {
     setLoading(true);
     try {
@@ -133,6 +146,55 @@ export default function MissionsWorkstation() {
     setSaveMessage(null);
     setActivePanel("OVERVIEW");
     fetchMissionDetails(m.id);
+  };
+
+  const handleLaunchMission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      // 1. Create User
+      const userRes = await apiRequest("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: newOperatorEmail,
+          password: "TempPassword123!", // Temp password for operator
+          full_name: newOperatorName,
+          role: "MISSIONARY"
+        })
+      });
+
+      // 2. Create Missionary Profile
+      const profileRes = await apiRequest("/api/verification/apply", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userRes.id || userRes.user_id,
+          country: newMissionCountry,
+          affiliation_path: "INDEPENDENT",
+          organization_name: newOperatorOrg,
+          stellar_payout_address: newOperatorAddress || null,
+        })
+      });
+
+      // 3. Create Mission
+      await apiRequest("/api/missions", {
+        method: "POST",
+        body: JSON.stringify({
+          missionary_id: profileRes.id,
+          title: newMissionTitle,
+          description: newMissionDesc,
+          goal_amount_usd: parseFloat(newMissionGoal),
+          target_country: newMissionCountry,
+        })
+      });
+
+      setShowBuilder(false);
+      await fetchMissions();
+      alert("Mission Launched Successfully! Check the queue.");
+    } catch (err: any) {
+      alert(err.message || "Failed to launch mission. Ensure email is unique.");
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleSaveMission = async () => {
@@ -187,23 +249,33 @@ export default function MissionsWorkstation() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
           <div className="flex items-center space-x-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
+            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
               Module 01.07
             </span>
-            <span className="text-xs font-medium text-slate-500">• Field Operations & Mission Lifecycle</span>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Field Operations & Mission Lifecycle</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Map className="w-7 h-7 text-indigo-600" />
             Missions & Field Operations Workstation
           </h1>
         </div>
-        <button
-          onClick={fetchMissions}
-          className="px-3.5 py-2 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1.5 shadow-sm transition-all"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh Field Data
-        </button>
+        
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowBuilder(true)}
+            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm"
+          >
+            Launch Live Mission
+          </button>
+          
+          <button
+            onClick={fetchMissions}
+            className="px-4 py-2.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 flex items-center gap-1.5 shadow-sm transition-all uppercase tracking-wider"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Sync
+          </button>
+        </div>
       </div>
 
       {/* KPI Strip */}
@@ -659,6 +731,92 @@ export default function MissionsWorkstation() {
           </div>
         )}
       </div>
+
+      {/* Launch Mission Modal Builder */}
+      {showBuilder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-2xl w-full p-8 relative my-auto">
+            <button
+              onClick={() => setShowBuilder(false)}
+              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-full transition-all"
+            >
+              <CheckCircle2 className="w-5 h-5 hidden" /> {/* spacer */}
+              ✕
+            </button>
+            
+            <div className="mb-8">
+              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
+                Live Data Entry
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-3">Launch New Mission</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">This will create a missionary user profile and an active mission instantly.</p>
+            </div>
+
+            <form onSubmit={handleLaunchMission} className="space-y-6">
+              
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operator Details</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Full Name</label>
+                    <input required type="text" value={newOperatorName} onChange={e => setNewOperatorName(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Email Address (Login)</label>
+                    <input required type="email" value={newOperatorEmail} onChange={e => setNewOperatorEmail(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Organization</label>
+                    <input required type="text" value={newOperatorOrg} onChange={e => setNewOperatorOrg(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Stellar Wallet Address</label>
+                    <input type="text" placeholder="G..." value={newOperatorAddress} onChange={e => setNewOperatorAddress(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none font-mono" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mission Details</h3>
+                
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 mb-1 block">Mission Title</label>
+                  <input required type="text" value={newMissionTitle} onChange={e => setNewMissionTitle(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                </div>
+                
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 mb-1 block">Description</label>
+                  <textarea required rows={3} value={newMissionDesc} onChange={e => setNewMissionDesc(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Target Goal (USD)</label>
+                    <input required type="number" value={newMissionGoal} onChange={e => setNewMissionGoal(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 mb-1 block">Target Country</label>
+                    <input required type="text" value={newMissionCountry} onChange={e => setNewMissionCountry(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={creating}
+                className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50"
+              >
+                {creating ? "Launching..." : "Launch Live Mission Data"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
