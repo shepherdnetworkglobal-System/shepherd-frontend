@@ -19,18 +19,19 @@ import {
   LogOut
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
+import "flag-icons/css/flag-icons.min.css";
 
 const OS_MODULES = [
   { id: "overview", label: "Command Dashboard", icon: Home, path: "/admin" },
-  { id: "leadership", label: "01.01 Leadership", icon: Users, path: "/admin/leadership" },
-  { id: "projects", label: "01.02 Projects", icon: Briefcase, path: "/admin/projects" },
-  { id: "organization", label: "01.03 Organization", icon: Building, path: "/admin/organization" },
-  { id: "product", label: "01.04 Product", icon: Box, path: "/admin/product" },
-  { id: "trust", label: "01.05 Trust & Verif", icon: Lock, path: "/admin/trust" },
-  { id: "finance", label: "01.06 Finance", icon: DollarSign, path: "/admin/finance" },
-  { id: "missions", label: "01.07 Missions", icon: Globe2, path: "/admin/missions" },
-  { id: "partnerships", label: "01.08 Partnerships", icon: Handshake, path: "/admin/partnerships" },
-  { id: "communications", label: "01.09 Communications", icon: Megaphone, path: "/admin/communications" },
+  { id: "leadership", label: "Leadership", icon: Users, path: "/admin/leadership" },
+  { id: "projects", label: "Projects", icon: Briefcase, path: "/admin/projects" },
+  { id: "organization", label: "Organization", icon: Building, path: "/admin/organization" },
+  { id: "product", label: "Product", icon: Box, path: "/admin/product" },
+  { id: "trust", label: "On-Boarding", icon: Lock, path: "/admin/trust" },
+  { id: "finance", label: "Finance", icon: DollarSign, path: "/admin/finance" },
+  { id: "missions", label: "Missions", icon: Globe2, path: "/admin/missions" },
+  { id: "partnerships", label: "Partnerships", icon: Handshake, path: "/admin/partnerships" },
+  { id: "communications", label: "Communications", icon: Megaphone, path: "/admin/communications" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
