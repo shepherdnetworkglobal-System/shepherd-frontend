@@ -2,14 +2,33 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import {
-  ShieldCheck, User, Building2, FileText, Search, RefreshCw, Eye, Sparkles, AlertCircle,
-  BookOpen, Briefcase, Plus, Trash2, Upload, Image as ImageIcon, Globe2, CheckCircle2,
-  Loader2, Award, MapPin, Save, UserPlus, Target
+  ShieldCheck,
+  User,
+  Building2,
+  FileText,
+  Search,
+  RefreshCw,
+  Eye,
+  Sparkles,
+  AlertCircle,
+  BookOpen,
+  Briefcase,
+  Plus,
+  Trash2,
+  Upload,
+  Image as ImageIcon,
+  Globe2,
+  CheckCircle2,
+  Loader2,
+  Award,
+  MapPin,
+  Save,
+  UserPlus,
+  Target
 } from "lucide-react";
 import { apiRequest, uploadFile } from "@/lib/api";
 import "flag-icons/css/flag-icons.min.css";
 
-// --- Interfaces ---
 interface Application {
   id: number;
   user_id: number;
@@ -62,9 +81,8 @@ export default function OnboardingWorkstation() {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
-  const [activeTab, setActiveTab] = useState<"VETTING" | "PROFILE" | "PORTFOLIO">("VETTING");
-  
-  // Interactive Gateways
+
+  // Gateways Modals
   const [showOpModal, setShowOpModal] = useState(false);
   const [showMissionModal, setShowMissionModal] = useState(false);
 
@@ -78,7 +96,7 @@ export default function OnboardingWorkstation() {
   const [opSelfie, setOpSelfie] = useState("");
   const [opCert, setOpCert] = useState("");
   const [opPhoto, setOpPhoto] = useState("");
-  const [uploadingState, setUploadingState] = useState<string | null>(null); // tracks which file is uploading
+  const [uploadingState, setUploadingState] = useState<string | null>(null);
   const [creatingOp, setCreatingOp] = useState(false);
 
   // New Mission Form
@@ -92,15 +110,12 @@ export default function OnboardingWorkstation() {
   const [mProcess, setMProcess] = useState("");
   const [creatingMission, setCreatingMission] = useState(false);
 
-  // Vetting & Profile Editor States (for selectedApp)
+  // Selected Operator Edit States
   const [status, setStatus] = useState("UNDER_REVIEW");
   const [adminNotes, setAdminNotes] = useState("");
   const [shepherdId, setShepherdId] = useState("");
   const [identityLayer, setIdentityLayer] = useState("PENDING");
   const [badgeIdentity, setBadgeIdentity] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // Editable profile fields when operator is selected
   const [editCountry, setEditCountry] = useState("");
   const [editOrgName, setEditOrgName] = useState("");
   const [editYears, setEditYears] = useState("0");
@@ -111,6 +126,7 @@ export default function OnboardingWorkstation() {
   const [editGovId, setEditGovId] = useState("");
   const [editSelfie, setEditSelfie] = useState("");
   const [editCert, setEditCert] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -140,10 +156,19 @@ export default function OnboardingWorkstation() {
     setEditCalling(app.calling_description || "");
     setEditWallet(app.stellar_payout_address || "");
     setEditPhotoUrl(app.profile_photo_url || "");
-    // Keep existing DB docs visible; only set replace buffers when user uploads new files
     setEditGovId("");
     setEditSelfie("");
     setEditCert("");
+  };
+
+  const reloadAndReselect = async (profileId: number) => {
+    const data = await apiRequest("/api/verification/applications");
+    const list = data || [];
+    setApplications(list);
+    const fresh = list.find((a: Application) => a.id === profileId);
+    if (fresh) {
+      selectApplication(fresh);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, label: string) => {
@@ -164,13 +189,11 @@ export default function OnboardingWorkstation() {
     e.preventDefault();
     setCreatingOp(true);
     try {
-      // 1. Create User
       const userRes = await apiRequest("/api/auth/register", {
         method: "POST",
         body: JSON.stringify({ email: opEmail, password: "TempPassword123!", full_name: opName, role: "MISSIONARY" }),
       });
 
-      // 2. Create Profile
       const profileRes = await apiRequest("/api/verification/apply", {
         method: "POST",
         body: JSON.stringify({
@@ -182,7 +205,6 @@ export default function OnboardingWorkstation() {
         }),
       });
 
-      // 3. Attach Docs & Photo
       if (opGovId || opSelfie || opCert) {
         await apiRequest(`/api/verification/documents/${profileRes.id}`, {
           method: "PUT",
@@ -203,7 +225,7 @@ export default function OnboardingWorkstation() {
       setShowOpModal(false);
       setOpName(""); setOpEmail(""); setOpWallet(""); setOpGovId(""); setOpSelfie(""); setOpCert(""); setOpPhoto("");
       await fetchApplications();
-      alert("Missionary Onboarded! They are now in the queue for vetting.");
+      alert("Missionary Onboarded! Listed in queue.");
     } catch (err: any) {
       alert(err.message || "Failed to onboard missionary.");
     } finally {
@@ -231,7 +253,7 @@ export default function OnboardingWorkstation() {
       });
       setShowMissionModal(false);
       setMTitle(""); setMDesc(""); setMProblem(""); setMObjectives(""); setMProcess("");
-      alert("Mission Created! It is now live on the public dashboard.");
+      alert("Mission Created!");
     } catch (err: any) {
       alert(err.message || "Failed to create mission.");
     } finally {
@@ -239,21 +261,10 @@ export default function OnboardingWorkstation() {
     }
   };
 
-  const reloadAndReselect = async (profileId: number) => {
-    const data = await apiRequest("/api/verification/applications");
-    const list = data || [];
-    setApplications(list);
-    const fresh = list.find((a: Application) => a.id === profileId);
-    if (fresh) {
-      selectApplication(fresh);
-    }
-  };
-
   const handleSaveProfileAndDocs = async () => {
     if (!selectedApp) return;
     setSaving(true);
     try {
-      // 1) Core profile + wallet + photo
       await apiRequest(`/api/verification/profile/${selectedApp.id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -267,7 +278,6 @@ export default function OnboardingWorkstation() {
         }),
       });
 
-      // 2) Documents only if new uploads exist
       if (editGovId || editSelfie || editCert) {
         await apiRequest(`/api/verification/documents/${selectedApp.id}`, {
           method: "PUT",
@@ -279,7 +289,6 @@ export default function OnboardingWorkstation() {
         });
       }
 
-      // 3) Shepherd ID + notes (auto-id generated server-side if blank)
       await apiRequest(`/api/verification/admin/review/${selectedApp.id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -303,7 +312,6 @@ export default function OnboardingWorkstation() {
     if (!selectedApp) return;
     setSaving(true);
     try {
-      // Save wallet/profile first so nothing is lost on status-only commit
       await apiRequest(`/api/verification/profile/${selectedApp.id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -340,12 +348,43 @@ export default function OnboardingWorkstation() {
       });
 
       await reloadAndReselect(selectedApp.id);
-      alert("Vetting decision saved. Shepherd ID auto-assigned if it was empty.");
+      alert("Vetting decision saved.");
     } catch (err: any) {
       alert(err.message || "Failed to save review.");
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDeleteMissionary = async () => {
+    if (!selectedApp) return;
+    const label = selectedApp.full_name || selectedApp.shepherd_id || `#${selectedApp.id}`;
+    if (!confirm(`Permanently remove missionary "${label}"? This action cannot be undone.`)) return;
+
+    const typed = prompt(`Type DELETE to confirm removal of ${label}:`);
+    if (typed !== "DELETE") {
+      alert("Removal cancelled.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await apiRequest(`/api/verification/profile/${selectedApp.id}`, {
+        method: "DELETE",
+      });
+      setSelectedApp(null);
+      await fetchApplications();
+      alert("Missionary removed from the network.");
+    } catch (err: any) {
+      alert(err.message || "Failed to delete missionary.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openDocument = (url: string | null) => {
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const filteredApps = applications.filter((app) => {
@@ -379,7 +418,7 @@ export default function OnboardingWorkstation() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-start">
-        {/* Left Sidebar: Queue */}
+        {/* Left Queue */}
         <div className="lg:col-span-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col space-y-4">
           <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
             <User className="w-4 h-4 text-slate-500" /> Operator Queue ({filteredApps.length})
@@ -392,6 +431,7 @@ export default function OnboardingWorkstation() {
             {filteredApps.map((app) => (
               <button
                 key={app.id}
+                type="button"
                 onClick={() => selectApplication(app)}
                 className={`w-full text-left p-3 rounded-xl border transition-all ${selectedApp?.id === app.id ? "bg-blue-50 border-blue-300 ring-1 ring-blue-200" : "bg-white border-slate-200 hover:border-slate-300"}`}
               >
@@ -409,7 +449,7 @@ export default function OnboardingWorkstation() {
           </div>
         </div>
 
-        {/* Right Workspace: Entry Points or Vetting */}
+        {/* Right Workspace */}
         <div className="lg:col-span-8 space-y-4">
           {!selectedApp ? (
             <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-8 shadow-sm">
@@ -420,6 +460,7 @@ export default function OnboardingWorkstation() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <button
+                  type="button"
                   onClick={() => setShowOpModal(true)}
                   className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-blue-200 bg-blue-50/50 hover:bg-blue-50 rounded-3xl transition-all group"
                 >
@@ -431,6 +472,7 @@ export default function OnboardingWorkstation() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setShowMissionModal(true)}
                   className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 rounded-3xl transition-all group"
                 >
@@ -461,16 +503,29 @@ export default function OnboardingWorkstation() {
                     </p>
                   </div>
                 </div>
-                <button type="button" onClick={() => setSelectedApp(null)} className="text-xs text-blue-600 font-bold hover:underline">
-                  Close
-                </button>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleDeleteMissionary}
+                    className="text-xs text-red-600 font-bold hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-all flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Remove Missionary
+                  </button>
+                  <button type="button" onClick={() => setSelectedApp(null)} className="text-xs text-blue-600 font-bold hover:underline">
+                    Close
+                  </button>
+                </div>
               </div>
 
               {/* Profile Photo Upload */}
               <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Profile Photo</label>
-                  <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setEditPhotoUrl, "Profile Photo")} className="text-xs" />
+                  <div className="flex items-center gap-2">
+                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                    <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setEditPhotoUrl, "Profile Photo")} className="text-xs" />
+                  </div>
                   {uploadingState === "Profile Photo" && <span className="text-[10px] text-blue-500">Uploading...</span>}
                 </div>
                 {(editPhotoUrl || selectedApp.profile_photo_url) && (
@@ -551,33 +606,47 @@ export default function OnboardingWorkstation() {
                   <div>
                     <label className="text-[10px] font-bold text-slate-400 block mb-1">Government ID</label>
                     {selectedApp.government_id_url && (
-                      <a href={selectedApp.government_id_url} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 flex items-center gap-1 mb-1">
+                      <button
+                        type="button"
+                        onClick={() => openDocument(selectedApp.government_id_url)}
+                        className="text-[11px] text-blue-600 flex items-center gap-1 mb-1 font-semibold hover:underline"
+                      >
                         <Eye className="w-3 h-3" /> View current
-                      </a>
+                      </button>
                     )}
                     <input type="file" accept="image/*,.pdf" onChange={(e) => handleFileUpload(e, setEditGovId, "Gov ID")} className="text-xs w-full" />
                     {(editGovId || uploadingState === "Gov ID") && (
                       <span className="text-[10px] text-emerald-600">{uploadingState === "Gov ID" ? "Uploading..." : "New file ready"}</span>
                     )}
                   </div>
+
                   <div>
                     <label className="text-[10px] font-bold text-slate-400 block mb-1">Selfie</label>
                     {selectedApp.selfie_url && (
-                      <a href={selectedApp.selfie_url} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 flex items-center gap-1 mb-1">
+                      <button
+                        type="button"
+                        onClick={() => openDocument(selectedApp.selfie_url)}
+                        className="text-[11px] text-blue-600 flex items-center gap-1 mb-1 font-semibold hover:underline"
+                      >
                         <Eye className="w-3 h-3" /> View current
-                      </a>
+                      </button>
                     )}
                     <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setEditSelfie, "Selfie")} className="text-xs w-full" />
                     {(editSelfie || uploadingState === "Selfie") && (
                       <span className="text-[10px] text-emerald-600">{uploadingState === "Selfie" ? "Uploading..." : "New file ready"}</span>
                     )}
                   </div>
+
                   <div>
                     <label className="text-[10px] font-bold text-slate-400 block mb-1">Org Certificate</label>
                     {selectedApp.organization_cert_url && (
-                      <a href={selectedApp.organization_cert_url} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 flex items-center gap-1 mb-1">
+                      <button
+                        type="button"
+                        onClick={() => openDocument(selectedApp.organization_cert_url)}
+                        className="text-[11px] text-blue-600 flex items-center gap-1 mb-1 font-semibold hover:underline"
+                      >
                         <Eye className="w-3 h-3" /> View current
-                      </a>
+                      </button>
                     )}
                     <input type="file" accept="image/*,.pdf" onChange={(e) => handleFileUpload(e, setEditCert, "Cert")} className="text-xs w-full" />
                     {(editCert || uploadingState === "Cert") && (
@@ -651,7 +720,7 @@ export default function OnboardingWorkstation() {
       {showOpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto">
           <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-2xl w-full p-8 relative my-auto">
-            <button onClick={() => setShowOpModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800">✕</button>
+            <button type="button" onClick={() => setShowOpModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold">✕</button>
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Onboard Field Missionary</h2>
             
             <form onSubmit={handleCreateMissionary} className="space-y-6">
@@ -719,8 +788,8 @@ export default function OnboardingWorkstation() {
       {/* --- MODAL 2: DEPLOY MISSION --- */}
       {showMissionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-2xl w-full p-8 relative my-auto mt-20 mb-20">
-            <button onClick={() => setShowMissionModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800">✕</button>
+          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-2xl w-full p-8 relative my-auto">
+            <button type="button" onClick={() => setShowMissionModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold">✕</button>
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Deploy Master Mission</h2>
             
             <form onSubmit={handleCreateMission} className="space-y-4">
