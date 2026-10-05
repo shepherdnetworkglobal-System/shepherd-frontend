@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "https://shepherd-backend-production-4e53.up.railway.app";
+
+// Enforce HTTPS in production to prevent browser Mixed Content blocking
+export const API_URL = RAW_URL.replace(/^http:\/\//i, "https://").replace(/\/+$/, "");
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== "undefined" ? localStorage.getItem("shepherd_token") : null;
@@ -9,8 +12,9 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   }
 
   const isFormData = options.body instanceof FormData;
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  const res = await fetch(`${API_URL}${cleanEndpoint}`, {
     credentials: "omit",
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
