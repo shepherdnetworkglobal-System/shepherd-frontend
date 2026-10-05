@@ -128,7 +128,7 @@ export default function OnboardingWorkstation() {
 
   const selectApplication = (app: Application) => {
     setSelectedApp(app);
-    setStatus(app.verification_status);
+    setStatus(app.verification_status || "UNDER_REVIEW");
     setAdminNotes(app.admin_notes || "");
     setShepherdId(app.shepherd_id || "");
     setIdentityLayer(app.identity_layer_status || "NOT_STARTED");
@@ -140,10 +140,10 @@ export default function OnboardingWorkstation() {
     setEditCalling(app.calling_description || "");
     setEditWallet(app.stellar_payout_address || "");
     setEditPhotoUrl(app.profile_photo_url || "");
+    // Keep existing DB docs visible; only set replace buffers when user uploads new files
     setEditGovId("");
     setEditSelfie("");
     setEditCert("");
-    setActiveTab("VETTING");
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, label: string) => {
@@ -239,47 +239,59 @@ export default function OnboardingWorkstation() {
     }
   };
 
+  const reloadAndReselect = async (profileId: number) => {
+    const data = await apiRequest("/api/verification/applications");
+    const list = data || [];
+    setApplications(list);
+    const fresh = list.find((a: Application) => a.id === profileId);
+    if (fresh) {
+      selectApplication(fresh);
+    }
+  };
+
   const handleSaveProfileAndDocs = async () => {
     if (!selectedApp) return;
     setSaving(true);
     try {
+      // 1) Core profile + wallet + photo
       await apiRequest(`/api/verification/profile/${selectedApp.id}`, {
         method: "PUT",
         body: JSON.stringify({
           country: editCountry,
           organization_name: editOrgName,
           years_of_service: parseInt(editYears, 10) || 0,
-          biography: editBio,
-          calling_description: editCalling,
+          biography: editBio || null,
+          calling_description: editCalling || null,
           profile_photo_url: editPhotoUrl || null,
-          stellar_payout_address: editWallet || null,
+          stellar_payout_address: editWallet.trim() || null,
         }),
       });
 
-      // Wallet is on profile create path; also push via review notes path if needed
+      // 2) Documents only if new uploads exist
       if (editGovId || editSelfie || editCert) {
         await apiRequest(`/api/verification/documents/${selectedApp.id}`, {
           method: "PUT",
           body: JSON.stringify({
-            government_id_url: editGovId || undefined,
-            selfie_url: editSelfie || undefined,
-            organization_cert_url: editCert || undefined,
+            government_id_url: editGovId || null,
+            selfie_url: editSelfie || null,
+            organization_cert_url: editCert || null,
           }),
         });
       }
 
-      // Persist shepherd ID + wallet via review endpoint fields available
+      // 3) Shepherd ID + notes (auto-id generated server-side if blank)
       await apiRequest(`/api/verification/admin/review/${selectedApp.id}`, {
         method: "PUT",
         body: JSON.stringify({
-          status: selectedApp.verification_status,
-          shepherd_id: shepherdId || null,
-          admin_notes: adminNotes,
+          status: status || selectedApp.verification_status,
+          shepherd_id: shepherdId.trim() || null,
+          admin_notes: adminNotes || null,
+          badge_identity_verified: badgeIdentity,
         }),
       });
 
-      await fetchApplications();
-      alert("Profile & documents saved.");
+      await reloadAndReselect(selectedApp.id);
+      alert("Profile, wallet, and documents saved.");
     } catch (err: any) {
       alert(err.message || "Failed to save profile.");
     } finally {
@@ -291,21 +303,46 @@ export default function OnboardingWorkstation() {
     if (!selectedApp) return;
     setSaving(true);
     try {
-      const updated = await apiRequest(`/api/verification/admin/review/${selectedApp.id}`, {
+      // Save wallet/profile first so nothing is lost on status-only commit
+      await apiRequest(`/api/verification/profile/${selectedApp.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          country: editCountry,
+          organization_name: editOrgName,
+          years_of_service: parseInt(editYears, 10) || 0,
+          biography: editBio || null,
+          calling_description: editCalling || null,
+          profile_photo_url: editPhotoUrl || null,
+          stellar_payout_address: editWallet.trim() || null,
+        }),
+      });
+
+      if (editGovId || editSelfie || editCert) {
+        await apiRequest(`/api/verification/documents/${selectedApp.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            government_id_url: editGovId || null,
+            selfie_url: editSelfie || null,
+            organization_cert_url: editCert || null,
+          }),
+        });
+      }
+
+      await apiRequest(`/api/verification/admin/review/${selectedApp.id}`, {
         method: "PUT",
         body: JSON.stringify({
           status,
-          admin_notes: adminNotes,
-          shepherd_id: shepherdId || null,
+          admin_notes: adminNotes || null,
+          shepherd_id: shepherdId.trim() || null,
           identity_layer_status: identityLayer,
           badge_identity_verified: badgeIdentity,
         }),
       });
-      setApplications((prev) => prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)));
-      setSelectedApp({ ...selectedApp, ...updated });
-      alert("Vetting Decision Saved");
+
+      await reloadAndReselect(selectedApp.id);
+      alert("Vetting decision saved. Shepherd ID auto-assigned if it was empty.");
     } catch (err: any) {
-      alert(err.message);
+      alert(err.message || "Failed to save review.");
     } finally {
       setSaving(false);
     }
@@ -420,7 +457,7 @@ export default function OnboardingWorkstation() {
                   <div>
                     <h2 className="text-lg font-bold text-slate-900">{selectedApp.full_name || "Unnamed Operator"}</h2>
                     <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                      <FlagBadge country={selectedApp.country} /> {selectedApp.country} · {selectedApp.shepherd_id || "ID Pending"}
+                      <FlagBadge country={selectedApp.country} /> {selectedApp.country} · {shepherdId || selectedApp.shepherd_id || "ID will auto-generate on save"}
                     </p>
                   </div>
                 </div>
@@ -446,11 +483,11 @@ export default function OnboardingWorkstation() {
               {/* Editable Core Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Shepherd ID</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Shepherd ID (auto if blank)</label>
                   <input
                     value={shepherdId}
                     onChange={(e) => setShepherdId(e.target.value)}
-                    placeholder="e.g. JOE-KENYA-1001"
+                    placeholder="Leave blank to auto-generate on save"
                     className="w-full text-xs font-mono p-3 border border-slate-200 rounded-xl"
                   />
                 </div>
