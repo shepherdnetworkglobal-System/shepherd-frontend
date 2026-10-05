@@ -4,25 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ShieldCheck,
-  MapPin,
-  Calendar,
-  Heart,
-  Users,
-  DollarSign,
-  ArrowLeft,
-  CheckCircle2,
-  Globe2,
-  Loader2,
-  Play,
-  Image as ImageIcon,
-  Briefcase,
-  BookOpen,
-  ArrowRight,
-  Award,
-  Building2,
-  CreditCard,
-  UserCheck,
+  ShieldCheck, MapPin, Calendar, Heart, Users, DollarSign, ArrowLeft,
+  CheckCircle2, Globe2, Loader2, Briefcase, BookOpen, Award, Building2,
+  CreditCard, UserCheck, LayoutGrid, Activity, ExternalLink, Clock
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MissionCard from "@/components/MissionCard";
@@ -45,32 +29,14 @@ interface MissionaryData {
   badge_org_verified?: boolean;
   badge_payout_verified?: boolean;
   badge_mission_verified?: boolean;
-  active_missions: {
-    id: number;
-    title: string;
-    goal_amount_usd: number;
-    raised_amount_usd: number;
-    status: string;
-    target_country: string;
-  }[];
-  past_projects: {
-    id: number;
-    title: string;
-    description: string;
-    location: string;
-    year_completed: number;
-    people_impacted: number;
-    media_urls: string;
-  }[];
+  active_missions: any[];
+  past_projects: any[];
   total_funds_deployed: number;
   total_people_served: number;
 }
 
 const COUNTRY_FLAGS: Record<string, string> = {
-  Kenya: "🇰🇪",
-  Philippines: "🇵🇭",
-  Nigeria: "🇳🇬",
-  Pakistan: "🇵🇰",
+  Kenya: "🇰🇪", Philippines: "🇵🇭", Nigeria: "🇳🇬", Pakistan: "🇵🇰",
 };
 
 export default function MissionaryProfilePage() {
@@ -78,7 +44,7 @@ export default function MissionaryProfilePage() {
   const profileId = Number(params.id);
   const [data, setData] = useState<MissionaryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedProject, setExpandedProject] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "missions" | "portfolio">("overview");
 
   useEffect(() => {
     apiRequest(`/api/verification/public/${profileId}`)
@@ -115,255 +81,264 @@ export default function MissionaryProfilePage() {
   const flag = COUNTRY_FLAGS[data.country] || "🌍";
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50 pb-20">
       <Navbar />
-
-      {/* Ambient glows */}
+      
+      {/* Background glow elements */}
       <div className="absolute top-24 left-[15%] w-[500px] h-[500px] glow-blue rounded-full pointer-events-none -z-10" />
       <div className="absolute top-[40%] right-[10%] w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10" />
 
-      {/* Magazine Hero Block */}
-      <section className="relative border-b border-slate-200/60 bg-white/60 backdrop-blur-sm py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <Link
-            href="/missions"
-            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-slate-500 hover:text-slate-900 font-bold mb-10 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> <span>Back to Active Deployments</span>
-          </Link>
+      {/* Top Mobile Navigation */}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-6 pb-4">
+        <Link href="/missions" className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-slate-500 hover:text-slate-900 font-bold transition-colors">
+          <ArrowLeft className="w-4 h-4" /> <span>Back to Active Deployments</span>
+        </Link>
+      </div>
 
-          <div className="flex flex-col lg:flex-row items-start gap-10">
-            {/* Portrait */}
-            <div className="shrink-0 mx-auto lg:mx-0">
-              <div className="relative w-40 h-40 lg:w-48 lg:h-48 rounded-2xl overflow-hidden bg-white border border-slate-200 p-1.5 shadow-xl shadow-slate-200/60">
-                <div className="w-full h-full rounded-xl overflow-hidden relative bg-slate-100">
-                  {data.profile_photo_url ? (
-                    <img
-                      src={data.profile_photo_url}
-                      alt={data.full_name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Users className="w-14 h-14 text-slate-400" />
-                    </div>
-                  )}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row gap-8 lg:gap-12 items-start">
+        
+        {/* LEFT COLUMN: Identity Sidebar (GitHub Style) */}
+        <div className="w-full md:w-[296px] shrink-0 space-y-6">
+          
+          {/* Profile Photo */}
+          <div className="w-full aspect-square rounded-full overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 bg-white p-1.5 z-10 relative">
+            <div className="w-full h-full rounded-full overflow-hidden bg-slate-100">
+              {data.profile_photo_url ? (
+                <img src={data.profile_photo_url} alt={data.full_name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <UserCheck className="w-20 h-20 text-slate-300" />
                 </div>
-              </div>
-            </div>
-
-            {/* Credentials */}
-            <div className="flex-1 space-y-5 text-center lg:text-left">
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
-                {/* Country */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
-                  <span className="text-xs select-none">{flag}</span>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-600">
-                    {data.country}
-                  </span>
-                </div>
-
-                {/* Affiliation Path */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] uppercase tracking-wider font-bold text-slate-700">
-                  {data.affiliation_path === "ORG_AFFILIATED" ? "Org-Affiliated" : "Independent Missionary"}
-                </div>
-
-                {/* 4 Granular Verification Badges */}
-                {data.badge_identity_verified && (
-                  <span className="bg-emerald-50 text-emerald-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-emerald-200 flex items-center gap-1">
-                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> Identity Verified
-                  </span>
-                )}
-
-                {data.badge_org_verified && (
-                  <span className="bg-blue-50 text-blue-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-blue-200 flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-blue-600" /> Org Verified
-                  </span>
-                )}
-
-                {data.badge_payout_verified && (
-                  <span className="bg-purple-50 text-purple-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-purple-200 flex items-center gap-1">
-                    <CreditCard className="w-3.5 h-3.5 text-purple-600" /> Payout Verified
-                  </span>
-                )}
-
-                {data.badge_mission_verified && (
-                  <span className="bg-amber-50 text-amber-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-amber-200 flex items-center gap-1">
-                    <Award className="w-3.5 h-3.5 text-amber-600" /> Mission Verified
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                  {data.full_name}
-                </h1>
-                <p className="text-sm uppercase tracking-wider text-blue-600 font-bold">
-                  {data.organization_name}
-                </p>
-              </div>
-
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">
-                Shepherd ID: <span className="text-slate-800">{data.shepherd_id}</span> • {data.years_of_service} Years of Service
-              </p>
-
-              {data.calling_description && (
-                <blockquote className="text-sm sm:text-base text-slate-600 italic font-serif leading-relaxed max-w-2xl border-l-2 border-blue-200 pl-4 lg:pl-5 text-left mx-auto lg:mx-0">
-                  &ldquo;{data.calling_description}&rdquo;
-                </blockquote>
               )}
-
-              {/* KPI metrics */}
-              <div className="grid grid-cols-3 gap-4 pt-6 max-w-2xl">
-                <div className="bg-white border border-slate-200 rounded-xl p-4 text-left shadow-sm">
-                  <DollarSign className="w-4 h-4 text-blue-600 mb-2" />
-                  <span className="text-lg sm:text-xl font-extrabold text-slate-900 block num-tabular">${data.total_funds_deployed.toLocaleString()}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mt-1">Funds Deployed</span>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-4 text-left shadow-sm">
-                  <Users className="w-4 h-4 text-emerald-600 mb-2" />
-                  <span className="text-lg sm:text-xl font-extrabold text-slate-900 block num-tabular">{data.total_people_served.toLocaleString()}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mt-1">Lives Impacted</span>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-4 text-left shadow-sm">
-                  <Briefcase className="w-4 h-4 text-indigo-600 mb-2" />
-                  <span className="text-lg sm:text-xl font-extrabold text-slate-900 block num-tabular">{data.past_projects.length}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mt-1">Projects Done</span>
-                </div>
+            </div>
+            {/* Verification Badge Overlay */}
+            {data.verification_status === "APPROVED" && (
+              <div className="absolute bottom-4 right-4 bg-emerald-500 text-white rounded-full p-2 border-4 border-white shadow-sm" title="Approved Operator">
+                <ShieldCheck className="w-6 h-6" />
               </div>
+            )}
+          </div>
+
+          {/* Identity Info */}
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">{data.full_name}</h1>
+            <h2 className="text-lg font-medium text-slate-500">{data.shepherd_id}</h2>
+          </div>
+
+          <button className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-900 text-sm font-semibold py-2 rounded-xl transition-all">
+            Share Profile
+          </button>
+
+          {data.biography && (
+            <p className="text-sm text-slate-700 font-medium leading-relaxed">{data.biography}</p>
+          )}
+
+          {/* Quick Stats (Like Followers/Following) */}
+          <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
+            <div className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-default">
+              <Users className="w-4 h-4 text-slate-400" />
+              <span className="font-bold text-slate-900">{data.total_people_served.toLocaleString()}</span> lives served
+            </div>
+            <div className="flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-default">
+              <DollarSign className="w-4 h-4 text-slate-400" />
+              <span className="font-bold text-slate-900">{data.total_funds_deployed.toLocaleString()}</span> deployed
+            </div>
+          </div>
+
+          <hr className="border-slate-200" />
+
+          {/* Meta Information */}
+          <ul className="space-y-3 text-sm text-slate-700 font-medium">
+            <li className="flex items-center gap-2.5">
+              <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+              <span className="truncate">{data.organization_name || "Independent"}</span>
+            </li>
+            <li className="flex items-center gap-2.5">
+              <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+              <span>{data.country} {flag}</span>
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+              <span>{data.years_of_service} Years of Service</span>
+            </li>
+          </ul>
+
+          <hr className="border-slate-200" />
+
+          {/* Highlights / Badges Section */}
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 mb-3">Verified Credentials</h3>
+            <div className="space-y-2.5">
+              {data.badge_identity_verified && (
+                <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                  <div className="w-6 h-6 rounded bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  </div>
+                  Government Identity Verified
+                </div>
+              )}
+              {data.badge_org_verified && (
+                <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                  <div className="w-6 h-6 rounded bg-blue-50 border border-blue-200 flex items-center justify-center">
+                    <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                  Organizational Covering Confirmed
+                </div>
+              )}
+              {data.badge_payout_verified && (
+                <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                  <div className="w-6 h-6 rounded bg-purple-50 border border-purple-200 flex items-center justify-center">
+                    <CreditCard className="w-3.5 h-3.5 text-purple-600" />
+                  </div>
+                  Stellar Payout Rail Connected
+                </div>
+              )}
+              {data.badge_mission_verified && (
+                <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                  <div className="w-6 h-6 rounded bg-amber-50 border border-amber-200 flex items-center justify-center">
+                    <Award className="w-3.5 h-3.5 text-amber-600" />
+                  </div>
+                  Historical Impact Audited
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 space-y-16">
-        {/* Biography */}
-        {data.biography && (
-          <section className="space-y-6">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-blue-600" />
-              </div>
-              <h2 className="text-xl font-extrabold text-slate-900">Biography</h2>
-            </div>
-            <div className="rounded-2xl bg-white border border-slate-200/80 p-8 shadow-sm">
-              <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{data.biography}</p>
-            </div>
-          </section>
-        )}
-
-        {/* Active Missions */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-emerald-600" />
-            </div>
-            <h2 className="text-xl font-extrabold text-slate-900">Active Missions</h2>
+        {/* RIGHT COLUMN: Main Content Area */}
+        <div className="flex-1 min-w-0 w-full">
+          {/* Navigation Tabs */}
+          <div className="sticky top-0 z-20 bg-slate-50/90 backdrop-blur-md border-b border-slate-200 mb-6">
+            <nav className="flex space-x-6 overflow-x-auto">
+              {[
+                { id: "overview", label: "Overview", icon: BookOpen },
+                { id: "missions", label: "Active Missions", icon: LayoutGrid, count: data.active_missions.length },
+                { id: "portfolio", label: "Project Activity", icon: Activity, count: data.past_projects.length },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center gap-2 py-3 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors ${
+                      isActive ? "border-blue-600 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                    {tab.count !== undefined && (
+                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] ml-1">
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          {data.active_missions.length === 0 ? (
-            <div className="rounded-2xl bg-white border border-dashed border-slate-300 py-12 text-center text-slate-500 text-sm font-medium">
-              No active missions at this time.
-            </div>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.active_missions.map((m) => (
-                <MissionCard
-                  key={m.id}
-                  id={m.id}
-                  title={m.title}
-                  targetCountry={m.target_country}
-                  goalAmount={m.goal_amount_usd}
-                  raisedAmount={m.raised_amount_usd}
-                  status={m.status}
-                />
-              ))}
+          {/* TAB CONTENT: Overview */}
+          {activeTab === "overview" && (
+            <div className="space-y-8 animate-in fade-in">
+              
+              {data.calling_description && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Operator Calling</p>
+                  <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+                    <p className="text-sm sm:text-base text-slate-700 italic font-serif leading-relaxed">
+                      "{data.calling_description}"
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pinned Deployments</p>
+                  <button onClick={() => setActiveTab("missions")} className="text-xs font-semibold text-blue-600 hover:underline">View all</button>
+                </div>
+                {data.active_missions.length === 0 ? (
+                  <div className="p-8 border border-dashed border-slate-300 rounded-2xl text-center text-sm text-slate-500 font-medium">
+                    No active missions currently deployed.
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {data.active_missions.slice(0, 4).map((m) => (
+                      <MissionCard key={m.id} id={m.id} title={m.title} targetCountry={m.target_country} goalAmount={m.goal_amount_usd} raisedAmount={m.raised_amount_usd} status={m.status} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
-        </section>
 
-        {/* Project Portfolio */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-indigo-600" />
+          {/* TAB CONTENT: Active Missions */}
+          {activeTab === "missions" && (
+            <div className="animate-in fade-in">
+              {data.active_missions.length === 0 ? (
+                <div className="p-12 border border-dashed border-slate-300 rounded-2xl text-center text-sm text-slate-500 font-medium">
+                  No active missions found.
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {data.active_missions.map((m) => (
+                    <MissionCard key={m.id} id={m.id} title={m.title} targetCountry={m.target_country} goalAmount={m.goal_amount_usd} raisedAmount={m.raised_amount_usd} status={m.status} />
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="flex items-baseline gap-2">
-              <h2 className="text-xl font-extrabold text-slate-900">Project Portfolio</h2>
-              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                ({data.past_projects.length} completed)
-              </span>
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-3">
-            {data.past_projects.map((project) => {
-              const mediaList = project.media_urls ? project.media_urls.split(",") : [];
-              const isExpanded = expandedProject === project.id;
-
-              return (
-                <div
-                  key={project.id}
-                  className="rounded-2xl bg-white border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-                >
-                  <button
-                    onClick={() => setExpandedProject(isExpanded ? null : project.id)}
-                    className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-slate-50/80 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2.5">
-                        <span className="bg-indigo-50 text-indigo-700 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border border-indigo-200">
-                          {project.year_completed}
-                        </span>
-                        {project.location && (
-                          <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-slate-500">
-                            <MapPin className="w-3 h-3 text-blue-500" /> {project.location}
+          {/* TAB CONTENT: Portfolio Timeline */}
+          {activeTab === "portfolio" && (
+            <div className="animate-in fade-in">
+              {data.past_projects.length === 0 ? (
+                <div className="p-12 border border-dashed border-slate-300 rounded-2xl text-center text-sm text-slate-500 font-medium">
+                  Portfolio activity timeline is currently empty.
+                </div>
+              ) : (
+                <div className="relative border-l border-slate-200 ml-3 space-y-8 pb-4">
+                  {data.past_projects.map((project) => (
+                    <div key={project.id} className="relative pl-6 sm:pl-8 group">
+                      {/* Timeline Dot */}
+                      <div className="absolute -left-1.5 top-1.5 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-slate-50 group-hover:ring-blue-100 transition-all" />
+                      
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm group-hover:shadow-md transition-shadow">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 mb-1 block">Completed in {project.year_completed}</span>
+                            <h3 className="text-base font-bold text-slate-900 leading-tight">{project.title}</h3>
+                          </div>
+                          <span className="bg-indigo-50 text-indigo-700 text-[10px] uppercase font-bold px-2.5 py-1 rounded border border-indigo-200 self-start shrink-0">
+                            {project.people_impacted.toLocaleString()} Served
                           </span>
+                        </div>
+                        
+                        <p className="text-sm text-slate-600 leading-relaxed font-medium mb-4">
+                          {project.description}
+                        </p>
+
+                        {project.media_urls && project.media_urls.trim().length > 0 && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {project.media_urls.split(",").map((url: string, i: number) => (
+                              <div key={i} className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                                <img src={url.trim()} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      <h3 className="text-base font-bold text-slate-900">{project.title}</h3>
-                      <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 font-medium leading-relaxed">
-                        {project.description}
-                      </p>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <span className="text-base sm:text-lg font-extrabold text-indigo-600 block num-tabular">
-                        {project.people_impacted.toLocaleString()}
-                      </span>
-                      <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">People Served</span>
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="px-6 pb-6 border-t border-slate-100 pt-5 space-y-5">
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                        {project.description}
-                      </p>
-
-                      {mediaList.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                          {mediaList.map((url, i) => (
-                            <div
-                              key={i}
-                              className="aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative"
-                            >
-                              <img
-                                src={url.trim()}
-                                alt={`${project.title} photo ${i + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </section>
+              )}
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );
