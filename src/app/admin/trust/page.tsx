@@ -384,7 +384,11 @@ export default function OnboardingWorkstation() {
 
   const openDocument = (url: string | null) => {
     if (!url) return;
-    window.open(url, "_blank", "noopener,noreferrer");
+    const isPdf = url.toLowerCase().includes(".pdf");
+    const targetUrl = isPdf
+      ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}`
+      : url;
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   };
 
   const filteredApps = applications.filter((app) => {
