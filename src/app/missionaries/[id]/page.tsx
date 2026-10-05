@@ -46,10 +46,20 @@ export default function MissionaryProfilePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "missions" | "portfolio">("overview");
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   useEffect(() => {
+    setLoading(true);
+    setErrorMsg(null);
     apiRequest(`/api/verification/public/${profileId}`)
-      .then(setData)
-      .catch(() => setData(null))
+      .then((res) => {
+        setData(res);
+      })
+      .catch((err: any) => {
+        console.error("Public missionary load failed:", err);
+        setData(null);
+        setErrorMsg(err?.message || "Failed to load missionary profile");
+      })
       .finally(() => setLoading(false));
   }, [profileId]);
 
@@ -70,6 +80,10 @@ export default function MissionaryProfilePage() {
         <Navbar />
         <div className="max-w-7xl mx-auto px-6 py-20 text-center">
           <h2 className="text-xl font-bold text-slate-900">Missionary Profile Not Found</h2>
+          {errorMsg && (
+            <p className="text-sm text-red-600 font-medium mt-3 max-w-lg mx-auto">{errorMsg}</p>
+          )}
+          <p className="text-xs text-slate-500 mt-2">Profile ID: {profileId}</p>
           <Link href="/missions" className="text-xs uppercase tracking-wider font-bold text-blue-600 hover:text-blue-700 mt-4 inline-block">
             Browse Active Missions
           </Link>
