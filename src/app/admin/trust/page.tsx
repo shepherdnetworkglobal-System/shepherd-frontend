@@ -100,6 +100,18 @@ export default function OnboardingWorkstation() {
   const [badgeIdentity, setBadgeIdentity] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Editable profile fields when operator is selected
+  const [editCountry, setEditCountry] = useState("");
+  const [editOrgName, setEditOrgName] = useState("");
+  const [editYears, setEditYears] = useState("0");
+  const [editBio, setEditBio] = useState("");
+  const [editCalling, setEditCalling] = useState("");
+  const [editWallet, setEditWallet] = useState("");
+  const [editPhotoUrl, setEditPhotoUrl] = useState("");
+  const [editGovId, setEditGovId] = useState("");
+  const [editSelfie, setEditSelfie] = useState("");
+  const [editCert, setEditCert] = useState("");
+
   const fetchApplications = async () => {
     setLoading(true);
     try {
@@ -121,6 +133,16 @@ export default function OnboardingWorkstation() {
     setShepherdId(app.shepherd_id || "");
     setIdentityLayer(app.identity_layer_status || "NOT_STARTED");
     setBadgeIdentity(!!app.badge_identity_verified);
+    setEditCountry(app.country || "");
+    setEditOrgName(app.organization_name || "");
+    setEditYears(String(app.years_of_service || 0));
+    setEditBio(app.biography || "");
+    setEditCalling(app.calling_description || "");
+    setEditWallet(app.stellar_payout_address || "");
+    setEditPhotoUrl(app.profile_photo_url || "");
+    setEditGovId("");
+    setEditSelfie("");
+    setEditCert("");
     setActiveTab("VETTING");
   };
 
@@ -217,6 +239,54 @@ export default function OnboardingWorkstation() {
     }
   };
 
+  const handleSaveProfileAndDocs = async () => {
+    if (!selectedApp) return;
+    setSaving(true);
+    try {
+      await apiRequest(`/api/verification/profile/${selectedApp.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          country: editCountry,
+          organization_name: editOrgName,
+          years_of_service: parseInt(editYears, 10) || 0,
+          biography: editBio,
+          calling_description: editCalling,
+          profile_photo_url: editPhotoUrl || null,
+          stellar_payout_address: editWallet || null,
+        }),
+      });
+
+      // Wallet is on profile create path; also push via review notes path if needed
+      if (editGovId || editSelfie || editCert) {
+        await apiRequest(`/api/verification/documents/${selectedApp.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            government_id_url: editGovId || undefined,
+            selfie_url: editSelfie || undefined,
+            organization_cert_url: editCert || undefined,
+          }),
+        });
+      }
+
+      // Persist shepherd ID + wallet via review endpoint fields available
+      await apiRequest(`/api/verification/admin/review/${selectedApp.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          status: selectedApp.verification_status,
+          shepherd_id: shepherdId || null,
+          admin_notes: adminNotes,
+        }),
+      });
+
+      await fetchApplications();
+      alert("Profile & documents saved.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSaveReview = async () => {
     if (!selectedApp) return;
     setSaving(true);
@@ -224,8 +294,11 @@ export default function OnboardingWorkstation() {
       const updated = await apiRequest(`/api/verification/admin/review/${selectedApp.id}`, {
         method: "PUT",
         body: JSON.stringify({
-          status, admin_notes: adminNotes, shepherd_id: shepherdId || null,
-          identity_layer_status: identityLayer, badge_identity_verified: badgeIdentity,
+          status,
+          admin_notes: adminNotes,
+          shepherd_id: shepherdId || null,
+          identity_layer_status: identityLayer,
+          badge_identity_verified: badgeIdentity,
         }),
       });
       setApplications((prev) => prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)));
@@ -305,7 +378,7 @@ export default function OnboardingWorkstation() {
             <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-8 shadow-sm">
               <div className="text-center mb-10">
                 <h2 className="text-2xl font-bold text-slate-900">Welcome to On-Boarding</h2>
-                <p className="text-sm text-slate-500 mt-2">Select an operator from the queue to vet them, or choose an action below.</p>
+                <p className="text-sm text-slate-500 mt-2">Select an operator from the queue to edit & vet them, or choose an action below.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -333,45 +406,204 @@ export default function OnboardingWorkstation() {
               </div>
             </div>
           ) : (
-            <div className="bg-white/80 border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
-              {/* Quick Vetting View for Selected App */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="bg-white/80 border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6 max-h-[80vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4 sticky top-0 bg-white/90 backdrop-blur z-10">
                 <div className="flex items-center gap-3">
-                  {selectedApp.profile_photo_url ? (
-                    <img src={selectedApp.profile_photo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
-                  ) : <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center"><User className="w-5 h-5 text-slate-400"/></div>}
+                  {editPhotoUrl || selectedApp.profile_photo_url ? (
+                    <img src={editPhotoUrl || selectedApp.profile_photo_url || ""} alt="" className="w-14 h-14 rounded-xl object-cover border border-slate-200" />
+                  ) : (
+                    <div className="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center border border-slate-200">
+                      <User className="w-6 h-6 text-slate-400" />
+                    </div>
+                  )}
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900">{selectedApp.full_name}</h2>
-                    <p className="text-xs text-slate-500">{selectedApp.country} · {selectedApp.shepherd_id || "ID Pending"}</p>
+                    <h2 className="text-lg font-bold text-slate-900">{selectedApp.full_name || "Unnamed Operator"}</h2>
+                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                      <FlagBadge country={selectedApp.country} /> {selectedApp.country} · {selectedApp.shepherd_id || "ID Pending"}
+                    </p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedApp(null)} className="text-xs text-blue-600 font-bold hover:underline">Close</button>
+                <button type="button" onClick={() => setSelectedApp(null)} className="text-xs text-blue-600 font-bold hover:underline">
+                  Close
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                  <h3 className="text-[10px] font-bold uppercase text-slate-400 mb-2">Uploaded Documents</h3>
-                  <div className="space-y-2">
-                    {selectedApp.government_id_url && <a href={selectedApp.government_id_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 flex items-center gap-1"><Eye className="w-3 h-3"/> Gov ID</a>}
-                    {selectedApp.selfie_url && <a href={selectedApp.selfie_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 flex items-center gap-1"><Eye className="w-3 h-3"/> Selfie</a>}
-                    {selectedApp.organization_cert_url && <a href={selectedApp.organization_cert_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 flex items-center gap-1"><Eye className="w-3 h-3"/> Org Cert</a>}
-                    {!selectedApp.government_id_url && !selectedApp.selfie_url && !selectedApp.organization_cert_url && <p className="text-xs text-slate-400">No documents uploaded.</p>}
-                  </div>
+              {/* Profile Photo Upload */}
+              <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Profile Photo</label>
+                  <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setEditPhotoUrl, "Profile Photo")} className="text-xs" />
+                  {uploadingState === "Profile Photo" && <span className="text-[10px] text-blue-500">Uploading...</span>}
                 </div>
+                {(editPhotoUrl || selectedApp.profile_photo_url) && (
+                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Photo ready
+                  </span>
+                )}
+              </div>
 
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-400">Status</label>
-                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full text-xs font-bold p-2 bg-slate-900 text-white rounded-lg mt-1">
-                      <option value="UNDER_REVIEW">UNDER_REVIEW</option>
-                      <option value="APPROVED">APPROVED</option>
-                      <option value="REJECTED">REJECTED</option>
-                    </select>
-                  </div>
-                  <button onClick={handleSaveReview} disabled={saving} className="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50">
-                    {saving ? "Saving..." : "Commit Decision"}
-                  </button>
+              {/* Editable Core Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Shepherd ID</label>
+                  <input
+                    value={shepherdId}
+                    onChange={(e) => setShepherdId(e.target.value)}
+                    placeholder="e.g. JOE-KENYA-1001"
+                    className="w-full text-xs font-mono p-3 border border-slate-200 rounded-xl"
+                  />
                 </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Country</label>
+                  <input
+                    value={editCountry}
+                    onChange={(e) => setEditCountry(e.target.value)}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Organization</label>
+                  <input
+                    value={editOrgName}
+                    onChange={(e) => setEditOrgName(e.target.value)}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Years of Service</label>
+                  <input
+                    type="number"
+                    value={editYears}
+                    onChange={(e) => setEditYears(e.target.value)}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Stellar Wallet Address</label>
+                  <input
+                    value={editWallet}
+                    onChange={(e) => setEditWallet(e.target.value)}
+                    placeholder="G..."
+                    className="w-full text-xs font-mono p-3 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Calling Statement</label>
+                  <input
+                    value={editCalling}
+                    onChange={(e) => setEditCalling(e.target.value)}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Full Biography</label>
+                  <textarea
+                    rows={4}
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* Documents Re-upload */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <h3 className="text-[10px] font-bold text-slate-500 uppercase">Documents (view or replace)</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1">Government ID</label>
+                    {selectedApp.government_id_url && (
+                      <a href={selectedApp.government_id_url} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 flex items-center gap-1 mb-1">
+                        <Eye className="w-3 h-3" /> View current
+                      </a>
+                    )}
+                    <input type="file" accept="image/*,.pdf" onChange={(e) => handleFileUpload(e, setEditGovId, "Gov ID")} className="text-xs w-full" />
+                    {(editGovId || uploadingState === "Gov ID") && (
+                      <span className="text-[10px] text-emerald-600">{uploadingState === "Gov ID" ? "Uploading..." : "New file ready"}</span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1">Selfie</label>
+                    {selectedApp.selfie_url && (
+                      <a href={selectedApp.selfie_url} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 flex items-center gap-1 mb-1">
+                        <Eye className="w-3 h-3" /> View current
+                      </a>
+                    )}
+                    <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setEditSelfie, "Selfie")} className="text-xs w-full" />
+                    {(editSelfie || uploadingState === "Selfie") && (
+                      <span className="text-[10px] text-emerald-600">{uploadingState === "Selfie" ? "Uploading..." : "New file ready"}</span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1">Org Certificate</label>
+                    {selectedApp.organization_cert_url && (
+                      <a href={selectedApp.organization_cert_url} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 flex items-center gap-1 mb-1">
+                        <Eye className="w-3 h-3" /> View current
+                      </a>
+                    )}
+                    <input type="file" accept="image/*,.pdf" onChange={(e) => handleFileUpload(e, setEditCert, "Cert")} className="text-xs w-full" />
+                    {(editCert || uploadingState === "Cert") && (
+                      <span className="text-[10px] text-emerald-600">{uploadingState === "Cert" ? "Uploading..." : "New file ready"}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status & Badges */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Verification Status</label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full text-xs font-bold p-3 bg-slate-900 text-white rounded-xl"
+                  >
+                    <option value="SUBMITTED">SUBMITTED</option>
+                    <option value="UNDER_REVIEW">UNDER_REVIEW</option>
+                    <option value="INFO_REQUESTED">INFO_REQUESTED</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer p-3 border border-slate-200 rounded-xl w-full">
+                    <input type="checkbox" checked={badgeIdentity} onChange={(e) => setBadgeIdentity(e.target.checked)} className="accent-blue-600" />
+                    Identity Verified Badge
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Admin Notes</label>
+                <textarea
+                  rows={2}
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  className="w-full text-xs p-3 border border-slate-200 rounded-xl"
+                />
+              </div>
+
+              {/* Save Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={handleSaveProfileAndDocs}
+                  disabled={saving || !!uploadingState}
+                  className="flex-1 py-3 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? "Saving..." : "Save Profile & Documents"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveReview}
+                  disabled={saving}
+                  className="flex-1 py-3 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  {saving ? "Saving..." : "Commit Vetting Decision"}
+                </button>
               </div>
             </div>
           )}
