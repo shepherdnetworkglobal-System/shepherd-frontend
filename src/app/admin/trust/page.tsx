@@ -238,7 +238,7 @@ export default function OnboardingWorkstation() {
     if (!selectedOpId) return alert("Select an approved missionary.");
     setCreatingMission(true);
     try {
-      await apiRequest("/api/missions", {
+      await apiRequest("/api/missions/", {
         method: "POST",
         body: JSON.stringify({
           missionary_id: parseInt(selectedOpId, 10),
