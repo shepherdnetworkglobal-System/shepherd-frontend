@@ -2,32 +2,10 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import {
-  Briefcase,
-  Search,
-  RefreshCw,
-  DollarSign,
-  PieChart,
-  CheckSquare,
-  Camera,
-  FileText,
-  CreditCard,
-  AlertTriangle,
-  Plus,
-  Trash2,
-  ExternalLink,
-  Upload,
-  Loader2,
-  Eye,
-  EyeOff,
-  Sparkles,
-  TrendingUp,
-  Activity,
-  Layers,
-  MapPin,
-  Clock,
-  ShieldCheck,
-  CheckCircle2,
-  Info
+  Briefcase, Search, RefreshCw, DollarSign, PieChart, CheckSquare, Camera,
+  FileText, CreditCard, AlertTriangle, Plus, Trash2, ExternalLink, Upload,
+  Loader2, Eye, EyeOff, Sparkles, TrendingUp, Activity, Layers, MapPin,
+  Clock, ShieldCheck, CheckCircle2, Info, Target
 } from "lucide-react";
 import { apiRequest, uploadFile } from "@/lib/api";
 import "flag-icons/css/flag-icons.min.css";
@@ -40,6 +18,9 @@ interface Mission {
   goal_amount_usd: number;
   raised_amount_usd: number;
   status: string;
+  problem_statement?: string;
+  mission_objectives?: string;
+  proposed_process?: string;
 }
 
 interface SummaryData {
@@ -109,13 +90,9 @@ export default function ProjectsWorkstation() {
   // Forms State
   const [newBudgetItem, setNewBudgetItem] = useState({ item_name: "", category: "EQUIPMENT", quantity: "1", unit_cost_usd: "", notes: "", vendor_name: "" });
   const [newCheckpoint, setNewCheckpoint] = useState({ title: "", description: "", weight_percent: "20", target_date: "" });
-  const [newReport, setNewReport] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", is_public: false });
-  const [newPayout, setNewPayout] = useState({ amount_usd: "", recipient_name: "", recipient_wallet: "", purpose: "", stellar_tx_hash: "" });
   const [newRisk, setNewRisk] = useState({ title: "", description: "", severity: "MEDIUM", resolution_plan: "" });
-  const [newPhoto, setNewPhoto] = useState({ image_url: "", caption: "", category: "DURING" });
 
   const [actionLoading, setActionLoading] = useState(false);
-  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const fetchMissions = async () => {
     setLoading(true);
@@ -286,6 +263,7 @@ export default function ProjectsWorkstation() {
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto h-full flex flex-col space-y-6 animate-in fade-in duration-300">
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
@@ -309,91 +287,124 @@ export default function ProjectsWorkstation() {
         </button>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-start">
-        {/* Left Queue */}
-        <div className="lg:col-span-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-4">
-          <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
-            <Layers className="w-4 h-4 text-slate-500" /> Active Mission Projects ({filteredMissions.length})
-          </h2>
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Search title or country..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-          <div className="space-y-2 max-h-[650px] overflow-y-auto">
-            {loading ? (
-              <div className="py-12 text-center text-xs text-slate-400">Loading missions...</div>
-            ) : filteredMissions.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-400">No active projects.</div>
-            ) : (
-              filteredMissions.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setSelectedMissionId(m.id)}
-                  className={`w-full text-left p-3.5 rounded-xl border transition-all ${
-                    selectedMissionId === m.id
-                      ? "bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200"
-                      : "bg-white border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-xs font-bold text-slate-900 line-clamp-1">{m.title}</span>
-                    <FlagBadge country={m.target_country} />
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] font-semibold text-slate-500">
-                    <span>${Number(m.raised_amount_usd).toLocaleString()} Raised</span>
-                    <span className="text-indigo-600 font-bold">{m.status}</span>
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Right 8-Tab Workspace */}
-        <div className="lg:col-span-8 space-y-4">
-          {!selectedMission || !summary ? (
-            <div className="bg-white/80 border border-slate-200 rounded-2xl p-16 text-center text-xs text-slate-400">
-              Select a mission project from the queue to open the project management workstation.
+      {/* Main Layout: 3 Columns Left (Context) / 9 Columns Right (Action) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 items-start">
+        
+        {/* LEFT COLUMN: Project Context & Metadata */}
+        <div className="lg:col-span-3 space-y-6">
+          
+          {/* Active Missions Queue (Compact) */}
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-4">
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Layers className="w-4 h-4 text-slate-400" /> Active Projects ({filteredMissions.length})
+            </h2>
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+              />
             </div>
-          ) : (
-            <>
-              {/* Mission Header */}
-              <div className="bg-white/80 border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                      Project #{summary.mission_id}
-                    </span>
-                    <FlagBadge country={summary.target_country} />
-                    <span className="text-xs font-semibold text-slate-500">{summary.target_country}</span>
-                  </div>
-                  <h2 className="text-lg font-bold text-slate-900">{summary.title}</h2>
-                </div>
+            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+              {loading ? (
+                <div className="py-6 text-center text-xs text-slate-400">Loading...</div>
+              ) : filteredMissions.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-400">No active projects.</div>
+              ) : (
+                filteredMissions.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setSelectedMissionId(m.id)}
+                    className={`w-full text-left p-3 rounded-xl border transition-all ${
+                      selectedMissionId === m.id
+                        ? "bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200 shadow-sm"
+                        : "bg-white border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <span className="text-[11px] font-bold text-slate-900 leading-snug line-clamp-2">{m.title}</span>
+                      <div className="shrink-0"><FlagBadge country={m.target_country} /></div>
+                    </div>
+                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                      <span>${Number(m.raised_amount_usd).toLocaleString()} Raised</span>
+                      <span className="text-indigo-600">{m.status}</span>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Project Master Brief Details (Fills the white space!) */}
+          {selectedMission && summary && (
+            <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Master Brief</span>
+                <FlagBadge country={selectedMission.target_country} />
+              </div>
+              
+              <h3 className="text-base font-bold text-slate-900 leading-snug">{selectedMission.title}</h3>
+              
+              <div className="flex flex-wrap gap-2">
+                <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wider">
+                  {selectedMission.status}
+                </span>
+                <span className="bg-slate-100 text-slate-700 text-[9px] font-bold px-2 py-0.5 rounded border border-slate-200 uppercase tracking-wider flex items-center gap-1">
+                  <Target className="w-3 h-3"/> Goal: ${Number(selectedMission.goal_amount_usd).toLocaleString()}
+                </span>
                 {summary.risk_alerts.has_critical_blocker && (
-                  <span className="bg-red-50 text-red-700 text-xs font-bold px-3 py-1 rounded-xl border border-red-200 flex items-center gap-1.5 shrink-0">
-                    <AlertTriangle className="w-4 h-4 text-red-600" /> High Severity Incident Logged
+                  <span className="bg-red-50 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded border border-red-200 uppercase tracking-wider flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3"/> High Risk Alert
                   </span>
                 )}
               </div>
 
-              {/* 8-Tab Bar */}
-              <div className="flex flex-wrap gap-2 border-b border-slate-200/80 pb-2">
+              {selectedMission.problem_statement && (
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">The Need</span>
+                  <p className="text-xs text-slate-600 font-medium leading-relaxed">{selectedMission.problem_statement}</p>
+                </div>
+              )}
+
+              {selectedMission.mission_objectives && (
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Objectives</span>
+                  <p className="text-xs text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{selectedMission.mission_objectives}</p>
+                </div>
+              )}
+
+              {selectedMission.proposed_process && (
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Implementation</span>
+                  <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-6">{selectedMission.proposed_process}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN: 8-Tab Action Workspace */}
+        <div className="lg:col-span-9 space-y-4">
+          {!selectedMission || !summary ? (
+            <div className="bg-white/80 border border-slate-200 rounded-2xl p-16 text-center text-xs text-slate-400 shadow-sm">
+              Select a mission project from the left queue to open the workspace.
+            </div>
+          ) : (
+            <>
+              {/* Modern 8-Tab Bar */}
+              <div className="bg-white/80 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/80 shadow-sm flex overflow-x-auto hide-scrollbar gap-1">
                 {[
-                  { id: "dashboard", label: "1. Dashboard", icon: PieChart },
-                  { id: "budget", label: `2. Budget (${summary.counts.budget_items})`, icon: DollarSign },
-                  { id: "receipts", label: `3. Receipts (${summary.counts.receipts})`, icon: FileText },
-                  { id: "checkpoints", label: `4. Checkpoints (${summary.counts.checkpoints})`, icon: CheckSquare },
-                  { id: "photos", label: `5. Photos (${summary.counts.photos})`, icon: Camera },
-                  { id: "reports", label: `6. Reports (${summary.counts.field_reports})`, icon: Activity },
-                  { id: "payouts", label: `7. Payouts (${summary.counts.payouts})`, icon: CreditCard },
-                  { id: "risks", label: `8. Risks (${summary.risk_alerts.open_risks_count})`, icon: AlertTriangle },
+                  { id: "dashboard", label: "Dashboard", icon: PieChart },
+                  { id: "budget", label: `Budget (${summary.counts.budget_items})`, icon: DollarSign },
+                  { id: "receipts", label: `Receipts (${summary.counts.receipts})`, icon: FileText },
+                  { id: "checkpoints", label: `Checkpoints (${summary.counts.checkpoints})`, icon: CheckSquare },
+                  { id: "photos", label: `Photos (${summary.counts.photos})`, icon: Camera },
+                  { id: "reports", label: `Reports (${summary.counts.field_reports})`, icon: Activity },
+                  { id: "payouts", label: `Payouts (${summary.counts.payouts})`, icon: CreditCard },
+                  { id: "risks", label: `Risks (${summary.risk_alerts.open_risks_count})`, icon: AlertTriangle },
                 ].map((t) => {
                   const Icon = t.icon;
                   const isActive = activeTab === t.id;
@@ -401,11 +412,13 @@ export default function ProjectsWorkstation() {
                     <button
                       key={t.id}
                       onClick={() => setActiveTab(t.id as any)}
-                      className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                        isActive ? "bg-indigo-600 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
+                        isActive 
+                          ? "bg-slate-900 text-white shadow-sm" 
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Icon className="w-3.5 h-3.5" />
+                      <Icon className={`w-3.5 h-3.5 ${isActive ? "text-indigo-400" : "text-slate-400"}`} />
                       {t.label}
                     </button>
                   );
@@ -415,58 +428,55 @@ export default function ProjectsWorkstation() {
               {/* TAB 1: LIVE DASHBOARD */}
               {activeTab === "dashboard" && (
                 <div className="space-y-5 animate-in fade-in">
-                  {/* Donations & Allocation Meter */}
-                  <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-emerald-600" /> Live Donations & Allocation Meter
-                    </h3>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Total Raised</span>
-                        <span className="text-lg font-extrabold text-slate-900">${summary.donations_meter.total_raised_usd.toLocaleString()}</span>
-                      </div>
-                      <div className="p-3 bg-blue-50 border border-blue-200/80 rounded-xl">
-                        <span className="text-[10px] font-bold text-blue-600 uppercase block mb-1">Total Budgeted</span>
-                        <span className="text-lg font-extrabold text-blue-900">${summary.donations_meter.total_budgeted_usd.toLocaleString()}</span>
-                      </div>
-                      <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl">
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-1">Verified Spent</span>
-                        <span className="text-lg font-extrabold text-emerald-900">${summary.donations_meter.total_verified_spent_usd.toLocaleString()}</span>
-                      </div>
-                      <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl">
-                        <span className="text-[10px] font-bold text-amber-600 uppercase block mb-1">Unallocated Balance</span>
-                        <span className="text-lg font-extrabold text-amber-900">${summary.donations_meter.unallocated_balance_usd.toLocaleString()}</span>
-                      </div>
+                  
+                  {/* KPI Cards (Wide Layout) */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-5 bg-white/80 border border-slate-200/80 rounded-2xl shadow-sm flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Total Raised</span>
+                      <span className="text-2xl font-black text-slate-900">${summary.donations_meter.total_raised_usd.toLocaleString()}</span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs font-semibold text-slate-600">
-                        <span>Spend Rate (Spent vs Budgeted)</span>
-                        <span>{summary.donations_meter.spend_rate_pct}%</span>
-                      </div>
-                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${summary.donations_meter.spend_rate_pct}%` }} />
-                      </div>
+                    <div className="p-5 bg-blue-50/80 border border-blue-200/80 rounded-2xl shadow-sm flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest block mb-2">Total Budgeted</span>
+                      <span className="text-2xl font-black text-blue-900">${summary.donations_meter.total_budgeted_usd.toLocaleString()}</span>
+                    </div>
+                    <div className="p-5 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl shadow-sm flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-2">Verified Spent</span>
+                      <span className="text-2xl font-black text-emerald-900">${summary.donations_meter.total_verified_spent_usd.toLocaleString()}</span>
+                    </div>
+                    <div className="p-5 bg-amber-50/80 border border-amber-200/80 rounded-2xl shadow-sm flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block mb-2">Unallocated Balance</span>
+                      <span className="text-2xl font-black text-amber-900">${summary.donations_meter.unallocated_balance_usd.toLocaleString()}</span>
                     </div>
                   </div>
 
-                  {/* Progress Checkpoints Meter */}
-                  <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                        <CheckSquare className="w-4 h-4 text-indigo-600" /> Weighted Checkpoint Execution Progress
-                      </h3>
-                      <span className="text-xs font-extrabold text-indigo-600">{summary.progress_meter.calculated_progress_pct}% Overall</span>
+                  {/* Wide Progress Meters */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Financial Spend Rate */}
+                    <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-emerald-500" /> Spend Rate
+                        </h3>
+                        <span className="text-sm font-extrabold text-slate-900">{summary.donations_meter.spend_rate_pct}%</span>
+                      </div>
+                      <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${summary.donations_meter.spend_rate_pct}%` }} />
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">Percentage of total budgeted funds that have been verified as spent via receipts.</p>
                     </div>
 
-                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full transition-all" style={{ width: `${summary.progress_meter.calculated_progress_pct}%` }} />
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                      <span>{summary.progress_meter.checkpoints_completed} of {summary.progress_meter.checkpoints_total} Checkpoints Completed</span>
-                      <span>Total Assigned Weight: {summary.progress_meter.total_weight_assigned}%</span>
+                    {/* Operational Checkpoints */}
+                    <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                          <CheckSquare className="w-4 h-4 text-indigo-500" /> Operational Progress
+                        </h3>
+                        <span className="text-sm font-extrabold text-indigo-600">{summary.progress_meter.calculated_progress_pct}%</span>
+                      </div>
+                      <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full transition-all" style={{ width: `${summary.progress_meter.calculated_progress_pct}%` }} />
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">{summary.progress_meter.checkpoints_completed} of {summary.progress_meter.checkpoints_total} checkpoints completed (Weighted).</p>
                     </div>
                   </div>
                 </div>
@@ -480,34 +490,34 @@ export default function ProjectsWorkstation() {
 
                     <div className="overflow-x-auto border border-slate-200 rounded-xl">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px]">
+                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                           <tr>
-                            <th className="p-3">Category</th>
-                            <th className="p-3">Item Name</th>
-                            <th className="p-3">Qty</th>
-                            <th className="p-3">Unit Cost</th>
-                            <th className="p-3">Total Cost</th>
-                            <th className="p-3">Status</th>
-                            <th className="p-3">Vendor</th>
-                            <th className="p-3 text-right">Actions</th>
+                            <th className="p-3.5">Category</th>
+                            <th className="p-3.5">Item Name</th>
+                            <th className="p-3.5">Qty</th>
+                            <th className="p-3.5">Unit Cost</th>
+                            <th className="p-3.5">Total Cost</th>
+                            <th className="p-3.5">Status</th>
+                            <th className="p-3.5">Vendor</th>
+                            <th className="p-3.5 text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium">
                           {budgetItems.map((b) => (
-                            <tr key={b.id} className="hover:bg-slate-50/50">
-                              <td className="p-3"><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold">{b.category}</span></td>
-                              <td className="p-3 font-semibold text-slate-900">{b.item_name}</td>
-                              <td className="p-3">{b.quantity}</td>
-                              <td className="p-3">${b.unit_cost_usd.toLocaleString()}</td>
-                              <td className="p-3 font-bold text-slate-900">${b.total_cost_usd.toLocaleString()}</td>
-                              <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${b.status === "PAID" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                            <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3.5"><span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-extrabold">{b.category}</span></td>
+                              <td className="p-3.5 font-bold text-slate-900">{b.item_name}</td>
+                              <td className="p-3.5 text-slate-600">{b.quantity}</td>
+                              <td className="p-3.5 text-slate-600">${b.unit_cost_usd.toLocaleString()}</td>
+                              <td className="p-3.5 font-bold text-slate-900">${b.total_cost_usd.toLocaleString()}</td>
+                              <td className="p-3.5">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold border ${b.status === "PAID" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
                                   {b.status}
                                 </span>
                               </td>
-                              <td className="p-3 text-slate-500">{b.vendor_name || "—"}</td>
-                              <td className="p-3 text-right">
-                                <button onClick={() => handleDeleteBudgetItem(b.id)} className="text-slate-400 hover:text-red-600 p-1">
+                              <td className="p-3.5 text-slate-500">{b.vendor_name || "—"}</td>
+                              <td className="p-3.5 text-right">
+                                <button onClick={() => handleDeleteBudgetItem(b.id)} className="text-slate-400 hover:text-red-600 p-1 bg-white border border-slate-200 rounded-md shadow-sm">
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </td>
@@ -518,24 +528,24 @@ export default function ProjectsWorkstation() {
                     </div>
 
                     {/* Add Budget Item Form */}
-                    <form onSubmit={handleAddBudgetItem} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                      <h4 className="text-xs font-bold text-slate-700 uppercase">Add Budget Line Item</h4>
+                    <form onSubmit={handleAddBudgetItem} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
+                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Add Budget Line Item</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <input required placeholder="Item name" value={newBudgetItem.item_name} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, item_name: e.target.value })} className="text-xs p-2.5 border rounded-xl" />
-                        <select value={newBudgetItem.category} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, category: e.target.value })} className="text-xs p-2.5 border rounded-xl bg-white">
+                        <input required placeholder="Item name" value={newBudgetItem.item_name} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, item_name: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <select value={newBudgetItem.category} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, category: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white">
                           <option value="EQUIPMENT">EQUIPMENT</option>
                           <option value="MATERIALS">MATERIALS</option>
                           <option value="LABOR">LABOR</option>
                           <option value="TRANSPORT">TRANSPORT</option>
                           <option value="LOGISTICS">LOGISTICS</option>
                         </select>
-                        <input required type="number" step="any" placeholder="Qty" value={newBudgetItem.quantity} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, quantity: e.target.value })} className="text-xs p-2.5 border rounded-xl" />
-                        <input required type="number" step="any" placeholder="Unit Cost USD" value={newBudgetItem.unit_cost_usd} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, unit_cost_usd: e.target.value })} className="text-xs p-2.5 border rounded-xl" />
-                        <input placeholder="Vendor Name (Optional)" value={newBudgetItem.vendor_name} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, vendor_name: e.target.value })} className="text-xs p-2.5 border rounded-xl" />
-                        <input placeholder="Notes" value={newBudgetItem.notes} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, notes: e.target.value })} className="text-xs p-2.5 border rounded-xl" />
+                        <input required type="number" step="any" placeholder="Qty" value={newBudgetItem.quantity} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, quantity: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <input required type="number" step="any" placeholder="Unit Cost USD" value={newBudgetItem.unit_cost_usd} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, unit_cost_usd: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <input placeholder="Vendor Name (Optional)" value={newBudgetItem.vendor_name} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, vendor_name: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <input placeholder="Notes" value={newBudgetItem.notes} onChange={(e) => setNewBudgetItem({ ...newBudgetItem, notes: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
                       </div>
-                      <button type="submit" disabled={actionLoading} className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5" /> Add Line Item
+                      <button type="submit" disabled={actionLoading} className="px-5 py-3 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50">
+                        <Plus className="w-4 h-4" /> Add Line Item
                       </button>
                     </form>
                   </div>
@@ -546,42 +556,45 @@ export default function ProjectsWorkstation() {
               {activeTab === "checkpoints" && (
                 <div className="space-y-5 animate-in fade-in">
                   <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                       <div>
                         <h3 className="text-sm font-bold text-slate-900">Mission Progress Checkpoints</h3>
-                        <p className="text-xs text-slate-500">Auto-generated from objectives or defined manually by admin</p>
+                        <p className="text-xs text-slate-500 mt-1">Auto-generated from objectives or defined manually by admin</p>
                       </div>
-                      <button onClick={handleAutogenCheckpoints} disabled={actionLoading} className="px-3 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold rounded-xl flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5" /> Auto-Gen from Objectives
+                      <button onClick={handleAutogenCheckpoints} disabled={actionLoading} className="px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-indigo-100 transition-all">
+                        <Sparkles className="w-4 h-4 text-indigo-500" /> Auto-Gen from Objectives
                       </button>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {checkpoints.map((cp) => (
-                        <div key={cp.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <button onClick={() => handleToggleCheckpointStatus(cp)} className={`w-5 h-5 rounded-full flex items-center justify-center border ${cp.status === "COMPLETED" ? "bg-emerald-500 border-emerald-600 text-white" : "border-slate-300 bg-white"}`}>
+                        <div key={cp.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-4">
+                            <button onClick={() => handleToggleCheckpointStatus(cp)} className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center border shadow-sm transition-all ${cp.status === "COMPLETED" ? "bg-emerald-500 border-emerald-600 text-white" : "border-slate-300 bg-white hover:border-slate-400"}`}>
                               {cp.status === "COMPLETED" && <CheckCircle2 className="w-4 h-4" />}
                             </button>
                             <div>
-                              <span className={`text-xs font-bold ${cp.status === "COMPLETED" ? "line-through text-slate-400" : "text-slate-900"}`}>{cp.title}</span>
-                              <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded ml-2">{cp.weight_percent}% Weight</span>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-sm font-bold ${cp.status === "COMPLETED" ? "line-through text-slate-400" : "text-slate-900"}`}>{cp.title}</span>
+                                <span className="text-[9px] font-extrabold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200">{cp.weight_percent}% Weight</span>
+                              </div>
+                              {cp.description && <p className="text-xs text-slate-500 font-medium line-clamp-2">{cp.description}</p>}
                             </div>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${cp.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{cp.status}</span>
+                          <span className={`text-[9px] font-extrabold px-2.5 py-1 rounded-md border shrink-0 ${cp.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>{cp.status}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Add Checkpoint Form */}
-                    <form onSubmit={handleAddCheckpoint} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                      <h4 className="text-xs font-bold text-slate-700 uppercase">Add Manual Checkpoint</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <input required placeholder="Checkpoint title" value={newCheckpoint.title} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, title: e.target.value })} className="text-xs p-2.5 border rounded-xl sm:col-span-2" />
-                        <input required type="number" step="any" placeholder="Weight %" value={newCheckpoint.weight_percent} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, weight_percent: e.target.value })} className="text-xs p-2.5 border rounded-xl" />
+                    <form onSubmit={handleAddCheckpoint} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
+                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Add Manual Checkpoint</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <input required placeholder="Checkpoint title" value={newCheckpoint.title} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, title: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none sm:col-span-3" />
+                        <input required type="number" step="any" placeholder="Weight %" value={newCheckpoint.weight_percent} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, weight_percent: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
                       </div>
-                      <button type="submit" disabled={actionLoading} className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5" /> Add Checkpoint
+                      <button type="submit" disabled={actionLoading} className="px-5 py-3 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50">
+                        <Plus className="w-4 h-4" /> Add Checkpoint
                       </button>
                     </form>
                   </div>
@@ -592,44 +605,65 @@ export default function ProjectsWorkstation() {
               {activeTab === "risks" && (
                 <div className="space-y-5 animate-in fade-in">
                   <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                    <h3 className="text-sm font-bold text-slate-900">Risk & Incident Log</h3>
+                    <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-4">Risk & Incident Log</h3>
 
                     <div className="space-y-3">
-                      {risks.map((r) => (
-                        <div key={r.id} className={`p-4 rounded-xl border flex flex-col gap-2 ${r.severity === "HIGH" ? "bg-red-50/60 border-red-200" : "bg-slate-50 border-slate-200"}`}>
+                      {risks.length === 0 ? (
+                        <p className="text-xs text-slate-500 py-4 text-center border border-dashed border-slate-200 rounded-xl">No risks logged.</p>
+                      ) : risks.map((r) => (
+                        <div key={r.id} className={`p-5 rounded-xl border flex flex-col gap-2 ${r.severity === "HIGH" ? "bg-red-50/60 border-red-200 shadow-sm" : "bg-slate-50 border-slate-200"}`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <AlertTriangle className={`w-4 h-4 ${r.severity === "HIGH" ? "text-red-600" : "text-amber-500"}`} />
-                              <span className="text-xs font-bold text-slate-900">{r.title}</span>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${r.severity === "HIGH" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>{r.severity} SEVERITY</span>
+                              <span className="text-sm font-bold text-slate-900">{r.title}</span>
+                              <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded border ${r.severity === "HIGH" ? "bg-red-100 text-red-800 border-red-200" : "bg-amber-100 text-amber-800 border-amber-200"}`}>{r.severity} SEVERITY</span>
                             </div>
-                            <span className="text-[10px] font-bold bg-white px-2 py-0.5 rounded border">{r.status}</span>
+                            <span className="text-[10px] font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">{r.status}</span>
                           </div>
-                          <p className="text-xs text-slate-600">{r.description}</p>
-                          {r.resolution_plan && <p className="text-xs text-slate-500 italic">Resolution: {r.resolution_plan}</p>}
+                          <p className="text-xs text-slate-600 font-medium leading-relaxed">{r.description}</p>
+                          {r.resolution_plan && (
+                            <div className="mt-2 pt-2 border-t border-slate-200/60">
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Resolution Plan</span>
+                              <p className="text-xs text-slate-700 italic">{r.resolution_plan}</p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
 
                     {/* Add Risk Form */}
-                    <form onSubmit={handleAddRisk} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                      <h4 className="text-xs font-bold text-slate-700 uppercase">Log New Incident / Risk</h4>
+                    <form onSubmit={handleAddRisk} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
+                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Log New Incident / Risk</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input required placeholder="Incident title" value={newRisk.title} onChange={(e) => setNewRisk({ ...newRisk, title: e.target.value })} className="text-xs p-2.5 border rounded-xl" />
-                        <select value={newRisk.severity} onChange={(e) => setNewRisk({ ...newRisk, severity: e.target.value })} className="text-xs p-2.5 border rounded-xl bg-white">
+                        <input required placeholder="Incident title" value={newRisk.title} onChange={(e) => setNewRisk({ ...newRisk, title: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-red-500 focus:outline-none" />
+                        <select value={newRisk.severity} onChange={(e) => setNewRisk({ ...newRisk, severity: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-red-500 focus:outline-none bg-white text-slate-700">
                           <option value="LOW">LOW SEVERITY</option>
                           <option value="MEDIUM">MEDIUM SEVERITY</option>
                           <option value="HIGH">HIGH SEVERITY (FLAG ADMIN)</option>
                         </select>
                       </div>
-                      <textarea required rows={2} placeholder="Incident description..." value={newRisk.description} onChange={(e) => setNewRisk({ ...newRisk, description: e.target.value })} className="w-full text-xs p-2.5 border rounded-xl" />
-                      <button type="submit" disabled={actionLoading} className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5" /> Log Incident
+                      <textarea required rows={2} placeholder="Incident description..." value={newRisk.description} onChange={(e) => setNewRisk({ ...newRisk, description: e.target.value })} className="w-full text-xs font-medium p-3 border border-slate-200 rounded-xl focus:border-red-500 focus:outline-none" />
+                      <button type="submit" disabled={actionLoading} className="px-5 py-3 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-red-700 transition-all disabled:opacity-50">
+                        <Plus className="w-4 h-4" /> Log Incident
                       </button>
                     </form>
                   </div>
                 </div>
               )}
+
+              {/* PLACEHOLDERS FOR MILESTONE 3 TABS */}
+              {["receipts", "photos", "reports", "payouts"].includes(activeTab) && (
+                <div className="bg-white/80 border border-slate-200 rounded-2xl p-16 text-center shadow-sm animate-in fade-in">
+                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-200">
+                    <Clock className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 mb-2">Module Under Construction</h3>
+                  <p className="text-sm text-slate-500 max-w-sm mx-auto">
+                    The {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} manager will be deployed in Milestone 3 of the Projects Engine integration.
+                  </p>
+                </div>
+              )}
+
             </>
           )}
         </div>
