@@ -665,7 +665,6 @@ export default function ProjectsWorkstation() {
                   </p>
                 </div>
               )}
-
             </>
           )}
         </div>
