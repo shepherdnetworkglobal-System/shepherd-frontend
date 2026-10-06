@@ -100,6 +100,8 @@ export default function ProjectsWorkstation() {
   const [actionLoading, setActionLoading] = useState(false);
   const [uploadingState, setUploadingState] = useState<string | null>(null);
   const [isBriefExpanded, setIsBriefExpanded] = useState(false);
+  const [editingCheckpointId, setEditingCheckpointId] = useState<number | null>(null);
+  const [editCpForm, setEditCpForm] = useState({ title: "", description: "", weight_percent: "0" });
 
   const fetchMissions = async () => {
     setLoading(true);
@@ -234,6 +236,67 @@ export default function ProjectsWorkstation() {
       if (selectedMissionId) await loadMissionData(selectedMissionId);
     } catch (err: any) {
       alert(err.message);
+    }
+  };
+
+  const startEditCheckpoint = (cp: any) => {
+    setEditingCheckpointId(cp.id);
+    setEditCpForm({
+      title: cp.title || "",
+      description: cp.description || "",
+      weight_percent: String(cp.weight_percent ?? 0),
+    });
+  };
+
+  const handleSaveCheckpointEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCheckpointId || !selectedMissionId) return;
+    setActionLoading(true);
+    try {
+      await apiRequest(`/api/projects/checkpoints/${editingCheckpointId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: editCpForm.title,
+          description: editCpForm.description || null,
+          weight_percent: parseFloat(editCpForm.weight_percent) || 0,
+        }),
+      });
+      setEditingCheckpointId(null);
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to update checkpoint");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteCheckpoint = async (id: number) => {
+    if (!confirm("Delete this checkpoint/objective?")) return;
+    try {
+      await apiRequest(`/api/projects/checkpoints/${id}`, { method: "DELETE" });
+      if (selectedMissionId) await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to delete checkpoint");
+    }
+  };
+
+  const handleDeletePhoto = async (id: number) => {
+    if (!confirm("Delete this photo permanently?")) return;
+    try {
+      await apiRequest(`/api/projects/photos/${id}`, { method: "DELETE" });
+      if (selectedMissionId) await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to delete photo");
+    }
+  };
+
+  const handleDeleteReport = async (id: number) => {
+    if (!confirm("Delete this field report?")) return;
+    try {
+      await apiRequest(`/api/projects/reports/${id}`, { method: "DELETE" });
+      if (selectedMissionId) await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to delete report");
     }
   };
 
@@ -680,21 +743,82 @@ export default function ProjectsWorkstation() {
                     </div>
 
                     <div className="space-y-3">
-                      {checkpoints.map((cp) => (
-                        <div key={cp.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-4">
-                            <button onClick={() => handleToggleCheckpointStatus(cp)} className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center border shadow-sm transition-all ${cp.status === "COMPLETED" ? "bg-emerald-500 border-emerald-600 text-white" : "border-slate-300 bg-white hover:border-slate-400"}`}>
-                              {cp.status === "COMPLETED" && <CheckCircle2 className="w-4 h-4" />}
-                            </button>
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-sm font-bold ${cp.status === "COMPLETED" ? "line-through text-slate-400" : "text-slate-900"}`}>{cp.title}</span>
-                                <span className="text-[9px] font-extrabold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200">{cp.weight_percent}% Weight</span>
+                      {checkpoints.length === 0 ? (
+                        <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-xl">
+                          No checkpoints yet. Click Auto-Gen or add manually.
+                        </p>
+                      ) : checkpoints.map((cp) => (
+                        <div key={cp.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                          {editingCheckpointId === cp.id ? (
+                            <form onSubmit={handleSaveCheckpointEdit} className="space-y-3">
+                              <input
+                                required
+                                value={editCpForm.title}
+                                onChange={(e) => setEditCpForm({ ...editCpForm, title: e.target.value })}
+                                className="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                placeholder="Checkpoint title"
+                              />
+                              <textarea
+                                rows={2}
+                                value={editCpForm.description}
+                                onChange={(e) => setEditCpForm({ ...editCpForm, description: e.target.value })}
+                                className="w-full text-xs p-2.5 border border-slate-200 rounded-xl"
+                                placeholder="Description / objective detail"
+                              />
+                              <div className="flex items-center gap-3">
+                                <div className="w-28">
+                                  <label className="text-[10px] font-bold text-slate-500 block mb-1">Weight %</label>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    required
+                                    value={editCpForm.weight_percent}
+                                    onChange={(e) => setEditCpForm({ ...editCpForm, weight_percent: e.target.value })}
+                                    className="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                  />
+                                </div>
+                                <div className="flex gap-2 mt-5">
+                                  <button type="submit" disabled={actionLoading} className="px-3 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-lg">
+                                    Save
+                                  </button>
+                                  <button type="button" onClick={() => setEditingCheckpointId(null)} className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg">
+                                    Cancel
+                                  </button>
+                                </div>
                               </div>
-                              {cp.description && <p className="text-xs text-slate-500 font-medium line-clamp-2">{cp.description}</p>}
+                            </form>
+                          ) : (
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start gap-4 min-w-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleCheckpointStatus(cp)}
+                                  className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center border shadow-sm transition-all shrink-0 ${cp.status === "COMPLETED" ? "bg-emerald-500 border-emerald-600 text-white" : "border-slate-300 bg-white hover:border-slate-400"}`}
+                                >
+                                  {cp.status === "COMPLETED" && <CheckCircle2 className="w-4 h-4" />}
+                                </button>
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                                    <span className={`text-sm font-bold ${cp.status === "COMPLETED" ? "line-through text-slate-400" : "text-slate-900"}`}>{cp.title}</span>
+                                    <span className="text-[9px] font-extrabold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200">{cp.weight_percent}% Weight</span>
+                                    {cp.auto_generated && (
+                                      <span className="text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded">AUTO</span>
+                                    )}
+                                  </div>
+                                  {cp.description && <p className="text-xs text-slate-500 font-medium">{cp.description}</p>}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`text-[9px] font-extrabold px-2.5 py-1 rounded-md border ${cp.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>{cp.status}</span>
+                                <button type="button" onClick={() => startEditCheckpoint(cp)} className="text-[10px] font-bold text-indigo-600 hover:underline px-2">
+                                  Edit
+                                </button>
+                                <button type="button" onClick={() => handleDeleteCheckpoint(cp.id)} className="p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                          <span className={`text-[9px] font-extrabold px-2.5 py-1 rounded-md border shrink-0 ${cp.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>{cp.status}</span>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -825,9 +949,21 @@ export default function ProjectsWorkstation() {
                         photos.map((p) => (
                           <div key={p.id} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-100">
                             <img src={p.image_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-                              <span className="text-white text-[9px] font-bold">{p.category}</span>
-                              {p.caption && <p className="text-white text-[9px] truncate">{p.caption}</p>}
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                              <div className="flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePhoto(p.id)}
+                                  className="bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-lg shadow-sm"
+                                  title="Delete photo"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <div>
+                                <span className="text-white text-[9px] font-bold">{p.category}</span>
+                                {p.caption && <p className="text-white text-[9px] truncate">{p.caption}</p>}
+                              </div>
                             </div>
                           </div>
                         ))
@@ -869,9 +1005,19 @@ export default function ProjectsWorkstation() {
                       ) : (
                         reports.map((r) => (
                           <div key={r.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between mb-2 gap-3">
                               <h4 className="text-sm font-bold text-slate-900">{r.title}</h4>
-                              <span className="text-[9px] font-bold uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.report_type}</span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[9px] font-bold uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.report_type}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteReport(r.id)}
+                                  className="p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white"
+                                  title="Delete report"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                             <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{r.body}</p>
                             <div className="mt-3 pt-3 border-t border-slate-200/60 flex justify-between text-[10px] text-slate-500 font-semibold">
