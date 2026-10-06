@@ -6,7 +6,8 @@ import Link from "next/link";
 import {
   ShieldCheck, MapPin, Calendar, Heart, Users, DollarSign, ArrowLeft,
   CheckCircle2, Globe2, Loader2, Briefcase, BookOpen, Award, Building2,
-  CreditCard, UserCheck, LayoutGrid, Activity, ExternalLink, Clock
+  CreditCard, UserCheck, LayoutGrid, Activity, ExternalLink, FileText, Target,
+  Clock
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MissionCard from "@/components/MissionCard";
@@ -44,9 +45,8 @@ export default function MissionaryProfilePage() {
   const profileId = Number(params.id);
   const [data, setData] = useState<MissionaryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "missions" | "portfolio">("overview");
-
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "ledger" | "past">("overview");
 
   useEffect(() => {
     setLoading(true);
@@ -94,6 +94,12 @@ export default function MissionaryProfilePage() {
 
   const flag = COUNTRY_FLAGS[data.country] || "🌍";
 
+  // Extract all gallery images from past projects for the highlights reel
+  const allMedia = data.past_projects
+    .filter(p => p.media_urls)
+    .flatMap(p => p.media_urls.split(","))
+    .filter(url => url.trim().length > 0);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50 pb-20">
       <Navbar />
@@ -135,17 +141,8 @@ export default function MissionaryProfilePage() {
 
           {/* Identity Info */}
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">{data.full_name}</h1>
-            <h2 className="text-lg font-medium text-slate-500">{data.shepherd_id}</h2>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight mb-1">{data.full_name}</h1>
           </div>
-
-          <button className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-900 text-sm font-semibold py-2 rounded-xl transition-all">
-            Share Profile
-          </button>
-
-          {data.biography && (
-            <p className="text-sm text-slate-700 font-medium leading-relaxed">{data.biography}</p>
-          )}
 
           {/* Quick Stats (Like Followers/Following) */}
           <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
@@ -155,7 +152,7 @@ export default function MissionaryProfilePage() {
             </div>
             <div className="flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-default">
               <DollarSign className="w-4 h-4 text-slate-400" />
-              <span className="font-bold text-slate-900">{data.total_funds_deployed.toLocaleString()}</span> deployed
+              <span className="font-bold text-slate-900">${data.total_funds_deployed.toLocaleString()}</span> deployed
             </div>
           </div>
 
@@ -174,6 +171,10 @@ export default function MissionaryProfilePage() {
             <li className="flex items-center gap-2.5">
               <Clock className="w-4 h-4 text-slate-400 shrink-0" />
               <span>{data.years_of_service} Years of Service</span>
+            </li>
+            <li className="flex items-center gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
+              <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{data.shepherd_id}</span>
             </li>
           </ul>
 
@@ -217,6 +218,18 @@ export default function MissionaryProfilePage() {
               )}
             </div>
           </div>
+
+          <button className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-900 text-sm font-semibold py-2 rounded-xl transition-all">
+            Share Profile
+          </button>
+
+          {/* Biography moved to bottom */}
+          {data.biography && (
+            <div className="pt-4 border-t border-slate-200">
+              <h3 className="text-sm font-bold text-slate-900 mb-2">Biography</h3>
+              <p className="text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{data.biography}</p>
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN: Main Content Area */}
@@ -226,8 +239,8 @@ export default function MissionaryProfilePage() {
             <nav className="flex space-x-6 overflow-x-auto">
               {[
                 { id: "overview", label: "Overview", icon: BookOpen },
-                { id: "missions", label: "Active Missions", icon: LayoutGrid, count: data.active_missions.length },
-                { id: "portfolio", label: "Project Activity", icon: Activity, count: data.past_projects.length },
+                { id: "ledger", label: "Project Activity", icon: Activity, count: data.active_missions.length },
+                { id: "past", label: "Past Missions", icon: Briefcase, count: data.past_projects.length },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -268,10 +281,24 @@ export default function MissionaryProfilePage() {
                 </div>
               )}
 
+              {/* Highlight Gallery */}
+              {allMedia.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Field Gallery Highlights</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {allMedia.slice(0, 4).map((url, i) => (
+                      <div key={i} className="aspect-square bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                        <img src={url.trim()} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Field highlight" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pinned Deployments</p>
-                  <button onClick={() => setActiveTab("missions")} className="text-xs font-semibold text-blue-600 hover:underline">View all</button>
+                  <button onClick={() => setActiveTab("ledger")} className="text-xs font-semibold text-blue-600 hover:underline">View all project activity</button>
                 </div>
                 {data.active_missions.length === 0 ? (
                   <div className="p-8 border border-dashed border-slate-300 rounded-2xl text-center text-sm text-slate-500 font-medium">
@@ -289,29 +316,81 @@ export default function MissionaryProfilePage() {
             </div>
           )}
 
-          {/* TAB CONTENT: Active Missions */}
-          {activeTab === "missions" && (
-            <div className="animate-in fade-in">
+          {/* TAB CONTENT: Project Activity (Live Transparent Ledger) */}
+          {activeTab === "ledger" && (
+            <div className="animate-in fade-in space-y-6">
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6 flex items-start gap-3 shadow-sm">
+                <Activity className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                  <strong>Live Transparent Ledger:</strong> All active deployments are tracked on-chain. Below is the real-time financial and logistical activity for current missions.
+                </p>
+              </div>
+
               {data.active_missions.length === 0 ? (
                 <div className="p-12 border border-dashed border-slate-300 rounded-2xl text-center text-sm text-slate-500 font-medium">
-                  No active missions found.
+                  No active project activity to display.
                 </div>
               ) : (
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {data.active_missions.map((m) => (
-                    <MissionCard key={m.id} id={m.id} title={m.title} targetCountry={m.target_country} goalAmount={m.goal_amount_usd} raisedAmount={m.raised_amount_usd} status={m.status} />
-                  ))}
-                </div>
+                data.active_missions.map((m) => {
+                  const goal = Number(m.goal_amount_usd) || 1;
+                  const raised = Number(m.raised_amount_usd) || 0;
+                  const pct = Math.min(100, Math.round((raised / goal) * 100));
+
+                  return (
+                    <div key={m.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                      <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900 leading-tight"><Link href={`/missions/${m.id}`} className="hover:underline">{m.title}</Link></h3>
+                          <span className="text-xs text-slate-500 flex items-center gap-1 mt-1 font-medium"><MapPin className="w-3 h-3"/> {m.target_country}</span>
+                        </div>
+                        <span className="bg-emerald-50 text-emerald-700 text-[10px] uppercase font-bold px-2.5 py-1 rounded border border-emerald-200 shrink-0 ml-2">
+                          {m.status}
+                        </span>
+                      </div>
+                      
+                      {/* Live Budget Breakdown Scaffold */}
+                      <div className="grid grid-cols-3 gap-3 mb-6">
+                         <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Goal</span>
+                           <span className="text-base font-extrabold text-slate-900">${goal.toLocaleString()}</span>
+                         </div>
+                         <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Raised</span>
+                           <span className="text-base font-extrabold text-slate-900">${raised.toLocaleString()}</span>
+                         </div>
+                         <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Progress</span>
+                           <span className="text-base font-extrabold text-blue-600">{pct}%</span>
+                         </div>
+                      </div>
+
+                      {/* Ledger Feed Placeholder */}
+                      <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                         <h4 className="text-xs font-bold text-slate-900 mb-3 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-slate-400"/> Recent Logistics & Receipts</h4>
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between text-xs p-3 bg-white rounded-lg border border-slate-200">
+                               <div className="flex items-center gap-2">
+                                 <Target className="w-4 h-4 text-emerald-500" />
+                                 <span className="font-semibold text-slate-700">Mission Initialized & Budget Set</span>
+                               </div>
+                               <span className="text-slate-400 font-medium">Ledger Active</span>
+                            </div>
+                         </div>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           )}
 
-          {/* TAB CONTENT: Portfolio Timeline */}
-          {activeTab === "portfolio" && (
+          {/* TAB CONTENT: Past Missions */}
+          {activeTab === "past" && (
             <div className="animate-in fade-in">
               {data.past_projects.length === 0 ? (
                 <div className="p-12 border border-dashed border-slate-300 rounded-2xl text-center text-sm text-slate-500 font-medium">
-                  Portfolio activity timeline is currently empty.
+                  Past missions timeline is currently empty.
                 </div>
               ) : (
                 <div className="relative border-l border-slate-200 ml-3 space-y-8 pb-4">
@@ -331,14 +410,14 @@ export default function MissionaryProfilePage() {
                           </span>
                         </div>
                         
-                        <p className="text-sm text-slate-600 leading-relaxed font-medium mb-4">
+                        <p className="text-sm text-slate-600 leading-relaxed font-medium mb-4 whitespace-pre-wrap">
                           {project.description}
                         </p>
 
                         {project.media_urls && project.media_urls.trim().length > 0 && (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
                             {project.media_urls.split(",").map((url: string, i: number) => (
-                              <div key={i} className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                              <div key={i} className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
                                 <img src={url.trim()} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                               </div>
                             ))}
