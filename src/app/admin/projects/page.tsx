@@ -5,7 +5,7 @@ import {
   Briefcase, Search, RefreshCw, DollarSign, PieChart, CheckSquare, Camera,
   FileText, CreditCard, AlertTriangle, Plus, Trash2, ExternalLink, Upload,
   Loader2, Eye, EyeOff, Sparkles, TrendingUp, Activity, Layers, MapPin,
-  Clock, ShieldCheck, CheckCircle2, Info, Target
+  Clock, ShieldCheck, CheckCircle2, Info, Target, ChevronDown, ChevronUp
 } from "lucide-react";
 import { apiRequest, uploadFile } from "@/lib/api";
 import "flag-icons/css/flag-icons.min.css";
@@ -93,6 +93,7 @@ export default function ProjectsWorkstation() {
   const [newRisk, setNewRisk] = useState({ title: "", description: "", severity: "MEDIUM", resolution_plan: "" });
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [isBriefExpanded, setIsBriefExpanded] = useState(false);
 
   const fetchMissions = async () => {
     setLoading(true);
@@ -340,8 +341,8 @@ export default function ProjectsWorkstation() {
 
         {/* Master Brief (full width under picker) */}
         {selectedMission && summary && (
-          <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4 transition-all duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Master Brief</span>
@@ -351,40 +352,52 @@ export default function ProjectsWorkstation() {
                 <h3 className="text-xl font-bold text-slate-900 leading-snug">{selectedMission.title}</h3>
               </div>
               <div className="flex flex-wrap gap-2 shrink-0">
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded border border-emerald-200 uppercase tracking-wider">
+                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded border border-emerald-200 uppercase tracking-wider flex items-center h-fit">
                   {selectedMission.status}
                 </span>
-                <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded border border-slate-200 uppercase tracking-wider flex items-center gap-1">
+                <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded border border-slate-200 uppercase tracking-wider flex items-center gap-1 h-fit">
                   <Target className="w-3.5 h-3.5" /> Goal: ${Number(selectedMission.goal_amount_usd).toLocaleString()}
                 </span>
                 {summary.risk_alerts.has_critical_blocker && (
-                  <span className="bg-red-50 text-red-700 text-[10px] font-bold px-2.5 py-1 rounded border border-red-200 uppercase tracking-wider flex items-center gap-1">
+                  <span className="bg-red-50 text-red-700 text-[10px] font-bold px-2.5 py-1 rounded border border-red-200 uppercase tracking-wider flex items-center gap-1 h-fit">
                     <AlertTriangle className="w-3.5 h-3.5" /> High Risk Alert
                   </span>
                 )}
+                <button 
+                  onClick={() => setIsBriefExpanded(!isBriefExpanded)}
+                  className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-[10px] font-bold px-3 py-1 rounded border border-indigo-200 uppercase tracking-wider flex items-center gap-1.5 transition-colors h-fit"
+                >
+                  {isBriefExpanded ? (
+                    <><ChevronUp className="w-3.5 h-3.5" /> Close Details</>
+                  ) : (
+                    <><ChevronDown className="w-3.5 h-3.5" /> Read Full Brief</>
+                  )}
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {selectedMission.problem_statement && (
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">The Need</span>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed">{selectedMission.problem_statement}</p>
-                </div>
-              )}
-              {selectedMission.mission_objectives && (
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Objectives</span>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{selectedMission.mission_objectives}</p>
-                </div>
-              )}
-              {selectedMission.proposed_process && (
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Implementation</span>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed">{selectedMission.proposed_process}</p>
-                </div>
-              )}
-            </div>
+            {isBriefExpanded && (
+              <div className="pt-5 border-t border-slate-100 space-y-6 animate-in slide-in-from-top-2 duration-300">
+                {selectedMission.problem_statement && (
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">The Need / Problem Statement</span>
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed max-w-4xl">{selectedMission.problem_statement}</p>
+                  </div>
+                )}
+                {selectedMission.mission_objectives && (
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Objectives</span>
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-wrap max-w-4xl">{selectedMission.mission_objectives}</p>
+                  </div>
+                )}
+                {selectedMission.proposed_process && (
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Implementation Process</span>
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-wrap max-w-4xl">{selectedMission.proposed_process}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
