@@ -95,6 +95,8 @@ export default function ProjectsWorkstation() {
   
   // New States for Milestone 3 Tabs
   const [newReceipt, setNewReceipt] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
+  const [editingReceiptId, setEditingReceiptId] = useState<number | null>(null);
+  const [editReceiptForm, setEditReceiptForm] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
   const [newPhoto, setNewPhoto] = useState({ image_url: "", caption: "", category: "DURING" });
   const [newReport, setNewReport] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
 
@@ -380,6 +382,43 @@ export default function ProjectsWorkstation() {
       await loadMissionData(selectedMissionId);
     } catch (err: any) {
       alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const startEditReceipt = (r: any) => {
+    setEditingReceiptId(r.id);
+    setEditReceiptForm({
+      title: r.title || "",
+      amount_spent_usd: String(r.amount_spent_usd ?? ""),
+      category: r.category || "MATERIALS",
+      vendor_name: r.vendor_name || "",
+      notes: r.notes || "",
+      receipt_image_url: r.receipt_image_url || "",
+    });
+  };
+
+  const handleSaveReceiptEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReceiptId || !selectedMissionId) return;
+    setActionLoading(true);
+    try {
+      await apiRequest(`/api/projects/receipts/${editingReceiptId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: editReceiptForm.title,
+          amount_spent_usd: parseFloat(editReceiptForm.amount_spent_usd),
+          category: editReceiptForm.category,
+          vendor_name: editReceiptForm.vendor_name || null,
+          notes: editReceiptForm.notes || null,
+          receipt_image_url: editReceiptForm.receipt_image_url || null,
+        }),
+      });
+      setEditingReceiptId(null);
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to update receipt");
     } finally {
       setActionLoading(false);
     }
@@ -935,44 +974,124 @@ export default function ProjectsWorkstation() {
                       ) : (
                         <div className="grid grid-cols-1 gap-3">
                           {receipts.map((r) => (
-                            <div key={r.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2 mb-1">
-                                  <span className="text-sm font-bold text-slate-900">{r.title}</span>
-                                  <span className="text-[9px] font-extrabold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.category}</span>
+                            <div key={r.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                              {editingReceiptId === r.id ? (
+                                <form onSubmit={handleSaveReceiptEdit} className="space-y-3">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <input
+                                      required
+                                      value={editReceiptForm.title}
+                                      onChange={(e) => setEditReceiptForm({ ...editReceiptForm, title: e.target.value })}
+                                      className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                      placeholder="Receipt title"
+                                    />
+                                    <input
+                                      required
+                                      type="number"
+                                      step="any"
+                                      value={editReceiptForm.amount_spent_usd}
+                                      onChange={(e) => setEditReceiptForm({ ...editReceiptForm, amount_spent_usd: e.target.value })}
+                                      className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                      placeholder="Amount USD"
+                                    />
+                                    <select
+                                      value={editReceiptForm.category}
+                                      onChange={(e) => setEditReceiptForm({ ...editReceiptForm, category: e.target.value })}
+                                      className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl bg-white"
+                                    >
+                                      <option value="EQUIPMENT">EQUIPMENT</option>
+                                      <option value="MATERIALS">MATERIALS</option>
+                                      <option value="LABOR">LABOR</option>
+                                      <option value="TRANSPORT">TRANSPORT</option>
+                                      <option value="LOGISTICS">LOGISTICS</option>
+                                    </select>
+                                    <input
+                                      value={editReceiptForm.vendor_name}
+                                      onChange={(e) => setEditReceiptForm({ ...editReceiptForm, vendor_name: e.target.value })}
+                                      className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                      placeholder="Vendor name"
+                                    />
+                                  </div>
+                                  <textarea
+                                    rows={2}
+                                    value={editReceiptForm.notes}
+                                    onChange={(e) => setEditReceiptForm({ ...editReceiptForm, notes: e.target.value })}
+                                    className="w-full text-xs p-2.5 border border-slate-200 rounded-xl"
+                                    placeholder="Notes / correction details"
+                                  />
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="file"
+                                      accept="image/*,.pdf"
+                                      onChange={(e) => handleFileUpload(e, (url) => setEditReceiptForm({ ...editReceiptForm, receipt_image_url: url }), "EditReceipt")}
+                                      className="text-xs w-full p-2 border border-slate-200 rounded-xl bg-white"
+                                    />
+                                    {uploadingState === "EditReceipt" && <Loader2 className="w-4 h-4 text-indigo-500 animate-spin" />}
+                                    {editReceiptForm.receipt_image_url && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button type="submit" disabled={actionLoading || uploadingState !== null} className="px-3 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-lg">
+                                      Save Changes
+                                    </button>
+                                    <button type="button" onClick={() => setEditingReceiptId(null)} className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg">
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </form>
+                              ) : (
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                      <span className="text-sm font-bold text-slate-900">{r.title}</span>
+                                      <span className="text-[9px] font-extrabold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.category}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 font-medium">
+                                      {r.vendor_name || "Unknown vendor"}
+                                    </p>
+                                    {r.notes && (
+                                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                        <span className="font-bold text-slate-500">Notes:</span> {r.notes}
+                                      </p>
+                                    )}
+                                    {r.receipt_image_url && (
+                                      <button
+                                        type="button"
+                                        onClick={() => window.open(r.receipt_image_url, "_blank")}
+                                        className="text-[11px] font-bold text-indigo-600 mt-2 hover:underline"
+                                      >
+                                        View receipt file
+                                      </button>
+                                    )}
+                                  </div>
+                                  <div className="text-right shrink-0 space-y-2">
+                                    <div className="text-sm font-extrabold text-slate-900">${Number(r.amount_spent_usd).toLocaleString()}</div>
+                                    <div className="flex items-center justify-end gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => startEditReceipt(r)}
+                                        className="text-[10px] font-bold text-indigo-600 hover:underline px-2"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          if (!confirm("Delete this receipt?")) return;
+                                          try {
+                                            await apiRequest(`/api/projects/receipts/${r.id}`, { method: "DELETE" });
+                                            if (selectedMissionId) await loadMissionData(selectedMissionId);
+                                          } catch (err: any) {
+                                            alert(err.message);
+                                          }
+                                        }}
+                                        className="p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
-                                <p className="text-xs text-slate-500 font-medium">
-                                  {r.vendor_name || "Unknown vendor"}
-                                  {r.notes ? ` · ${r.notes}` : ""}
-                                </p>
-                                {r.receipt_image_url && (
-                                  <button
-                                    type="button"
-                                    onClick={() => window.open(r.receipt_image_url, "_blank")}
-                                    className="text-[11px] font-bold text-indigo-600 mt-2 hover:underline"
-                                  >
-                                    View receipt file
-                                  </button>
-                                )}
-                              </div>
-                              <div className="text-right shrink-0">
-                                <div className="text-sm font-extrabold text-slate-900">${Number(r.amount_spent_usd).toLocaleString()}</div>
-                                <button
-                                  type="button"
-                                  onClick={async () => {
-                                    if (!confirm("Delete this receipt?")) return;
-                                    try {
-                                      await apiRequest(`/api/projects/receipts/${r.id}`, { method: "DELETE" });
-                                      if (selectedMissionId) await loadMissionData(selectedMissionId);
-                                    } catch (err: any) {
-                                      alert(err.message);
-                                    }
-                                  }}
-                                  className="mt-2 p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                              )}
                             </div>
                           ))}
                           <p className="text-xs text-slate-500 italic">Total verified spend logged: ${summary.donations_meter.total_verified_spent_usd.toLocaleString()}</p>
@@ -993,7 +1112,7 @@ export default function ProjectsWorkstation() {
                           <option value="LOGISTICS">LOGISTICS</option>
                         </select>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input placeholder="Vendor Name (optional)" value={newReceipt.vendor_name} onChange={(e) => setNewReceipt({ ...newReceipt, vendor_name: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
                         <div className="flex items-center gap-2">
@@ -1002,7 +1121,15 @@ export default function ProjectsWorkstation() {
                           {newReceipt.receipt_image_url && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
                         </div>
                       </div>
-                      
+
+                      <textarea
+                        rows={2}
+                        placeholder="Notes (optional) — payment context, invoice #, correction remarks..."
+                        value={newReceipt.notes}
+                        onChange={(e) => setNewReceipt({ ...newReceipt, notes: e.target.value })}
+                        className="w-full text-xs font-medium p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                      />
+
                       <button type="submit" disabled={actionLoading || uploadingState !== null} className="px-5 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50">
                         <Upload className="w-4 h-4" /> Upload & Verify Receipt
                       </button>
