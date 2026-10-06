@@ -287,18 +287,16 @@ export default function ProjectsWorkstation() {
         </button>
       </div>
 
-      {/* Main Layout: 3 Columns Left (Context) / 9 Columns Right (Action) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 items-start">
-        
-        {/* LEFT COLUMN: Project Context & Metadata */}
-        <div className="lg:col-span-3 space-y-6">
-          
-          {/* Active Missions Queue (Compact) */}
-          <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-4">
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-2 border-b border-slate-100 pb-3">
+      {/* SINGLE COLUMN FULL WIDTH LAYOUT */}
+      <div className="w-full max-w-6xl mx-auto space-y-6 flex-1">
+
+        {/* Project Picker Row */}
+        <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-2">
               <Layers className="w-4 h-4 text-slate-400" /> Active Projects ({filteredMissions.length})
             </h2>
-            <div className="relative">
+            <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
@@ -308,86 +306,90 @@ export default function ProjectsWorkstation() {
                 className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
               />
             </div>
-            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-              {loading ? (
-                <div className="py-6 text-center text-xs text-slate-400">Loading...</div>
-              ) : filteredMissions.length === 0 ? (
-                <div className="py-6 text-center text-xs text-slate-400">No active projects.</div>
-              ) : (
-                filteredMissions.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedMissionId(m.id)}
-                    className={`w-full text-left p-3 rounded-xl border transition-all ${
-                      selectedMissionId === m.id
-                        ? "bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200 shadow-sm"
-                        : "bg-white border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <span className="text-[11px] font-bold text-slate-900 leading-snug line-clamp-2">{m.title}</span>
-                      <div className="shrink-0"><FlagBadge country={m.target_country} /></div>
-                    </div>
-                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-wider">
-                      <span>${Number(m.raised_amount_usd).toLocaleString()} Raised</span>
-                      <span className="text-indigo-600">{m.status}</span>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
           </div>
 
-          {/* Project Master Brief Details (Fills the white space!) */}
-          {selectedMission && summary && (
-            <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Master Brief</span>
-                <FlagBadge country={selectedMission.target_country} />
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {loading ? (
+              <div className="py-4 text-xs text-slate-400">Loading...</div>
+            ) : filteredMissions.length === 0 ? (
+              <div className="py-4 text-xs text-slate-400">No active projects.</div>
+            ) : (
+              filteredMissions.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setSelectedMissionId(m.id)}
+                  className={`min-w-[220px] text-left p-3.5 rounded-xl border transition-all shrink-0 ${
+                    selectedMissionId === m.id
+                      ? "bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200 shadow-sm"
+                      : "bg-white border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <span className="text-[11px] font-bold text-slate-900 leading-snug line-clamp-2">{m.title}</span>
+                    <div className="shrink-0"><FlagBadge country={m.target_country} /></div>
+                  </div>
+                  <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                    <span>${Number(m.raised_amount_usd).toLocaleString()} Raised</span>
+                    <span className="text-indigo-600">{m.status}</span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Master Brief (full width under picker) */}
+        {selectedMission && summary && (
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Master Brief</span>
+                  <FlagBadge country={selectedMission.target_country} />
+                  <span className="text-xs font-semibold text-slate-500">{selectedMission.target_country}</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 leading-snug">{selectedMission.title}</h3>
               </div>
-              
-              <h3 className="text-base font-bold text-slate-900 leading-snug">{selectedMission.title}</h3>
-              
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wider">
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded border border-emerald-200 uppercase tracking-wider">
                   {selectedMission.status}
                 </span>
-                <span className="bg-slate-100 text-slate-700 text-[9px] font-bold px-2 py-0.5 rounded border border-slate-200 uppercase tracking-wider flex items-center gap-1">
-                  <Target className="w-3 h-3"/> Goal: ${Number(selectedMission.goal_amount_usd).toLocaleString()}
+                <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded border border-slate-200 uppercase tracking-wider flex items-center gap-1">
+                  <Target className="w-3.5 h-3.5" /> Goal: ${Number(selectedMission.goal_amount_usd).toLocaleString()}
                 </span>
                 {summary.risk_alerts.has_critical_blocker && (
-                  <span className="bg-red-50 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded border border-red-200 uppercase tracking-wider flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3"/> High Risk Alert
+                  <span className="bg-red-50 text-red-700 text-[10px] font-bold px-2.5 py-1 rounded border border-red-200 uppercase tracking-wider flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" /> High Risk Alert
                   </span>
                 )}
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {selectedMission.problem_statement && (
-                <div className="pt-3 border-t border-slate-100">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">The Need</span>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">The Need</span>
                   <p className="text-xs text-slate-600 font-medium leading-relaxed">{selectedMission.problem_statement}</p>
                 </div>
               )}
-
               {selectedMission.mission_objectives && (
-                <div className="pt-3 border-t border-slate-100">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Objectives</span>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Objectives</span>
                   <p className="text-xs text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{selectedMission.mission_objectives}</p>
                 </div>
               )}
-
               {selectedMission.proposed_process && (
-                <div className="pt-3 border-t border-slate-100">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Implementation</span>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-6">{selectedMission.proposed_process}</p>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Implementation</span>
+                  <p className="text-xs text-slate-600 font-medium leading-relaxed">{selectedMission.proposed_process}</p>
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* RIGHT COLUMN: 8-Tab Action Workspace */}
-        <div className="lg:col-span-9 space-y-4">
+        {/* Full-width workspace tabs + content */}
+        <div className="space-y-4">
           {!selectedMission || !summary ? (
             <div className="bg-white/80 border border-slate-200 rounded-2xl p-16 text-center text-xs text-slate-400 shadow-sm">
               Select a mission project from the left queue to open the workspace.
