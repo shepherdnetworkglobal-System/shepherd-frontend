@@ -91,8 +91,14 @@ export default function ProjectsWorkstation() {
   const [newBudgetItem, setNewBudgetItem] = useState({ item_name: "", category: "EQUIPMENT", quantity: "1", unit_cost_usd: "", notes: "", vendor_name: "" });
   const [newCheckpoint, setNewCheckpoint] = useState({ title: "", description: "", weight_percent: "20", target_date: "" });
   const [newRisk, setNewRisk] = useState({ title: "", description: "", severity: "MEDIUM", resolution_plan: "" });
+  
+  // New States for Milestone 3 Tabs
+  const [newReceipt, setNewReceipt] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
+  const [newPhoto, setNewPhoto] = useState({ image_url: "", caption: "", category: "DURING" });
+  const [newReport, setNewReport] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [uploadingState, setUploadingState] = useState<string | null>(null);
   const [isBriefExpanded, setIsBriefExpanded] = useState(false);
 
   const fetchMissions = async () => {
@@ -247,6 +253,98 @@ export default function ProjectsWorkstation() {
         }),
       });
       setNewRisk({ title: "", description: "", severity: "MEDIUM", resolution_plan: "" });
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, label: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingState(label);
+    try {
+      const res = await uploadFile(file);
+      setter(res.url);
+    } catch (err: any) {
+      alert(err.message || `Failed to upload ${label}`);
+    } finally {
+      setUploadingState(null);
+    }
+  };
+
+  const handleAddReceipt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMissionId) return;
+    if (!newReceipt.receipt_image_url) return alert("Please upload a receipt image first.");
+    setActionLoading(true);
+    try {
+      await apiRequest("/api/accountability/receipt", {
+        method: "POST",
+        body: JSON.stringify({
+          mission_id: selectedMissionId,
+          title: newReceipt.title,
+          amount_spent_usd: parseFloat(newReceipt.amount_spent_usd),
+          category: newReceipt.category,
+          vendor_name: newReceipt.vendor_name || null,
+          notes: newReceipt.notes || null,
+          receipt_image_url: newReceipt.receipt_image_url,
+        }),
+      });
+      setNewReceipt({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAddPhoto = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMissionId) return;
+    if (!newPhoto.image_url) return alert("Please upload an image first.");
+    setActionLoading(true);
+    try {
+      await apiRequest("/api/projects/photos", {
+        method: "POST",
+        body: JSON.stringify({
+          mission_id: selectedMissionId,
+          image_url: newPhoto.image_url,
+          caption: newPhoto.caption || null,
+          category: newPhoto.category,
+          is_public: true,
+        }),
+      });
+      setNewPhoto({ image_url: "", caption: "", category: "DURING" });
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAddReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMissionId) return;
+    setActionLoading(true);
+    try {
+      await apiRequest("/api/projects/reports", {
+        method: "POST",
+        body: JSON.stringify({
+          mission_id: selectedMissionId,
+          title: newReport.title,
+          body: newReport.body,
+          report_type: newReport.report_type,
+          people_served_delta: parseInt(newReport.people_served_delta, 10) || 0,
+          author_name: newReport.author_name || null,
+          is_public: true,
+        }),
+      });
+      setNewReport({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
       await loadMissionData(selectedMissionId);
     } catch (err: any) {
       alert(err.message);
@@ -666,15 +764,164 @@ export default function ProjectsWorkstation() {
                 </div>
               )}
 
-              {/* PLACEHOLDERS FOR MILESTONE 3 TABS */}
-              {["receipts", "photos", "reports", "payouts"].includes(activeTab) && (
+              {/* TAB 3: RECEIPTS */}
+              {activeTab === "receipts" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-4">Verified Receipts Ledger</h3>
+
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                      {summary.counts.receipts === 0 ? (
+                        <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-xl">No receipts logged yet.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-3">
+                          {/* We don't have full receipt data state here yet, just scaffolding UI. We will fetch receipts via apiRequest if needed, or rely on summary metrics. Assuming we have `receipts` state if we want to list them. For now, we will add the form. */}
+                          <p className="text-xs text-slate-500 italic">Total verified spend logged: ${summary.donations_meter.total_verified_spent_usd.toLocaleString()}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <form onSubmit={handleAddReceipt} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
+                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Log Field Receipt</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <input required placeholder="Receipt title / description" value={newReceipt.title} onChange={(e) => setNewReceipt({ ...newReceipt, title: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none lg:col-span-2" />
+                        <input required type="number" step="any" placeholder="Amount (USD)" value={newReceipt.amount_spent_usd} onChange={(e) => setNewReceipt({ ...newReceipt, amount_spent_usd: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <select value={newReceipt.category} onChange={(e) => setNewReceipt({ ...newReceipt, category: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white">
+                          <option value="EQUIPMENT">EQUIPMENT</option>
+                          <option value="MATERIALS">MATERIALS</option>
+                          <option value="LABOR">LABOR</option>
+                          <option value="TRANSPORT">TRANSPORT</option>
+                          <option value="LOGISTICS">LOGISTICS</option>
+                        </select>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input placeholder="Vendor Name (optional)" value={newReceipt.vendor_name} onChange={(e) => setNewReceipt({ ...newReceipt, vendor_name: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <div className="flex items-center gap-2">
+                          <input type="file" accept="image/*,.pdf" onChange={(e) => handleFileUpload(e, (url) => setNewReceipt({ ...newReceipt, receipt_image_url: url }), "Receipt")} className="text-xs w-full p-2 border border-slate-200 rounded-xl bg-white" />
+                          {uploadingState === "Receipt" && <Loader2 className="w-4 h-4 text-indigo-500 animate-spin shrink-0" />}
+                          {newReceipt.receipt_image_url && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
+                        </div>
+                      </div>
+                      
+                      <button type="submit" disabled={actionLoading || uploadingState !== null} className="px-5 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50">
+                        <Upload className="w-4 h-4" /> Upload & Verify Receipt
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: PHOTOS */}
+              {activeTab === "photos" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-4">Field Media Gallery</h3>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[500px] overflow-y-auto pr-2">
+                      {photos.length === 0 ? (
+                        <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-xl col-span-full">No media uploaded yet.</p>
+                      ) : (
+                        photos.map((p) => (
+                          <div key={p.id} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-100">
+                            <img src={p.image_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                              <span className="text-white text-[9px] font-bold">{p.category}</span>
+                              {p.caption && <p className="text-white text-[9px] truncate">{p.caption}</p>}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <form onSubmit={handleAddPhoto} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
+                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Upload Mission Photo</h4>
+                      <div className="flex items-center gap-3">
+                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, (url) => setNewPhoto({ ...newPhoto, image_url: url }), "Photo")} className="text-xs w-full max-w-xs p-2 border border-slate-200 rounded-xl bg-white" />
+                        {uploadingState === "Photo" && <span className="text-[10px] text-blue-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Uploading...</span>}
+                        {newPhoto.image_url && <span className="text-[10px] text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> Ready</span>}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input placeholder="Caption (optional)" value={newPhoto.caption} onChange={(e) => setNewPhoto({ ...newPhoto, caption: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <select value={newPhoto.category} onChange={(e) => setNewPhoto({ ...newPhoto, category: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white">
+                          <option value="BEFORE">BEFORE (Current State)</option>
+                          <option value="DURING">DURING (Progress)</option>
+                          <option value="AFTER">AFTER (Completed)</option>
+                        </select>
+                      </div>
+                      <button type="submit" disabled={actionLoading || uploadingState !== null || !newPhoto.image_url} className="px-5 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50">
+                        <Plus className="w-4 h-4" /> Add Photo
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: REPORTS */}
+              {activeTab === "reports" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="bg-white/80 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-4">Field Narrative Reports</h3>
+
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                      {reports.length === 0 ? (
+                        <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-xl">No field reports submitted yet.</p>
+                      ) : (
+                        reports.map((r) => (
+                          <div key={r.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-sm font-bold text-slate-900">{r.title}</h4>
+                              <span className="text-[9px] font-bold uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.report_type}</span>
+                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{r.body}</p>
+                            <div className="mt-3 pt-3 border-t border-slate-200/60 flex justify-between text-[10px] text-slate-500 font-semibold">
+                              <span>By: {r.author_name || "Unknown"}</span>
+                              {r.people_served_delta > 0 && <span className="text-emerald-600">+{r.people_served_delta} Lives Impacted</span>}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <form onSubmit={handleAddReport} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
+                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Publish New Report</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input required placeholder="Report Title" value={newReport.title} onChange={(e) => setNewReport({ ...newReport, title: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <select value={newReport.report_type} onChange={(e) => setNewReport({ ...newReport, report_type: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white">
+                          <option value="WEEKLY">Weekly Update</option>
+                          <option value="MONTHLY">Monthly Summary</option>
+                          <option value="TESTIMONY">Beneficiary Testimony</option>
+                          <option value="COMPLETION">Completion Report</option>
+                        </select>
+                      </div>
+                      <textarea required rows={4} placeholder="Write report content..." value={newReport.body} onChange={(e) => setNewReport({ ...newReport, body: e.target.value })} className="w-full text-xs font-medium p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">New People Impacted (Delta)</label>
+                          <input type="number" value={newReport.people_served_delta} onChange={(e) => setNewReport({ ...newReport, people_served_delta: e.target.value })} className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Author Name (Optional)</label>
+                          <input value={newReport.author_name} onChange={(e) => setNewReport({ ...newReport, author_name: e.target.value })} className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        </div>
+                      </div>
+                      <button type="submit" disabled={actionLoading} className="px-5 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50">
+                        <Plus className="w-4 h-4" /> Publish Report
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 7: PAYOUTS (Placeholder remains as it requires Stellar integration logic) */}
+              {activeTab === "payouts" && (
                 <div className="bg-white/80 border border-slate-200 rounded-2xl p-16 text-center shadow-sm animate-in fade-in">
                   <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-200">
-                    <Clock className="w-8 h-8 text-slate-400" />
+                    <CreditCard className="w-8 h-8 text-slate-400" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 mb-2">Module Under Construction</h3>
+                  <h3 className="text-base font-bold text-slate-900 mb-2">On-Chain Payout Ledger</h3>
                   <p className="text-sm text-slate-500 max-w-sm mx-auto">
-                    The {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} manager will be deployed in Milestone 3 of the Projects Engine integration.
+                    The Payouts ledger will map directly to actual Stellar network disbursements sent from the treasury wallet in the final integration phase.
                   </p>
                 </div>
               )}
