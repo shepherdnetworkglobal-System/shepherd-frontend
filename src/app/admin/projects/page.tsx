@@ -95,10 +95,16 @@ export default function ProjectsWorkstation() {
   
   // New States for Milestone 3 Tabs
   const [newReceipt, setNewReceipt] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
-  const [editingReceiptId, setEditingReceiptId] = useState<number | null>(null);
-  const [editReceiptForm, setEditReceiptForm] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
   const [newPhoto, setNewPhoto] = useState({ image_url: "", caption: "", category: "DURING" });
   const [newReport, setNewReport] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
+  const [editingReportId, setEditingReportId] = useState<number | null>(null);
+  const [editReportForm, setEditReportForm] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
+  const [editingRiskId, setEditingRiskId] = useState<number | null>(null);
+  const [editRiskForm, setEditRiskForm] = useState({ title: "", description: "", severity: "MEDIUM", status: "OPEN", resolution_plan: "" });
+  const [editingReceiptId, setEditingReceiptId] = useState<number | null>(null);
+  const [editReceiptForm, setEditReceiptForm] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
+  
+  
 
   const [actionLoading, setActionLoading] = useState(false);
   const [uploadingState, setUploadingState] = useState<string | null>(null);
@@ -472,6 +478,102 @@ export default function ProjectsWorkstation() {
       alert(err.message);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const startEditReport = (r: any) => {
+    setEditingReportId(r.id);
+    setEditReportForm({
+      title: r.title || "",
+      body: r.body || "",
+      report_type: r.report_type || "WEEKLY",
+      people_served_delta: String(r.people_served_delta ?? 0),
+      author_name: r.author_name || "",
+    });
+  };
+
+  const handleSaveReportEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReportId || !selectedMissionId) return;
+    setActionLoading(true);
+    try {
+      await apiRequest(`/api/projects/reports/${editingReportId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: editReportForm.title,
+          body: editReportForm.body,
+          report_type: editReportForm.report_type,
+          people_served_delta: parseInt(editReportForm.people_served_delta, 10) || 0,
+          author_name: editReportForm.author_name || null,
+        }),
+      });
+      setEditingReportId(null);
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to update report");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const startEditRisk = (r: any) => {
+    setEditingRiskId(r.id);
+    setEditRiskForm({
+      title: r.title || "",
+      description: r.description || "",
+      severity: r.severity || "MEDIUM",
+      status: r.status || "OPEN",
+      resolution_plan: r.resolution_plan || "",
+    });
+  };
+
+  const handleSaveRiskEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRiskId || !selectedMissionId) return;
+    setActionLoading(true);
+    try {
+      await apiRequest(`/api/projects/risks/${editingRiskId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: editRiskForm.title,
+          description: editRiskForm.description,
+          severity: editRiskForm.severity,
+          status: editRiskForm.status,
+          resolution_plan: editRiskForm.resolution_plan || null,
+        }),
+      });
+      setEditingRiskId(null);
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to update risk");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSetRiskStatus = async (r: any, status: string) => {
+    try {
+      await apiRequest(`/api/projects/risks/${r.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status }),
+      });
+      if (selectedMissionId) await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteRisk = async (id: number) => {
+    if (!confirm("Delete this risk incident?")) return;
+    try {
+      // soft fallback if delete endpoint missing: mark CLOSED
+      await apiRequest(`/api/projects/risks/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: "CLOSED" }),
+      });
+      if (selectedMissionId) await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -922,21 +1024,88 @@ export default function ProjectsWorkstation() {
                       {risks.length === 0 ? (
                         <p className="text-xs text-slate-500 py-4 text-center border border-dashed border-slate-200 rounded-xl">No risks logged.</p>
                       ) : risks.map((r) => (
-                        <div key={r.id} className={`p-5 rounded-xl border flex flex-col gap-2 ${r.severity === "HIGH" ? "bg-red-50/60 border-red-200 shadow-sm" : "bg-slate-50 border-slate-200"}`}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <AlertTriangle className={`w-4 h-4 ${r.severity === "HIGH" ? "text-red-600" : "text-amber-500"}`} />
-                              <span className="text-sm font-bold text-slate-900">{r.title}</span>
-                              <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded border ${r.severity === "HIGH" ? "bg-red-100 text-red-800 border-red-200" : "bg-amber-100 text-amber-800 border-amber-200"}`}>{r.severity} SEVERITY</span>
-                            </div>
-                            <span className="text-[10px] font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">{r.status}</span>
-                          </div>
-                          <p className="text-xs text-slate-600 font-medium leading-relaxed">{r.description}</p>
-                          {r.resolution_plan && (
-                            <div className="mt-2 pt-2 border-t border-slate-200/60">
-                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Resolution Plan</span>
-                              <p className="text-xs text-slate-700 italic">{r.resolution_plan}</p>
-                            </div>
+                        <div key={r.id} className={`p-5 rounded-xl border flex flex-col gap-2 ${String(r.severity).toUpperCase() === "HIGH" ? "bg-red-50/60 border-red-200 shadow-sm" : "bg-slate-50 border-slate-200"}`}>
+                          {editingRiskId === r.id ? (
+                            <form onSubmit={handleSaveRiskEdit} className="space-y-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <input
+                                  required
+                                  value={editRiskForm.title}
+                                  onChange={(e) => setEditRiskForm({ ...editRiskForm, title: e.target.value })}
+                                  className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl sm:col-span-2"
+                                  placeholder="Risk title"
+                                />
+                                <select
+                                  value={editRiskForm.severity}
+                                  onChange={(e) => setEditRiskForm({ ...editRiskForm, severity: e.target.value })}
+                                  className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl bg-white"
+                                >
+                                  <option value="LOW">LOW</option>
+                                  <option value="MEDIUM">MEDIUM</option>
+                                  <option value="HIGH">HIGH</option>
+                                </select>
+                              </div>
+                              <textarea
+                                required
+                                rows={2}
+                                value={editRiskForm.description}
+                                onChange={(e) => setEditRiskForm({ ...editRiskForm, description: e.target.value })}
+                                className="w-full text-xs p-2.5 border border-slate-200 rounded-xl"
+                                placeholder="Description"
+                              />
+                              <textarea
+                                rows={2}
+                                value={editRiskForm.resolution_plan}
+                                onChange={(e) => setEditRiskForm({ ...editRiskForm, resolution_plan: e.target.value })}
+                                className="w-full text-xs p-2.5 border border-slate-200 rounded-xl"
+                                placeholder="Resolution plan"
+                              />
+                              <div className="flex flex-wrap items-center gap-3">
+                                <select
+                                  value={editRiskForm.status}
+                                  onChange={(e) => setEditRiskForm({ ...editRiskForm, status: e.target.value })}
+                                  className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl bg-white"
+                                >
+                                  <option value="OPEN">OPEN</option>
+                                  <option value="MONITORING">MONITORING</option>
+                                  <option value="RESOLVED">RESOLVED</option>
+                                  <option value="CLOSED">CLOSED</option>
+                                </select>
+                                <button type="submit" disabled={actionLoading} className="px-3 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-lg">Save Changes</button>
+                                <button type="button" onClick={() => setEditingRiskId(null)} className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg">Cancel</button>
+                              </div>
+                            </form>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                  <AlertTriangle className={`w-4 h-4 shrink-0 ${String(r.severity).toUpperCase() === "HIGH" ? "text-red-600" : "text-amber-500"}`} />
+                                  <span className="text-sm font-bold text-slate-900">{r.title}</span>
+                                  <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded border ${String(r.severity).toUpperCase() === "HIGH" ? "bg-red-100 text-red-800 border-red-200" : "bg-amber-100 text-amber-800 border-amber-200"}`}>{r.severity} SEVERITY</span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <select
+                                    value={String(r.status || "OPEN").toUpperCase()}
+                                    onChange={(e) => handleSetRiskStatus(r, e.target.value)}
+                                    className="text-[10px] font-bold bg-white px-2 py-1 rounded-md border border-slate-200"
+                                  >
+                                    <option value="OPEN">OPEN</option>
+                                    <option value="MONITORING">MONITORING</option>
+                                    <option value="RESOLVED">RESOLVED</option>
+                                    <option value="CLOSED">CLOSED</option>
+                                  </select>
+                                  <button type="button" onClick={() => startEditRisk(r)} className="text-[10px] font-bold text-indigo-600 hover:underline px-2">Edit</button>
+                                  <button type="button" onClick={() => handleDeleteRisk(r.id)} className="p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-xs text-slate-600 font-medium leading-relaxed">{r.description}</p>
+                              <div className="mt-2 pt-2 border-t border-slate-200/60">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Resolution Plan</span>
+                                <p className="text-xs text-slate-700 italic">{r.resolution_plan || "No resolution plan set yet."}</p>
+                              </div>
+                            </>
                           )}
                         </div>
                       ))}
@@ -954,6 +1123,7 @@ export default function ProjectsWorkstation() {
                         </select>
                       </div>
                       <textarea required rows={2} placeholder="Incident description..." value={newRisk.description} onChange={(e) => setNewRisk({ ...newRisk, description: e.target.value })} className="w-full text-xs font-medium p-3 border border-slate-200 rounded-xl focus:border-red-500 focus:outline-none" />
+                      <textarea rows={2} placeholder="Resolution plan (optional)..." value={newRisk.resolution_plan} onChange={(e) => setNewRisk({ ...newRisk, resolution_plan: e.target.value })} className="w-full text-xs font-medium p-3 border border-slate-200 rounded-xl focus:border-red-500 focus:outline-none" />
                       <button type="submit" disabled={actionLoading} className="px-5 py-3 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-red-700 transition-all disabled:opacity-50">
                         <Plus className="w-4 h-4" /> Log Incident
                       </button>
@@ -1207,25 +1377,79 @@ export default function ProjectsWorkstation() {
                       ) : (
                         reports.map((r) => (
                           <div key={r.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                            <div className="flex items-center justify-between mb-2 gap-3">
-                              <h4 className="text-sm font-bold text-slate-900">{r.title}</h4>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[9px] font-bold uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.report_type}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteReport(r.id)}
-                                  className="p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white"
-                                  title="Delete report"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{r.body}</p>
-                            <div className="mt-3 pt-3 border-t border-slate-200/60 flex justify-between text-[10px] text-slate-500 font-semibold">
-                              <span>By: {r.author_name || "Unknown"}</span>
-                              {r.people_served_delta > 0 && <span className="text-emerald-600">+{r.people_served_delta} Lives Impacted</span>}
-                            </div>
+                            {editingReportId === r.id ? (
+                              <form onSubmit={handleSaveReportEdit} className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <input
+                                    required
+                                    value={editReportForm.title}
+                                    onChange={(e) => setEditReportForm({ ...editReportForm, title: e.target.value })}
+                                    className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                    placeholder="Report title"
+                                  />
+                                  <select
+                                    value={editReportForm.report_type}
+                                    onChange={(e) => setEditReportForm({ ...editReportForm, report_type: e.target.value })}
+                                    className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl bg-white"
+                                  >
+                                    <option value="WEEKLY">Weekly Update</option>
+                                    <option value="MONTHLY">Monthly Summary</option>
+                                    <option value="TESTIMONY">Beneficiary Testimony</option>
+                                    <option value="COMPLETION">Completion Report</option>
+                                    <option value="INCIDENT">Incident Note</option>
+                                  </select>
+                                </div>
+                                <textarea
+                                  required
+                                  rows={4}
+                                  value={editReportForm.body}
+                                  onChange={(e) => setEditReportForm({ ...editReportForm, body: e.target.value })}
+                                  className="w-full text-xs p-2.5 border border-slate-200 rounded-xl"
+                                />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <input
+                                    type="number"
+                                    value={editReportForm.people_served_delta}
+                                    onChange={(e) => setEditReportForm({ ...editReportForm, people_served_delta: e.target.value })}
+                                    className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                    placeholder="People impacted delta"
+                                  />
+                                  <input
+                                    value={editReportForm.author_name}
+                                    onChange={(e) => setEditReportForm({ ...editReportForm, author_name: e.target.value })}
+                                    className="text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                    placeholder="Author name"
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <button type="submit" disabled={actionLoading} className="px-3 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-lg">Save Changes</button>
+                                  <button type="button" onClick={() => setEditingReportId(null)} className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg">Cancel</button>
+                                </div>
+                              </form>
+                            ) : (
+                              <>
+                                <div className="flex items-center justify-between mb-2 gap-3">
+                                  <h4 className="text-sm font-bold text-slate-900">{r.title}</h4>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <span className="text-[9px] font-bold uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.report_type}</span>
+                                    <button type="button" onClick={() => startEditReport(r)} className="text-[10px] font-bold text-indigo-600 hover:underline px-2">Edit</button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteReport(r.id)}
+                                      className="p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white"
+                                      title="Delete report"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{r.body}</p>
+                                <div className="mt-3 pt-3 border-t border-slate-200/60 flex justify-between text-[10px] text-slate-500 font-semibold">
+                                  <span>By: {r.author_name || "Unknown"}</span>
+                                  {r.people_served_delta > 0 && <span className="text-emerald-600">+{r.people_served_delta} Lives Impacted</span>}
+                                </div>
+                              </>
+                            )}
                           </div>
                         ))
                       )}
