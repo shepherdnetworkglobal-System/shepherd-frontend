@@ -86,6 +86,7 @@ export default function ProjectsWorkstation() {
   const [reports, setReports] = useState<any[]>([]);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [risks, setRisks] = useState<any[]>([]);
+  const [receipts, setReceipts] = useState<any[]>([]);
 
   // Forms State
   const [newBudgetItem, setNewBudgetItem] = useState({ item_name: "", category: "EQUIPMENT", quantity: "1", unit_cost_usd: "", notes: "", vendor_name: "" });
@@ -120,7 +121,7 @@ export default function ProjectsWorkstation() {
 
   const loadMissionData = async (mid: number) => {
     try {
-      const [sum, bData, cpData, pData, rData, payData, rkData] = await Promise.all([
+      const [sum, bData, cpData, pData, rData, payData, rkData, rcData] = await Promise.all([
         apiRequest(`/api/projects/summary/${mid}`),
         apiRequest(`/api/projects/budget/${mid}`),
         apiRequest(`/api/projects/checkpoints/${mid}`),
@@ -128,6 +129,7 @@ export default function ProjectsWorkstation() {
         apiRequest(`/api/projects/reports/${mid}`),
         apiRequest(`/api/projects/payouts/${mid}`),
         apiRequest(`/api/projects/risks/${mid}`),
+        apiRequest(`/api/projects/receipts/${mid}`).catch(() => []),
       ]);
       setSummary(sum);
       setBudgetItems(bData || []);
@@ -136,6 +138,7 @@ export default function ProjectsWorkstation() {
       setReports(rData || []);
       setPayouts(payData || []);
       setRisks(rkData || []);
+      setReceipts(rcData || []);
     } catch (err) {
       console.error("Failed loading project data:", err);
     }
@@ -227,11 +230,27 @@ export default function ProjectsWorkstation() {
   };
 
   const handleToggleCheckpointStatus = async (cp: any) => {
-    const nextStatus = cp.status === "COMPLETED" ? "PENDING" : "COMPLETED";
+    const current = String(cp.status || "PENDING").toUpperCase();
+    const nextStatus =
+      current === "PENDING" ? "IN_PROGRESS" :
+      current === "IN_PROGRESS" ? "COMPLETED" :
+      "PENDING";
     try {
       await apiRequest(`/api/projects/checkpoints/${cp.id}`, {
         method: "PUT",
         body: JSON.stringify({ status: nextStatus }),
+      });
+      if (selectedMissionId) await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleSetCheckpointStatus = async (cp: any, status: string) => {
+    try {
+      await apiRequest(`/api/projects/checkpoints/${cp.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status }),
       });
       if (selectedMissionId) await loadMissionData(selectedMissionId);
     } catch (err: any) {
@@ -344,7 +363,7 @@ export default function ProjectsWorkstation() {
     if (!newReceipt.receipt_image_url) return alert("Please upload a receipt image first.");
     setActionLoading(true);
     try {
-      await apiRequest("/api/accountability/receipt", {
+      await apiRequest("/api/projects/receipts", {
         method: "POST",
         body: JSON.stringify({
           mission_id: selectedMissionId,
@@ -354,6 +373,7 @@ export default function ProjectsWorkstation() {
           vendor_name: newReceipt.vendor_name || null,
           notes: newReceipt.notes || null,
           receipt_image_url: newReceipt.receipt_image_url,
+          is_public: true,
         }),
       });
       setNewReceipt({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
@@ -809,7 +829,22 @@ export default function ProjectsWorkstation() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className={`text-[9px] font-extrabold px-2.5 py-1 rounded-md border ${cp.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>{cp.status}</span>
+                                <select
+                                  value={String(cp.status || "PENDING").toUpperCase()}
+                                  onChange={(e) => handleSetCheckpointStatus(cp, e.target.value)}
+                                  className={`text-[9px] font-extrabold px-2 py-1 rounded-md border bg-white ${
+                                    String(cp.status).toUpperCase() === "COMPLETED"
+                                      ? "text-emerald-700 border-emerald-200"
+                                      : String(cp.status).toUpperCase() === "IN_PROGRESS"
+                                      ? "text-blue-700 border-blue-200"
+                                      : "text-amber-700 border-amber-200"
+                                  }`}
+                                >
+                                  <option value="PENDING">PENDING</option>
+                                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                  <option value="COMPLETED">COMPLETED</option>
+                                  <option value="DELAYED">DELAYED</option>
+                                </select>
                                 <button type="button" onClick={() => startEditCheckpoint(cp)} className="text-[10px] font-bold text-indigo-600 hover:underline px-2">
                                   Edit
                                 </button>
@@ -895,11 +930,51 @@ export default function ProjectsWorkstation() {
                     <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-4">Verified Receipts Ledger</h3>
 
                     <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                      {summary.counts.receipts === 0 ? (
+                      {receipts.length === 0 ? (
                         <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-xl">No receipts logged yet.</p>
                       ) : (
                         <div className="grid grid-cols-1 gap-3">
-                          {/* We don't have full receipt data state here yet, just scaffolding UI. We will fetch receipts via apiRequest if needed, or rely on summary metrics. Assuming we have `receipts` state if we want to list them. For now, we will add the form. */}
+                          {receipts.map((r) => (
+                            <div key={r.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                  <span className="text-sm font-bold text-slate-900">{r.title}</span>
+                                  <span className="text-[9px] font-extrabold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">{r.category}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 font-medium">
+                                  {r.vendor_name || "Unknown vendor"}
+                                  {r.notes ? ` · ${r.notes}` : ""}
+                                </p>
+                                {r.receipt_image_url && (
+                                  <button
+                                    type="button"
+                                    onClick={() => window.open(r.receipt_image_url, "_blank")}
+                                    className="text-[11px] font-bold text-indigo-600 mt-2 hover:underline"
+                                  >
+                                    View receipt file
+                                  </button>
+                                )}
+                              </div>
+                              <div className="text-right shrink-0">
+                                <div className="text-sm font-extrabold text-slate-900">${Number(r.amount_spent_usd).toLocaleString()}</div>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (!confirm("Delete this receipt?")) return;
+                                    try {
+                                      await apiRequest(`/api/projects/receipts/${r.id}`, { method: "DELETE" });
+                                      if (selectedMissionId) await loadMissionData(selectedMissionId);
+                                    } catch (err: any) {
+                                      alert(err.message);
+                                    }
+                                  }}
+                                  className="mt-2 p-1.5 text-slate-400 hover:text-red-600 border border-slate-200 rounded-md bg-white"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                           <p className="text-xs text-slate-500 italic">Total verified spend logged: ${summary.donations_meter.total_verified_spent_usd.toLocaleString()}</p>
                         </div>
                       )}
