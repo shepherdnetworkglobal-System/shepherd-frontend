@@ -51,14 +51,14 @@ export default function Home() {
       <div className="fixed top-[30%] right-0 w-[480px] h-[480px] glow-emerald rounded-full pointer-events-none -z-20" />
       <div className="fixed bottom-[10%] left-[5%] w-[400px] h-[400px] glow-gold rounded-full pointer-events-none -z-20" />
 
-      {/* Hero */}
-      <section className="relative pt-16 pb-24 lg:pt-24 lg:pb-32 min-h-[85vh] flex flex-col justify-center">
+      {/* Hero — cinematic full-bleed like Roskyways */}
+      <section className="relative pt-20 pb-28 lg:pt-28 lg:pb-36 min-h-[90vh] flex flex-col justify-center overflow-hidden">
         
-        {/* 3D GLOBE INJECTED HERE */}
+        {/* 3D GLOBE — right side stage */}
         <Globe />
 
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10 w-full">
+          <div className="max-w-5xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass mb-8 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-[#C4A35A]" />
               <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
@@ -66,13 +66,20 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="font-serif text-[2.75rem] sm:text-5xl lg:text-[4.5rem] font-semibold tracking-[-0.03em] leading-[1.05] mb-7 text-[#1A1612]">
-              Removing the cloak from{" "}
-              <span className="italic text-[#064E3B]">Humanitarian</span>{" "}
-              <span className="italic text-[#C4A35A]">Giving</span>
+            <h1 className="font-serif font-semibold tracking-[-0.035em] leading-[0.95] mb-8 text-[#1A1612]">
+              <span className="block text-[clamp(2.8rem,7.5vw,6.75rem)]">
+                Removing the cloak
+              </span>
+              <span className="block text-[clamp(2.8rem,7.5vw,6.75rem)] mt-1">
+                from{" "}
+                <span className="italic text-[#064E3B]">Humanitarian</span>
+              </span>
+              <span className="block text-[clamp(2.8rem,7.5vw,6.75rem)] mt-1 italic text-[#C4A35A]">
+                Giving
+              </span>
             </h1>
 
-            <p className="text-base sm:text-lg text-[#3D3832]/90 max-w-xl mb-11 leading-relaxed font-normal bg-white/40 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-sm">
+            <p className="text-base sm:text-lg text-[#3D3832]/90 max-w-lg mb-11 leading-relaxed font-normal">
               Every transaction is signed directly, routed on-chain, and matched
               instantly to verified field receipts. Zero middlemen. Direct
               custody. Sovereign transparency.
