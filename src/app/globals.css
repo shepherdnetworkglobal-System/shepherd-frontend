@@ -1,22 +1,43 @@
 @import "tailwindcss";
+@import "flag-icons/css/flag-icons.min.css";
 
 @theme inline {
-  /* UNIVERSAL TYPOGRAPHY OVERRIDE: Softens all text globally */
+  --font-sans: var(--font-sans), "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif), "Playfair Display", Georgia, serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
   --font-weight-medium: 500;
-  --font-weight-semibold: 500; /* Dialed down */
-  --font-weight-bold: 600;     /* Dialed down from 700 to make 'bold' softer */
-  --font-weight-extrabold: 700; /* Dialed down from 800 */
-  --font-weight-black: 700;    /* Capped maximum weight */
+  --font-weight-semibold: 600;
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 700;
+  --font-weight-black: 700;
+
+  --color-ivory: #F7F4EF;
+  --color-ivory-deep: #EFEBE4;
+  --color-ink: #1A1612;
+  --color-ink-soft: #3D3832;
+  --color-ink-muted: #7A736A;
+  --color-royal: #3B4FD9;
+  --color-royal-deep: #2A3BB0;
+  --color-gold: #C4A35A;
+  --color-gold-soft: #E8D5A3;
+  --color-emerald: #0F9F6E;
+  --color-emerald-soft: #D1FAE5;
+  --color-glass: rgba(255, 255, 255, 0.72);
+  --color-glass-border: rgba(26, 22, 18, 0.08);
+  --color-glass-border-hover: rgba(26, 22, 18, 0.14);
 }
 
 :root {
   color-scheme: light;
-  --background: #FAFAFB; /* Crisper, softer white */
-  --foreground: #334155; /* Slate 700: softer on the eyes than pure black */
+  --background: #F7F4EF;
+  --foreground: #3D3832;
 }
 
 * {
-  border-color: rgba(0, 0, 0, 0.05); /* Softer, thinner borders globally */
+  border-color: rgba(26, 22, 18, 0.08);
 }
 
 html {
@@ -27,32 +48,97 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
-  line-height: 1.6;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
 }
 
-/* UNIVERSAL HEADING RESET: Ensures titles look modern, clean, and tight */
+/* Spiritual Gravity — serif headlines */
 h1, h2, h3, h4, h5, h6 {
-  color: #0F172A; /* Slate 900 for high contrast headers */
-  letter-spacing: -0.02em; /* Tighter spacing for a premium fintech feel */
+  font-family: var(--font-serif);
+  color: #1A1612;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-/* Bright Ambient Glow Gradients */
+/* Ambient glows — warm, soft, editorial */
 .glow-blue {
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, rgba(250, 250, 251, 0) 70%);
+  background: radial-gradient(circle, rgba(59, 79, 217, 0.09) 0%, rgba(247, 244, 239, 0) 70%);
 }
 
 .glow-emerald {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, rgba(250, 250, 251, 0) 70%);
+  background: radial-gradient(circle, rgba(15, 159, 110, 0.08) 0%, rgba(247, 244, 239, 0) 70%);
 }
 
-/* Tabular figures for ledger numbers (keeps dollar amounts from shifting) */
+.glow-gold {
+  background: radial-gradient(circle, rgba(196, 163, 90, 0.10) 0%, rgba(247, 244, 239, 0) 70%);
+}
+
+/* Glass surface utility */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(26, 22, 18, 0.08);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(26, 22, 18, 0.10);
+}
+
+/* Tabular figures for money */
 .num-tabular {
   font-variant-numeric: tabular-nums;
-  letter-spacing: normal; /* Prevents numbers from squishing together */
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+/* Playful micro-interaction defaults */
+.pressable {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.pressable:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.pressable:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+/* Soft focus rings */
+:focus-visible {
+  outline: 2px solid rgba(59, 79, 217, 0.45);
+  outline-offset: 3px;
+}
+
+/* Selection */
+::selection {
+  background: rgba(59, 79, 217, 0.15);
+  color: #1A1612;
+}
+
+/* Scrollbar — warm minimal */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(26, 22, 18, 0.12);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 22, 18, 0.22);
 }
