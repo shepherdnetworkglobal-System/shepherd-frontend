@@ -10,7 +10,6 @@ import {
   Calendar,
   ArrowLeft,
   Heart,
-  CreditCard,
   Wallet,
   CheckCircle2,
   Loader2,
@@ -18,11 +17,18 @@ import {
   Receipt,
   FileText,
   TrendingUp,
+  AlertTriangle,
+  Clock,
+  Camera,
+  ExternalLink,
+  Layers,
+  Info
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PaymentWall from "@/components/PaymentWall";
 import { apiRequest } from "@/lib/api";
+import "flag-icons/css/flag-icons.min.css";
 
 interface Mission {
   id: number;
@@ -34,22 +40,26 @@ interface Mission {
   raised_amount_usd: number;
   status: string;
   created_at: string;
+  problem_statement?: string;
+  mission_objectives?: string;
+  proposed_process?: string;
+  beneficiary_group?: string;
+  expected_duration?: string;
+  start_date?: string;
+  expected_end_date?: string;
+  local_partners?: string;
+  map_location?: string;
+  underfunding_rule?: string;
+  overfunding_rule?: string;
 }
 
-interface Receipt {
-  id: number;
-  title: string;
-  amount_spent_usd: number;
-  category: string;
-  vendor_name: string | null;
-  created_at: string;
-}
-
-const COUNTRY_FLAGS: Record<string, string> = {
-  Kenya: "🇰🇪",
-  Philippines: "🇵🇭",
-  Nigeria: "🇳🇬",
-  Pakistan: "🇵🇰",
+const COUNTRY_CODES: Record<string, string> = {
+  Kenya: "ke",
+  Philippines: "ph",
+  Nigeria: "ng",
+  Pakistan: "pk",
+  Uganda: "ug",
+  India: "in",
 };
 
 export default function MissionDetailPage() {
@@ -57,27 +67,121 @@ export default function MissionDetailPage() {
   const missionId = Number(params.id);
 
   const [mission, setMission] = useState<Mission | null>(null);
-  const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [summary, setSummary] = useState<any>(null);
+  const [budgetItems, setBudgetItems] = useState<any[]>([]);
+  const [checkpoints, setCheckpoints] = useState<any[]>([]);
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [photos, setPhotos] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
+  const [risks, setRisks] = useState<any[]>([]);
+  
+  const [activeTab, setActiveTab] = useState<"brief" | "budget" | "checkpoints" | "updates">("brief");
   const [showPayment, setShowPayment] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Load complete public ledger telemetry
   useEffect(() => {
-    const load = async () => {
+    const loadData = async () => {
       try {
-        const [mData, rData] = await Promise.all([
+        const [
+          mData,
+          summaryData,
+          budgetData,
+          checkpointData,
+          receiptData,
+          photoData,
+          reportData,
+          riskData
+        ] = await Promise.all([
           apiRequest(`/api/missions/${missionId}`),
-          apiRequest(`/api/accountability/feed/${missionId}`).catch(() => ({ receipts: [] })),
+          apiRequest(`/api/projects/summary/${missionId}`).catch(() => null),
+          apiRequest(`/api/projects/budget/${missionId}`).catch(() => []),
+          apiRequest(`/api/projects/checkpoints/${missionId}`).catch(() => []),
+          apiRequest(`/api/projects/receipts/${missionId}`).catch(() => []),
+          apiRequest(`/api/projects/photos/${missionId}`).catch(() => []),
+          apiRequest(`/api/projects/reports/${missionId}`).catch(() => []),
+          apiRequest(`/api/projects/risks/${missionId}`).catch(() => [])
         ]);
+
         setMission(mData);
-        setReceipts(rData.receipts || []);
-      } catch {
+        setSummary(summaryData);
+        // Securely filter out non-public operational data
+        setBudgetItems(budgetData.filter((b: any) => b.is_public !== false));
+        setCheckpoints(checkpointData.filter((c: any) => c.is_public !== false));
+        setReceipts(receiptData.filter((r: any) => r.is_public !== false));
+        setPhotos(photoData.filter((p: any) => p.is_public !== false));
+        setReports(reportData.filter((r: any) => r.is_public !== false));
+        setRisks(riskData.filter((r: any) => r.is_public !== false));
+      } catch (err) {
+        console.error("Failed loading complete mission context", err);
         setMission(null);
       } finally {
         setLoading(false);
       }
     };
-    load();
+    loadData();
   }, [missionId]);
+
+  // Mapbox integration inside useEffect to avoid SSR window-object issues
+  useEffect(() => {
+    if (!mission?.map_location) return;
+
+    const token = "pk.eyJ1Ijoic2hlcGhlcmRuZXR3b3JrIiwiYSI6ImNsd3B6YmZ4dzAxbXYya28xdHpqNXdtYnoifQ.fallback_token"; 
+    
+    let coords: [number, number] = [36.8219, -1.2921]; // Default coordinate (Nairobi, Kenya)
+    try {
+      const parts = mission.map_location.split(",").map(p => parseFloat(p.trim()));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        // Check if values resemble typical coordinates; mapbox needs [longitude, latitude]
+        if (Math.abs(parts[0]) > 90) {
+          coords = [parts[0], parts[1]];
+        } else {
+          coords = [parts[1], parts[0]];
+        }
+      }
+    } catch {
+      // Gracefully fall back to defaults
+    }
+
+    // Dynamic injection of Mapbox resources
+    const link = document.createElement("link");
+    link.href = "https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+
+    const script = document.createElement("script");
+    script.src = "https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      const mapboxgl = (window as any).mapboxgl;
+      if (!mapboxgl) return;
+      mapboxgl.accessToken = token;
+
+      const map = new mapboxgl.Map({
+        container: "mapbox-sidebar-map",
+        style: "mapbox://styles/mapbox/light-v11",
+        center: coords,
+        zoom: 7,
+        cooperativeGestures: true
+      });
+
+      new mapboxgl.Marker({ color: "#3b82f6" })
+        .setLngLat(coords)
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<div class="p-2 font-sans"><h4 class="font-bold text-slate-900 text-xs">${mission.title}</h4><p class="text-slate-500 text-[10px] mt-0.5">${mission.target_country}</p></div>`
+        ))
+        .addTo(map);
+
+      map.addControl(new mapboxgl.NavigationControl(), "top-right");
+    };
+
+    return () => {
+      link.remove();
+      script.remove();
+    };
+  }, [mission]);
 
   if (loading) {
     return (
@@ -108,19 +212,26 @@ export default function MissionDetailPage() {
     Number(mission.goal_amount_usd) > 0
       ? Math.min((Number(mission.raised_amount_usd) / Number(mission.goal_amount_usd)) * 100, 100)
       : 0;
+
   const totalSpent = receipts.reduce((sum, r) => sum + Number(r.amount_spent_usd), 0);
-  const flag = COUNTRY_FLAGS[mission.target_country] || "🌍";
+  const totalBudgeted = budgetItems.reduce((sum, b) => sum + Number(b.total_cost_usd), 0);
+  const spendRate = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
+
+  const countryCode = COUNTRY_CODES[mission.target_country] || "un";
+  const beforePhotos = photos.filter(p => p.category === "BEFORE");
+  const duringPhotos = photos.filter(p => p.category === "DURING" || p.category === "AFTER");
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50">
       <Navbar />
 
-      {/* Atmospheric glowing backdrop vectors */}
+      {/* Ambient glass glows */}
       <div className="absolute top-24 left-[10%] w-[500px] h-[500px] glow-blue rounded-full pointer-events-none -z-10" />
       <div className="absolute top-1/2 right-[5%] w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
-        {/* Navigation Breadcrumb */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        {/* Navigation bar */}
         <Link
           href="/missions"
           className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-slate-500 hover:text-slate-900 font-bold mb-8 transition-colors"
@@ -128,16 +239,31 @@ export default function MissionDetailPage() {
           <ArrowLeft className="w-4 h-4" /> <span>Back to Active Fields</span>
         </Link>
 
+        {/* Global Alert System: High-Risk operational notification */}
+        {summary?.risk_alerts?.has_critical_blocker && (
+          <div className="mb-6 rounded-xl border border-amber-200/80 bg-amber-50/90 backdrop-blur-xl p-4 flex items-start gap-3.5 shadow-sm">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900">Active High-Severity Risk Logged</h4>
+              <p className="text-xs text-amber-700 font-medium mt-1">
+                The administrative system has flagged active risk barriers during field execution. Shepherd network maintains full public alignment of operational blocks.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content Column */}
+          
+          {/* Main Context Column */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Primary Campaign Header Card */}
+            
+            {/* Mission Hero Header Card */}
             <div className="relative rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
-              <div className="h-[4px] w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+              <div className="h-[4px] w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500" />
               <div className="p-8">
                 <div className="flex flex-wrap items-center gap-3 mb-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
-                    <span className="text-base leading-none">{flag}</span>
+                    <span className={`fi fi-${countryCode} rounded-sm text-sm`} />
                     <span className="text-[10px] uppercase tracking-wider font-bold text-slate-600">
                       {mission.target_country} Region
                     </span>
@@ -157,31 +283,31 @@ export default function MissionDetailPage() {
                   {mission.title}
                 </h1>
 
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium mb-8 whitespace-pre-wrap">
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal mb-8 whitespace-pre-wrap">
                   {mission.description}
                 </p>
 
-                {/* Progress Visualizer Grid */}
+                {/* Sovereign allocation meter */}
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
                   <div className="flex items-end justify-between">
                     <div>
                       <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500 block mb-1">
                         Sovereign Allocation Reached
                       </span>
-                      <span className="text-2xl sm:text-3xl font-black text-slate-900 num-tabular">
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900">
                         ${Number(mission.raised_amount_usd).toLocaleString()}
                       </span>
                       <span className="text-xs text-slate-500 font-bold ml-1.5">
-                        of ${Number(mission.goal_amount_usd).toLocaleString()} Cap
+                        of ${Number(mission.goal_amount_usd).toLocaleString()} goal cap
                       </span>
                     </div>
-                    <span className="text-xl font-black text-blue-600 num-tabular">
-                      {progress.toFixed(0)}%
+                    <span className="text-xl font-black text-blue-600">
+                      {progress.toFixed(1)}%
                     </span>
                   </div>
                   <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden shadow-inner">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000"
+                      className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-1000"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -189,73 +315,337 @@ export default function MissionDetailPage() {
               </div>
             </div>
 
-            {/* Cryptographic Accountability Section */}
-            <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-8">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">Transparency Ledger</h2>
-                  <p className="text-xs font-bold text-slate-500">Verified field operator transactions</p>
-                </div>
+            {/* TAB SYSTEM WORKSPACE */}
+            <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+              <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-none bg-slate-50/50">
+                {[
+                  { id: "brief", label: "Mission Brief", icon: FileText },
+                  { id: "budget", label: "Budget & Receipts", icon: Receipt },
+                  { id: "checkpoints", label: "Checkpoints", icon: CheckCircle2 },
+                  { id: "updates", label: "Field Reports", icon: TrendingUp },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center gap-2 px-6 py-4 border-b-2 text-xs uppercase tracking-wider font-bold transition-all duration-200 whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? "border-blue-600 text-blue-600 bg-white"
+                        : "border-transparent text-slate-500 hover:text-slate-950 hover:bg-slate-100/50"
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
               </div>
 
-              {/* Financial Breakdown Cells */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 shadow-sm">
-                  <DollarSign className="w-4 h-4 text-emerald-600 mb-2" />
-                  <span className="text-2xl font-black text-slate-900 block num-tabular">
-                    ${totalSpent.toLocaleString()}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold block mt-1">Verified Expenditures</span>
-                </div>
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 shadow-sm">
-                  <TrendingUp className="w-4 h-4 text-blue-600 mb-2" />
-                  <span className="text-2xl font-black text-slate-900 block num-tabular">
-                    ${Math.max(0, Number(mission.raised_amount_usd) - totalSpent).toLocaleString()}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wider text-blue-600 font-bold block mt-1">Pending Field Allocations</span>
-                </div>
-              </div>
+              <div className="p-8">
+                {/* 1. MISSION BRIEF TAB */}
+                {activeTab === "brief" && (
+                  <div className="space-y-8">
+                    {/* Problem statement */}
+                    <div>
+                      <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-slate-400" />
+                        The Problem Statement
+                      </h3>
+                      <div className="bg-slate-50/70 rounded-xl p-5 border border-slate-200">
+                        <p className="text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">
+                          {mission.problem_statement || "No problem statement registered on setup."}
+                        </p>
+                      </div>
+                    </div>
 
-              {/* Itemized Receipts */}
-              {receipts.length === 0 ? (
-                <div className="py-12 border border-dashed border-slate-300 rounded-xl text-center bg-slate-50">
-                  <Receipt className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                  <p className="text-xs text-slate-500 font-bold">
-                    No field receipts uploaded to this deployment rail yet.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3.5">
-                  {receipts.map((r) => (
-                    <div key={r.id} className="p-4 rounded-xl bg-white border border-slate-200 flex items-center justify-between hover:border-slate-300 transition-colors shadow-sm">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                          <Receipt className="w-4 h-4 text-slate-500" />
-                        </div>
-                        <div>
-                          <span className="text-sm font-bold text-slate-900 block tracking-wide">{r.title}</span>
-                          <span className="text-[10px] uppercase tracking-wider text-slate-500 block mt-0.5 font-bold">
-                            {r.category} {r.vendor_name ? `• ${r.vendor_name}` : ""}
-                          </span>
+                    {/* Mission Objectives */}
+                    <div>
+                      <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
+                        Operational Objectives
+                      </h3>
+                      <div className="bg-slate-50/70 rounded-xl p-5 border border-slate-200">
+                        <p className="text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">
+                          {mission.mission_objectives || "No operational milestones loaded on setup."}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Proposed Process */}
+                    <div>
+                      <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                        <Layers className="w-3.5 h-3.5 text-slate-400" />
+                        Execution Method
+                      </h3>
+                      <div className="bg-slate-50/70 rounded-xl p-5 border border-slate-200">
+                        <p className="text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">
+                          {mission.proposed_process || "No process strategy described."}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Before/During Gallery Photos */}
+                    {beforePhotos.length > 0 && (
+                      <div>
+                        <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                          <Camera className="w-3.5 h-3.5 text-slate-400" />
+                          Initialization Context Photos (BEFORE)
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {beforePhotos.map((photo) => (
+                            <div key={photo.id} className="relative rounded-xl overflow-hidden border border-slate-200 aspect-video group">
+                              <img
+                                src={photo.image_url}
+                                alt={photo.caption || "Deployment Before image"}
+                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                              />
+                              {photo.caption && (
+                                <div className="absolute inset-x-0 bottom-0 bg-slate-950/80 backdrop-blur-md p-3">
+                                  <p className="text-[11px] text-white/90 font-medium truncate">{photo.caption}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      <span className="text-sm font-black text-emerald-600 num-tabular">
-                        ${Number(r.amount_spent_usd).toLocaleString()}
-                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. BUDGET & RECEIPTS TAB */}
+                {activeTab === "budget" && (
+                  <div className="space-y-8">
+                    {/* Telemetry overview */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-5">
+                        <span className="text-2xl font-black text-slate-900">${totalSpent.toLocaleString()}</span>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-600 block mt-1">Verified Spent</span>
+                      </div>
+                      <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-5">
+                        <span className="text-2xl font-black text-slate-900">${totalBudgeted.toLocaleString()}</span>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-600 block mt-1">Total Target Budget</span>
+                      </div>
+                    </div>
+
+                    {/* Budget Line Items */}
+                    <div>
+                      <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Budget Line Allocation Breakdown</h3>
+                      {budgetItems.length === 0 ? (
+                        <p className="text-xs text-slate-500 font-bold">No budget breakdown is declared for this mission.</p>
+                      ) : (
+                        <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase tracking-wider font-bold text-slate-500">
+                                <th className="p-4">Item Name</th>
+                                <th className="p-4 text-right">Target (USD)</th>
+                                <th className="p-4 text-right">Actual Spent</th>
+                                <th className="p-4 text-right">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-150">
+                              {budgetItems.map((item) => (
+                                <tr key={item.id} className="text-xs hover:bg-slate-50/50">
+                                  <td className="p-4">
+                                    <span className="font-bold text-slate-900 block">{item.item_name}</span>
+                                    <span className="text-[9px] uppercase font-semibold text-slate-500 mt-0.5 block">{item.category}</span>
+                                  </td>
+                                  <td className="p-4 text-right font-semibold text-slate-700">${Number(item.total_cost_usd).toLocaleString()}</td>
+                                  <td className="p-4 text-right font-bold text-emerald-600">${Number(item.actual_spent_usd).toLocaleString()}</td>
+                                  <td className="p-4 text-right">
+                                    <span className="inline-block text-[9px] font-bold px-2 py-1 rounded bg-slate-100 text-slate-700">
+                                      {item.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Ledger Receipts */}
+                    <div>
+                      <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">On-Chain Verified Public Receipts</h3>
+                      {receipts.length === 0 ? (
+                        <div className="py-12 border border-dashed border-slate-300 rounded-xl text-center bg-slate-50">
+                          <Receipt className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+                          <p className="text-xs text-slate-500 font-bold">No verified expense receipts logged to this platform.</p>
+                        </div>
+                      ) : (
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          {receipts.map((rec) => (
+                            <div key={rec.id} className="border border-slate-200 bg-white rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                              <div>
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                  <h4 className="font-bold text-xs text-slate-900 leading-snug line-clamp-2">{rec.title}</h4>
+                                  <span className="text-xs font-black text-emerald-600 shrink-0">${Number(rec.amount_spent_usd).toLocaleString()}</span>
+                                </div>
+                                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-3">{rec.category} • {rec.vendor_name || "Unknown Vendor"}</p>
+                                {rec.notes && <p className="text-[11px] text-slate-600 leading-normal mb-4 bg-slate-50/50 p-2.5 rounded border border-slate-100">{rec.notes}</p>}
+                              </div>
+                              <a
+                                href={rec.receipt_image_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-black text-blue-600 hover:text-blue-700 transition"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                <span>Verify Image Document</span>
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. TIMELINE & CHECKPOINTS TAB */}
+                {activeTab === "checkpoints" && (
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-2 bg-slate-50 p-4 border border-slate-200 rounded-xl">
+                      <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                      <p className="text-[11px] text-slate-600 leading-normal font-medium">
+                        The timeline of objectives displays operational weight allocations. To advance complete transparency, checkpoints map progress directly to the ground deployment.
+                      </p>
+                    </div>
+
+                    {checkpoints.length === 0 ? (
+                      <p className="text-xs text-slate-500 font-bold text-center py-10">No checkpoints are logged for this deployment.</p>
+                    ) : (
+                      <div className="relative border-l border-slate-200 ml-4 pl-8 space-y-8">
+                        {checkpoints.map((cp, idx) => {
+                          const isCompleted = cp.status === "COMPLETED";
+                          return (
+                            <div key={cp.id} className="relative">
+                              {/* Node pin */}
+                              <div className={`absolute -left-[41px] top-1.5 w-6 h-6 rounded-full border-4 bg-white flex items-center justify-center transition-all ${
+                                isCompleted ? "border-emerald-500" : "border-slate-300"
+                              }`}>
+                                {isCompleted && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                              </div>
+
+                              <div className="p-5 border border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-300 transition-colors">
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-bold text-xs uppercase tracking-wider text-slate-900">{cp.title}</h4>
+                                    <span className="text-[9px] font-bold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200">
+                                      Weight: {Number(cp.weight_percent).toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  <span className={`text-[9px] font-black uppercase px-2 py-1 rounded border ${
+                                    isCompleted
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      : cp.status === "IN_PROGRESS"
+                                      ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                      : "bg-slate-50 text-slate-500 border-slate-200"
+                                  }`}>
+                                    {cp.status}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed font-normal mb-3">{cp.description}</p>
+                                
+                                {cp.target_date && (
+                                  <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>Target Date: {new Date(cp.target_date).toLocaleDateString()}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. FIELD REPORTS TAB */}
+                {activeTab === "updates" && (
+                  <div className="space-y-8">
+                    {/* Impact delta aggregator */}
+                    {summary?.counts?.field_reports > 0 && (
+                      <div className="bg-slate-900 text-white rounded-2xl p-6 relative overflow-hidden shadow-md">
+                        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)] pointer-events-none" />
+                        <span className="text-[10px] uppercase tracking-widest font-black text-emerald-400 block mb-1">Impact Generation Analytics</span>
+                        <span className="text-3xl font-black leading-none block">
+                          +{reports.reduce((acc, r) => acc + (r.people_served_delta || 0), 0).toLocaleString()}
+                        </span>
+                        <span className="text-[11px] text-slate-300 mt-2 block font-medium">Verified local beneficiaries served and directly impacted on target field</span>
+                      </div>
+                    )}
+
+                    {reports.length === 0 ? (
+                      <div className="py-12 border border-dashed border-slate-300 rounded-xl text-center bg-slate-50">
+                        <TrendingUp className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+                        <p className="text-xs text-slate-500 font-bold">No direct field reports submitted by operators yet.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {reports.map((rep) => (
+                          <div key={rep.id} className="border border-slate-200 rounded-xl p-6 bg-white shadow-sm hover:border-slate-300 transition-colors">
+                            <div className="flex items-start justify-between gap-3 mb-4">
+                              <div>
+                                <h4 className="font-extrabold text-sm text-slate-900 leading-tight mb-1">{rep.title}</h4>
+                                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">
+                                  Type: {rep.report_type} • Authored by {rep.author_name || "Head of Operations"}
+                                </span>
+                              </div>
+                              {rep.people_served_delta > 0 && (
+                                <span className="text-[10px] font-black uppercase px-2.5 py-1.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                  +{rep.people_served_delta} Served
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed font-normal whitespace-pre-wrap mb-4">{rep.body}</p>
+                            <span className="text-[10px] text-slate-400 font-bold block mt-2">
+                              Logged: {new Date(rep.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* DURING/AFTER photo gallery section */}
+            {duringPhotos.length > 0 && (
+              <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <Camera className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <h2 className="text-md font-bold text-slate-900">Live Gallery Progress</h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Historical ground reality visual stream</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {duringPhotos.map((photo) => (
+                    <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group bg-slate-50">
+                      <img
+                        src={photo.image_url}
+                        alt={photo.caption || "Deployment photo"}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {photo.caption && (
+                        <div className="absolute inset-x-0 bottom-0 bg-slate-950/80 backdrop-blur-md p-2">
+                          <p className="text-[9px] text-white/90 font-medium truncate">{photo.caption}</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Right Column / Sidebar */}
+          {/* Right Column / Sticky Sidebar */}
           <div className="space-y-6">
-            {/* support Portal Card */}
-            <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-6 sticky top-24">
+            
+            {/* Support Portal Panel */}
+            <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-6">
               <h3 className="text-base font-bold text-slate-900 mb-2">Fund This Deployment</h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed mb-6">
                 100% of your gift settles instantly on-chain. Shepherd maintains a strict zero-custody routing configuration.
@@ -307,7 +697,26 @@ export default function MissionDetailPage() {
               </div>
             </Link>
 
-            {/* Technical Parameters Card */}
+            {/* Mapbox Geographic Map Integration Card */}
+            {mission.map_location && (
+              <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-6 space-y-4">
+                <h3 className="text-[10px] uppercase tracking-widest font-bold text-slate-400 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Interactive Map Location</span>
+                </h3>
+                <div className="w-full h-48 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative shadow-inner">
+                  <div id="mapbox-sidebar-map" className="w-full h-full" />
+                </div>
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                    <span>Coordinates</span>
+                    <span className="font-semibold text-slate-950">{mission.map_location}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Technical Specifications Parameters */}
             <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-6 space-y-4">
               <h3 className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
                 Deployment specifications
@@ -330,11 +739,12 @@ export default function MissionDetailPage() {
                 </div>
               ))}
             </div>
+
           </div>
         </div>
       </div>
 
-      {/* Payment Overlay Modal — PaymentWall owns its own full-screen glass shell */}
+      {/* Payment Gateway Modal Overlay */}
       {showPayment && (
         <PaymentWall
           missionId={missionId}
