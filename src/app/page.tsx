@@ -52,29 +52,29 @@ export default function Home() {
       <div className="fixed bottom-[10%] left-[5%] w-[400px] h-[400px] glow-gold rounded-full pointer-events-none -z-20" />
 
       {/* Hero — cinematic full-bleed like Roskyways */}
-      <section className="relative pt-20 pb-28 lg:pt-28 lg:pb-36 min-h-[90vh] flex flex-col justify-center overflow-hidden">
+      <section className="relative pt-8 pb-20 lg:pt-12 lg:pb-28 min-h-[78vh] flex flex-col justify-center overflow-hidden">
         
         {/* 3D GLOBE — right side stage */}
         <Globe />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10 w-full">
           <div className="max-w-5xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass mb-8 shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass mb-6 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-[#C4A35A]" />
               <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
                 Non-Custodial · Built on Stellar
               </span>
             </div>
 
-            <h1 className="font-serif font-semibold tracking-[-0.035em] leading-[0.95] mb-8 text-[#1A1612]">
-              <span className="block text-[clamp(2.8rem,7.5vw,6.75rem)]">
+            <h1 className="font-serif font-semibold tracking-[-0.03em] leading-[1.02] mb-6 text-[#1A1612]">
+              <span className="block text-[clamp(2.1rem,4.8vw,4.25rem)]">
                 Removing the cloak
               </span>
-              <span className="block text-[clamp(2.8rem,7.5vw,6.75rem)] mt-1">
+              <span className="block text-[clamp(2.1rem,4.8vw,4.25rem)] mt-1">
                 from{" "}
                 <span className="italic text-[#064E3B]">Humanitarian</span>
               </span>
-              <span className="block text-[clamp(2.8rem,7.5vw,6.75rem)] mt-1 italic text-[#C4A35A]">
+              <span className="block text-[clamp(2.1rem,4.8vw,4.25rem)] mt-1 italic text-[#C4A35A]">
                 Giving
               </span>
             </h1>
