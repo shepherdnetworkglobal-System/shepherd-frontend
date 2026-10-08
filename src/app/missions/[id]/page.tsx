@@ -557,8 +557,8 @@ export default function MissionDetailPage() {
 
                           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             
-                            {/* Left Meta & Context Column */}
-                            <div className="lg:col-span-4 flex flex-col items-start gap-4">
+                            {/* Left Column: Clean Meta & Badges */}
+                            <div className="lg:col-span-4 flex flex-col items-start gap-3">
                               <h4 className="font-serif text-3xl font-semibold text-[#1A1612] leading-tight">Phase {index + 1}</h4>
                               <div className="flex flex-wrap gap-2">
                                 <span className="text-[10px] uppercase tracking-[0.16em] font-semibold bg-[#EFEBE4] text-[#7A736A] px-3 py-1.5 rounded-full">
@@ -574,32 +574,33 @@ export default function MissionDetailPage() {
                                   {cp.status}
                                 </span>
                               </div>
-                              
-                              {/* Phase Context Moved to Left */}
-                              {cp.description && (
-                                <p className="text-sm text-[#7A736A] leading-relaxed font-medium mt-1">
-                                  {cp.description}
-                                </p>
-                              )}
 
                               {cp.target_date && (
-                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-1 pt-4 border-t border-[rgba(26,22,18,0.06)] w-full">
+                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-2">
                                   <Clock className="w-4 h-4" />
                                   <span>Target: {new Date(cp.target_date).toLocaleDateString()}</span>
                                 </div>
                               )}
                             </div>
 
-                            {/* Right Content Column (Definitive Heading & Evidence) */}
-                            <div className="lg:col-span-8 p-8 sm:p-10 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors flex flex-col justify-center">
+                            {/* Right Column: Definitive Phase Title + Full Context + Evidence */}
+                            <div className="lg:col-span-8 p-8 sm:p-10 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors">
                               
-                              <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] leading-tight mb-8">
+                              {/* Definitive Phase Title */}
+                              <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] leading-tight mb-4">
                                 {cp.title}
                               </h3>
-                              
+
+                              {/* Phase Detailed Context */}
+                              {cp.description && (
+                                <p className="text-sm sm:text-base text-[#3D3832]/90 leading-relaxed font-normal mb-8 whitespace-pre-wrap">
+                                  {cp.description}
+                                </p>
+                              )}
+
                               {/* Phase Media Gallery */}
                               {checkpointPhotos.length > 0 ? (
-                                <div>
+                                <div className="border-t border-[rgba(26,22,18,0.06)] pt-6 mt-6">
                                   <h5 className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] mb-4 flex items-center gap-2">
                                     <Camera className="w-4 h-4" /> Phase Evidence Captured
                                   </h5>
@@ -614,8 +615,8 @@ export default function MissionDetailPage() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="py-10 border border-dashed border-[rgba(26,22,18,0.15)] rounded-2xl flex flex-col items-center justify-center bg-white/40">
-                                  <Camera className="w-8 h-8 text-[#7A736A]/30 mb-3" />
+                                <div className="py-8 border border-dashed border-[rgba(26,22,18,0.12)] rounded-2xl flex flex-col items-center justify-center bg-white/30 mt-4">
+                                  <Camera className="w-6 h-6 text-[#7A736A]/30 mb-2" />
                                   <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">Awaiting Phase Evidence</span>
                                 </div>
                               )}

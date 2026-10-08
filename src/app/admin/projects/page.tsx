@@ -947,20 +947,26 @@ export default function ProjectsWorkstation() {
                         <div key={cp.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                           {editingCheckpointId === cp.id ? (
                             <form onSubmit={handleSaveCheckpointEdit} className="space-y-3">
-                              <input
-                                required
-                                value={editCpForm.title}
-                                onChange={(e) => setEditCpForm({ ...editCpForm, title: e.target.value })}
-                                className="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
-                                placeholder="Checkpoint title"
-                              />
-                              <textarea
-                                rows={2}
-                                value={editCpForm.description}
-                                onChange={(e) => setEditCpForm({ ...editCpForm, description: e.target.value })}
-                                className="w-full text-xs p-2.5 border border-slate-200 rounded-xl"
-                                placeholder="Description / objective detail"
-                              />
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Phase Title (Heading)</label>
+                                <input
+                                  required
+                                  value={editCpForm.title}
+                                  onChange={(e) => setEditCpForm({ ...editCpForm, title: e.target.value })}
+                                  className="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-xl"
+                                  placeholder="e.g. Hydro-geological survey & community mobilization"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Phase Context / Detailed Description</label>
+                                <textarea
+                                  rows={3}
+                                  value={editCpForm.description}
+                                  onChange={(e) => setEditCpForm({ ...editCpForm, description: e.target.value })}
+                                  className="w-full text-xs p-2.5 border border-slate-200 rounded-xl"
+                                  placeholder="Detailed phase context..."
+                                />
+                              </div>
                               <div className="flex items-center gap-3">
                                 <div className="w-28">
                                   <label className="text-[10px] font-bold text-slate-500 block mb-1">Weight %</label>
@@ -1036,13 +1042,26 @@ export default function ProjectsWorkstation() {
 
                     {/* Add Checkpoint Form */}
                     <form onSubmit={handleAddCheckpoint} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
-                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Add Manual Checkpoint</h4>
+                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Add Manual Checkpoint Phase</h4>
+                      
                       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                        <input required placeholder="Checkpoint title" value={newCheckpoint.title} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, title: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none sm:col-span-3" />
-                        <input required type="number" step="any" placeholder="Weight %" value={newCheckpoint.weight_percent} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, weight_percent: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        <div className="sm:col-span-3">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Phase Title / Objective Heading</label>
+                          <input required placeholder="e.g. Hydro-geological survey & community mobilization" value={newCheckpoint.title} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, title: e.target.value })} className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Weight %</label>
+                          <input required type="number" step="any" placeholder="Weight %" value={newCheckpoint.weight_percent} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, weight_percent: e.target.value })} className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        </div>
                       </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Phase Context / Detailed Description</label>
+                        <textarea rows={3} placeholder="Complete hydro-geological surveying, environmental impact approvals, and water abstraction permits..." value={newCheckpoint.description} onChange={(e) => setNewCheckpoint({ ...newCheckpoint, description: e.target.value })} className="w-full text-xs font-medium p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                      </div>
+
                       <button type="submit" disabled={actionLoading} className="px-5 py-3 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50">
-                        <Plus className="w-4 h-4" /> Add Checkpoint
+                        <Plus className="w-4 h-4" /> Add Checkpoint Phase
                       </button>
                     </form>
                   </div>
