@@ -252,7 +252,7 @@ export default function MissionDetailPage() {
                 </span>
               </div>
 
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-[#1A1612] tracking-tight leading-[1.05]">
+              <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#1A1612] tracking-tight leading-snug">
                 {mission.title}
               </h1>
 
@@ -576,12 +576,12 @@ export default function MissionDetailPage() {
                             
                             {/* Left Column: Phase Number + Badges + Detailed Context Description */}
                             <div className="lg:col-span-4 flex flex-col items-start gap-3">
-                              <h4 className="font-serif text-3xl font-semibold text-[#1A1612] leading-tight">Phase {index + 1}</h4>
+                              <h4 className="font-serif text-xl font-semibold text-[#1A1612] leading-snug">Phase {index + 1}</h4>
                               <div className="flex flex-wrap gap-2">
-                                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold bg-[#EFEBE4] text-[#7A736A] px-3 py-1.5 rounded-full">
+                                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold bg-[#EFEBE4] text-[#7A736A] px-3 py-1 rounded-full">
                                   Weight: {Number(cp.weight_percent).toFixed(1)}%
                                 </span>
-                                <span className={`text-[10px] uppercase tracking-[0.16em] font-semibold px-3 py-1.5 rounded-full border ${
+                                <span className={`text-[10px] uppercase tracking-[0.16em] font-semibold px-3 py-1 rounded-full border ${
                                   isCompleted
                                     ? "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/20"
                                     : cp.status === "IN_PROGRESS"
@@ -594,24 +594,24 @@ export default function MissionDetailPage() {
 
                               {/* Detailed Context Paragraph on Left */}
                               {cp.description && (
-                                <p className="text-sm text-[#7A736A] leading-relaxed font-normal mt-2">
+                                <p className="text-xs sm:text-sm text-[#7A736A] leading-relaxed font-normal mt-1">
                                   {cp.description}
                                 </p>
                               )}
 
                               {cp.target_date && (
-                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-2 pt-3 border-t border-[rgba(26,22,18,0.06)] w-full">
-                                  <Clock className="w-4 h-4" />
+                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-1 pt-3 border-t border-[rgba(26,22,18,0.06)] w-full">
+                                  <Clock className="w-3.5 h-3.5" />
                                   <span>Target: {new Date(cp.target_date).toLocaleDateString()}</span>
                                 </div>
                               )}
                             </div>
 
                             {/* Right Column: Definitive Phase Title Heading Above Pictures */}
-                            <div className="lg:col-span-8 p-8 sm:p-10 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors flex flex-col justify-center">
+                            <div className="lg:col-span-8 p-6 sm:p-8 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors flex flex-col justify-center">
                               
                               {/* Definitive Phase Title Heading */}
-                              <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] leading-tight mb-6">
+                              <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#1A1612] leading-snug mb-4">
                                 {cp.title}
                               </h3>
 
