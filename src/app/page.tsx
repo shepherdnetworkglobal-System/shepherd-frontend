@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MissionCard from "@/components/MissionCard";
-import Globe from "@/components/Globe";
 import { apiRequest } from "@/lib/api";
 
 interface Mission {
@@ -52,13 +51,9 @@ export default function Home() {
       <div className="fixed bottom-[10%] left-[5%] w-[400px] h-[400px] glow-gold rounded-full pointer-events-none -z-20" />
 
       {/* Hero — cinematic full-bleed like Roskyways */}
-      <section className="relative pt-8 pb-20 lg:pt-12 lg:pb-28 min-h-[78vh] flex flex-col justify-center overflow-hidden">
-        
-        {/* 3D GLOBE — right side stage */}
-        <Globe />
-
+      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 flex flex-col justify-center overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10 w-full">
-          <div className="max-w-5xl">
+          <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass mb-6 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-[#C4A35A]" />
               <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
