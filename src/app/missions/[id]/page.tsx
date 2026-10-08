@@ -23,7 +23,8 @@ import {
   Layers,
   Info,
   User,
-  Activity
+  Activity,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -81,6 +82,7 @@ export default function MissionDetailPage() {
   
   const [activeTab, setActiveTab] = useState<"brief" | "budget" | "checkpoints" | "updates">("brief");
   const [showPayment, setShowPayment] = useState(false);
+  const [activeBriefModal, setActiveBriefModal] = useState<"problem" | "objectives" | "method" | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -382,50 +384,79 @@ export default function MissionDetailPage() {
             {/* 1. MISSION BRIEF TAB */}
             {activeTab === "brief" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <section className="bg-white/50 rounded-2xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift">
-                  <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-4 flex items-center gap-3">
-                    <AlertTriangle className="w-6 h-6 text-[#C4A35A]" /> The Problem
+                
+                {/* Problem Preview Card */}
+                <section 
+                  onClick={() => setActiveBriefModal("problem")}
+                  className="bg-white/50 rounded-3xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift cursor-pointer group flex flex-col relative overflow-hidden"
+                >
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-4 flex items-center gap-3">
+                    <AlertTriangle className="w-5 h-5 text-[#C4A35A]" /> The Problem
                   </h3>
-                  <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
-                    {mission.problem_statement || "No problem statement registered on setup."}
-                  </p>
-                </section>
-
-                <section className="bg-white/50 rounded-2xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift">
-                  <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-4 flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-[#064E3B]" /> Objectives
-                  </h3>
-                  <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
-                    {mission.mission_objectives || "No operational milestones loaded on setup."}
-                  </p>
-                </section>
-
-                <section className="bg-white/50 rounded-2xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift">
-                  <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-6 flex items-center gap-3">
-                    <Layers className="w-6 h-6 text-[#7A736A]" /> Implementation Process
-                  </h3>
-                  {checkpoints && checkpoints.length > 0 ? (
-                    <div className="space-y-6">
-                      {checkpoints.map((cp, idx) => (
-                        <div key={cp.id} className="pb-6 border-b border-[rgba(26,22,18,0.04)] last:border-0 last:pb-0">
-                          <h4 className="text-base font-semibold text-[#1A1612] mb-2">
-                            Phase {idx + 1}: {cp.title}
-                          </h4>
-                          {cp.description && (
-                            <p className="text-sm text-[#3D3832]/90 leading-relaxed font-normal whitespace-pre-wrap">
-                              {cp.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
-                      {mission.proposed_process || "No process strategy described."}
+                  <div className="relative h-[120px] overflow-hidden">
+                    <p className="text-sm text-[#3D3832]/90 leading-relaxed font-normal whitespace-pre-wrap">
+                      {mission.problem_statement || "No problem statement registered on setup."}
                     </p>
-                  )}
+                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent" />
+                  </div>
+                  <div className="mt-4 pt-5 border-t border-[rgba(26,22,18,0.04)] flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B]">Read Full Context</span>
+                    <ArrowRight className="w-4 h-4 text-[#064E3B] group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </section>
 
+                {/* Objectives Preview Card */}
+                <section 
+                  onClick={() => setActiveBriefModal("objectives")}
+                  className="bg-white/50 rounded-3xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift cursor-pointer group flex flex-col relative overflow-hidden"
+                >
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-4 flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-[#064E3B]" /> Objectives
+                  </h3>
+                  <div className="relative h-[120px] overflow-hidden">
+                    <p className="text-sm text-[#3D3832]/90 leading-relaxed font-normal whitespace-pre-wrap">
+                      {mission.mission_objectives || "No operational milestones loaded on setup."}
+                    </p>
+                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent" />
+                  </div>
+                  <div className="mt-4 pt-5 border-t border-[rgba(26,22,18,0.04)] flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B]">Read Full Context</span>
+                    <ArrowRight className="w-4 h-4 text-[#064E3B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </section>
+
+                {/* Implementation Preview Card */}
+                <section 
+                  onClick={() => setActiveBriefModal("method")}
+                  className="bg-white/50 rounded-3xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift cursor-pointer group flex flex-col relative overflow-hidden"
+                >
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-4 flex items-center gap-3">
+                    <Layers className="w-5 h-5 text-[#7A736A]" /> Implementation
+                  </h3>
+                  <div className="relative h-[120px] overflow-hidden">
+                    {checkpoints && checkpoints.length > 0 ? (
+                      <div className="space-y-4">
+                        {checkpoints.map((cp, idx) => (
+                          <div key={cp.id}>
+                            <h4 className="text-xs font-semibold text-[#1A1612] mb-1">Phase {idx + 1}: {cp.title}</h4>
+                            <p className="text-xs text-[#3D3832]/80 line-clamp-2">{cp.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-[#3D3832]/90 leading-relaxed font-normal whitespace-pre-wrap">
+                        {mission.proposed_process || "No process strategy described."}
+                      </p>
+                    )}
+                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent" />
+                  </div>
+                  <div className="mt-4 pt-5 border-t border-[rgba(26,22,18,0.04)] flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B]">View Full Strategy</span>
+                    <ArrowRight className="w-4 h-4 text-[#064E3B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </section>
+
+                {/* Before Photos */}
                 {beforePhotos.length > 0 && (
                   <section className="md:col-span-3 mt-4">
                     <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-6 flex items-center gap-2.5">
@@ -710,6 +741,77 @@ export default function MissionDetailPage() {
         </div>
 
       </div>
+
+      {/* FLOATING LANDSCAPE DIALOGUE FOR MISSION BRIEF */}
+      {activeBriefModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12">
+          {/* Blur Backdrop */}
+          <div 
+            className="absolute inset-0 bg-[#1A1612]/40 backdrop-blur-sm transition-opacity" 
+            onClick={() => setActiveBriefModal(null)} 
+          />
+          
+          {/* Modal Container */}
+          <div className="relative w-full max-w-5xl max-h-[85vh] flex flex-col rounded-3xl glass bg-[#F7F4EF]/95 border border-[rgba(26,22,18,0.08)] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 sm:p-8 border-b border-[rgba(26,22,18,0.06)] bg-white/50 shrink-0">
+              <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] flex items-center gap-3">
+                {activeBriefModal === "problem" && <><AlertTriangle className="w-6 h-6 text-[#C4A35A]" /> The Problem Statement</>}
+                {activeBriefModal === "objectives" && <><CheckCircle2 className="w-6 h-6 text-[#064E3B]" /> Operational Objectives</>}
+                {activeBriefModal === "method" && <><Layers className="w-6 h-6 text-[#7A736A]" /> Implementation Strategy</>}
+              </h2>
+              <button 
+                onClick={() => setActiveBriefModal(null)}
+                className="w-10 h-10 rounded-full bg-white border border-[rgba(26,22,18,0.08)] flex items-center justify-center text-[#7A736A] hover:text-[#1A1612] hover:bg-[#EFEBE4] transition-colors shadow-sm shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Content Body */}
+            <div className="p-6 sm:p-10 overflow-y-auto bg-white/40 flex-1 scrollbar-none">
+              <div className="max-w-4xl mx-auto">
+                {activeBriefModal === "problem" && (
+                  <p className="text-base sm:text-lg text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
+                    {mission.problem_statement || "No problem statement registered on setup."}
+                  </p>
+                )}
+                {activeBriefModal === "objectives" && (
+                  <p className="text-base sm:text-lg text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
+                    {mission.mission_objectives || "No operational milestones loaded on setup."}
+                  </p>
+                )}
+                {activeBriefModal === "method" && (
+                  <div>
+                    {checkpoints && checkpoints.length > 0 ? (
+                      <div className="space-y-10">
+                        {checkpoints.map((cp, idx) => (
+                          <div key={cp.id} className="pb-8 border-b border-[rgba(26,22,18,0.04)] last:border-0 last:pb-0">
+                            <h4 className="font-serif text-xl sm:text-2xl font-semibold text-[#1A1612] mb-3">
+                              Phase {idx + 1}: {cp.title}
+                            </h4>
+                            {cp.description && (
+                              <p className="text-base sm:text-lg text-[#3D3832]/90 leading-relaxed font-normal whitespace-pre-wrap">
+                                {cp.description}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-base sm:text-lg text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
+                        {mission.proposed_process || "No process strategy described."}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {showPayment && (
         <PaymentWall
