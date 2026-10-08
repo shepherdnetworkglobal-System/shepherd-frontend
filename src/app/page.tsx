@@ -28,14 +28,22 @@ interface Mission {
   goal_amount_usd: number;
   raised_amount_usd: number;
   status: string;
+  cover_image?: string | null;
+  latest_update?: string | null;
+  missionary?: {
+    name: string;
+    organization_name: string | null;
+    shepherd_id: string | null;
+    profile_photo_url: string | null;
+  } | null;
   missionary_profile?: {
     name: string;
     organization_name: string | null;
     shepherd_id: string | null;
-    profile_image_url: string | null;
-  };
-  photos?: { id: number; url: string; category: string; created_at: string }[];
-  reports?: { id: number; title: string; summary: string; created_at: string }[];
+    profile_photo_url: string | null;
+  } | null;
+  photos?: { id: number; url: string; image_url?: string; category: string; created_at: string }[];
+  reports?: { id: number; title: string; summary: string; body?: string; created_at: string }[];
 }
 
 export default function Home() {
@@ -226,10 +234,15 @@ export default function Home() {
           ) : (
             <div className="flex flex-col gap-8 max-w-5xl mx-auto">
               {missions.slice(0, 6).map((m) => {
-                // Grab the latest uploaded field photo (if any)
-                const latestPhoto = m.photos && m.photos.length > 0 ? m.photos[m.photos.length - 1].url : undefined;
-                // Grab the most recent field report summary (if any)
-                const latestReport = m.reports && m.reports.length > 0 ? m.reports[m.reports.length - 1].summary : undefined;
+                const operator = m.missionary_profile || m.missionary;
+                const coverImage =
+                  m.cover_image ||
+                  (m.photos && m.photos.length > 0 ? (m.photos[0].url || m.photos[0].image_url) : undefined);
+                const latestUpdate =
+                  m.latest_update ||
+                  (m.reports && m.reports.length > 0
+                    ? m.reports[0].summary || m.reports[0].title
+                    : undefined);
 
                 return (
                   <MissionCard
@@ -241,12 +254,12 @@ export default function Home() {
                     goalAmount={Number(m.goal_amount_usd)}
                     raisedAmount={Number(m.raised_amount_usd)}
                     status={m.status}
-                    coverImage={latestPhoto}
-                    latestUpdate={latestReport}
-                    missionaryName={m.missionary_profile?.name}
-                    organizationName={m.missionary_profile?.organization_name || undefined}
-                    shepherdId={m.missionary_profile?.shepherd_id || undefined}
-                    missionaryPhoto={m.missionary_profile?.profile_image_url || undefined}
+                    coverImage={coverImage || undefined}
+                    latestUpdate={latestUpdate || undefined}
+                    missionaryName={operator?.name || undefined}
+                    organizationName={operator?.organization_name || undefined}
+                    shepherdId={operator?.shepherd_id || undefined}
+                    missionaryPhoto={operator?.profile_photo_url || undefined}
                   />
                 );
               })}
