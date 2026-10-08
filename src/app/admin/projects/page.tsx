@@ -95,7 +95,7 @@ export default function ProjectsWorkstation() {
   
   // New States for Milestone 3 Tabs
   const [newReceipt, setNewReceipt] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
-  const [newPhoto, setNewPhoto] = useState({ image_url: "", caption: "", category: "DURING" });
+  const [newPhoto, setNewPhoto] = useState({ image_url: "", caption: "", category: "DURING", checkpoint_id: "" });
   const [newReport, setNewReport] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
   const [editingReportId, setEditingReportId] = useState<number | null>(null);
   const [editReportForm, setEditReportForm] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
@@ -440,13 +440,14 @@ export default function ProjectsWorkstation() {
         method: "POST",
         body: JSON.stringify({
           mission_id: selectedMissionId,
+          checkpoint_id: newPhoto.checkpoint_id ? parseInt(newPhoto.checkpoint_id, 10) : null,
           image_url: newPhoto.image_url,
           caption: newPhoto.caption || null,
           category: newPhoto.category,
           is_public: true,
         }),
       });
-      setNewPhoto({ image_url: "", caption: "", category: "DURING" });
+      setNewPhoto({ image_url: "", caption: "", category: "DURING", checkpoint_id: "" });
       await loadMissionData(selectedMissionId);
     } catch (err: any) {
       alert(err.message);
@@ -1344,19 +1345,30 @@ export default function ProjectsWorkstation() {
 
                     <form onSubmit={handleAddPhoto} className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 mt-4">
                       <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Upload Mission Photo</h4>
+                      
                       <div className="flex items-center gap-3">
                         <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, (url) => setNewPhoto({ ...newPhoto, image_url: url }), "Photo")} className="text-xs w-full max-w-xs p-2 border border-slate-200 rounded-xl bg-white" />
                         {uploadingState === "Photo" && <span className="text-[10px] text-blue-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Uploading...</span>}
                         {newPhoto.image_url && <span className="text-[10px] text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> Ready</span>}
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <input placeholder="Caption (optional)" value={newPhoto.caption} onChange={(e) => setNewPhoto({ ...newPhoto, caption: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                        
                         <select value={newPhoto.category} onChange={(e) => setNewPhoto({ ...newPhoto, category: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white">
                           <option value="BEFORE">BEFORE (Current State)</option>
                           <option value="DURING">DURING (Progress)</option>
                           <option value="AFTER">AFTER (Completed)</option>
                         </select>
+
+                        <select value={newPhoto.checkpoint_id} onChange={(e) => setNewPhoto({ ...newPhoto, checkpoint_id: e.target.value })} className="text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white">
+                          <option value="">-- No Checkpoint Linked --</option>
+                          {checkpoints.map(cp => (
+                            <option key={cp.id} value={cp.id}>{cp.title}</option>
+                          ))}
+                        </select>
                       </div>
+
                       <button type="submit" disabled={actionLoading || uploadingState !== null || !newPhoto.image_url} className="px-5 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50">
                         <Plus className="w-4 h-4" /> Add Photo
                       </button>
