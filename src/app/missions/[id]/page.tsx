@@ -542,7 +542,7 @@ export default function MissionDetailPage() {
                   <p className="text-sm text-[#7A736A] font-medium text-center py-12">No checkpoints are logged for this deployment.</p>
                 ) : (
                   <div className="relative border-l-[3px] border-[rgba(26,22,18,0.08)] ml-6 pl-10 space-y-14">
-                    {checkpoints.map((cp) => {
+                    {checkpoints.map((cp, index) => {
                       const isCompleted = cp.status === "COMPLETED";
                       const checkpointPhotos = photos.filter(p => p.checkpoint_id === cp.id);
 
@@ -557,9 +557,9 @@ export default function MissionDetailPage() {
 
                           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             
-                            {/* Left Meta Column */}
+                            {/* Left Meta & Context Column */}
                             <div className="lg:col-span-4 flex flex-col items-start gap-4">
-                              <h4 className="font-serif text-2xl font-semibold text-[#1A1612] leading-tight">{cp.title}</h4>
+                              <h4 className="font-serif text-3xl font-semibold text-[#1A1612] leading-tight">Phase {index + 1}</h4>
                               <div className="flex flex-wrap gap-2">
                                 <span className="text-[10px] uppercase tracking-[0.16em] font-semibold bg-[#EFEBE4] text-[#7A736A] px-3 py-1.5 rounded-full">
                                   Weight: {Number(cp.weight_percent).toFixed(1)}%
@@ -574,35 +574,49 @@ export default function MissionDetailPage() {
                                   {cp.status}
                                 </span>
                               </div>
+                              
+                              {/* Phase Context Moved to Left */}
+                              {cp.description && (
+                                <p className="text-sm text-[#7A736A] leading-relaxed font-medium mt-1">
+                                  {cp.description}
+                                </p>
+                              )}
+
                               {cp.target_date && (
-                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-2">
+                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-1 pt-4 border-t border-[rgba(26,22,18,0.06)] w-full">
                                   <Clock className="w-4 h-4" />
-                                  <span>Target Date: {new Date(cp.target_date).toLocaleDateString()}</span>
+                                  <span>Target: {new Date(cp.target_date).toLocaleDateString()}</span>
                                 </div>
                               )}
                             </div>
 
-                            {/* Right Content Column */}
-                            <div className="lg:col-span-8 p-8 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors">
-                              {cp.description && (
-                                <p className="text-base text-[#3D3832]/90 leading-relaxed font-normal">{cp.description}</p>
-                              )}
+                            {/* Right Content Column (Definitive Heading & Evidence) */}
+                            <div className="lg:col-span-8 p-8 sm:p-10 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors flex flex-col justify-center">
+                              
+                              <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] leading-tight mb-8">
+                                {cp.title}
+                              </h3>
                               
                               {/* Phase Media Gallery */}
-                              {checkpointPhotos.length > 0 && (
-                                <div className="mt-8 border-t border-[rgba(26,22,18,0.06)] pt-6">
-                                  <h5 className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#1A1612] mb-4 flex items-center gap-2">
-                                    <Camera className="w-4 h-4 text-[#C4A35A]" /> Phase Evidence Captured
+                              {checkpointPhotos.length > 0 ? (
+                                <div>
+                                  <h5 className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] mb-4 flex items-center gap-2">
+                                    <Camera className="w-4 h-4" /> Phase Evidence Captured
                                   </h5>
                                   <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x">
                                     {checkpointPhotos.map(photo => (
-                                      <div key={photo.id} className="relative w-48 h-48 rounded-2xl overflow-hidden shrink-0 snap-start border border-[rgba(26,22,18,0.08)] bg-[#EFEBE4] group">
+                                      <div key={photo.id} className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden shrink-0 snap-start border border-[rgba(26,22,18,0.08)] bg-[#EFEBE4] group">
                                         <a href={photo.url || photo.image_url} target="_blank" rel="noreferrer">
                                           <img src={photo.url || photo.image_url} alt="Checkpoint proof" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                         </a>
                                       </div>
                                     ))}
                                   </div>
+                                </div>
+                              ) : (
+                                <div className="py-10 border border-dashed border-[rgba(26,22,18,0.15)] rounded-2xl flex flex-col items-center justify-center bg-white/40">
+                                  <Camera className="w-8 h-8 text-[#7A736A]/30 mb-3" />
+                                  <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">Awaiting Phase Evidence</span>
                                 </div>
                               )}
                             </div>
