@@ -5,7 +5,7 @@ import {
   Briefcase, Search, RefreshCw, DollarSign, PieChart, CheckSquare, Camera,
   FileText, CreditCard, AlertTriangle, Plus, Trash2, ExternalLink, Upload,
   Loader2, Eye, EyeOff, Sparkles, TrendingUp, Activity, Layers, MapPin,
-  Clock, ShieldCheck, CheckCircle2, Info, Target, ChevronDown, ChevronUp
+  Clock, ShieldCheck, CheckCircle2, Info, Target, ChevronDown, ChevronUp, Edit2
 } from "lucide-react";
 import { apiRequest, uploadFile } from "@/lib/api";
 import "flag-icons/css/flag-icons.min.css";
@@ -96,6 +96,9 @@ export default function ProjectsWorkstation() {
   // New States for Milestone 3 Tabs
   const [newReceipt, setNewReceipt] = useState({ title: "", amount_spent_usd: "", category: "MATERIALS", vendor_name: "", notes: "", receipt_image_url: "" });
   const [newPhoto, setNewPhoto] = useState({ image_url: "", caption: "", category: "DURING", checkpoint_id: "" });
+  
+  const [editingPhotoId, setEditingPhotoId] = useState<number | null>(null);
+  const [editPhotoForm, setEditPhotoForm] = useState({ caption: "", category: "DURING", checkpoint_id: "" });
   const [newReport, setNewReport] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
   const [editingReportId, setEditingReportId] = useState<number | null>(null);
   const [editReportForm, setEditReportForm] = useState({ title: "", body: "", report_type: "WEEKLY", people_served_delta: "0", author_name: "" });
@@ -425,6 +428,37 @@ export default function ProjectsWorkstation() {
       await loadMissionData(selectedMissionId);
     } catch (err: any) {
       alert(err.message || "Failed to update receipt");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const startEditPhoto = (p: any) => {
+    setEditingPhotoId(p.id);
+    setEditPhotoForm({
+      caption: p.caption || "",
+      category: p.category || "DURING",
+      checkpoint_id: p.checkpoint_id ? String(p.checkpoint_id) : "",
+    });
+  };
+
+  const handleSavePhotoEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPhotoId || !selectedMissionId) return;
+    setActionLoading(true);
+    try {
+      await apiRequest(`/api/projects/photos/${editingPhotoId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          caption: editPhotoForm.caption || null,
+          category: editPhotoForm.category,
+          checkpoint_id: editPhotoForm.checkpoint_id ? parseInt(editPhotoForm.checkpoint_id, 10) : null,
+        }),
+      });
+      setEditingPhotoId(null);
+      await loadMissionData(selectedMissionId);
+    } catch (err: any) {
+      alert(err.message || "Failed to update photo");
     } finally {
       setActionLoading(false);
     }
@@ -1323,7 +1357,15 @@ export default function ProjectsWorkstation() {
                           <div key={p.id} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-100">
                             <img src={p.image_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                              <div className="flex justify-end">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => startEditPhoto(p)}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white p-1.5 rounded-lg shadow-sm"
+                                  title="Edit photo details"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDeletePhoto(p.id)}
@@ -1373,6 +1415,60 @@ export default function ProjectsWorkstation() {
                         <Plus className="w-4 h-4" /> Add Photo
                       </button>
                     </form>
+
+                    {/* EDIT PHOTO MODAL */}
+                    {editingPhotoId && (
+                      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-200">
+                          <h3 className="font-bold text-slate-900 mb-4">Edit Media Details</h3>
+                          <form onSubmit={handleSavePhotoEdit} className="space-y-4">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Caption</label>
+                              <input 
+                                value={editPhotoForm.caption} 
+                                onChange={(e) => setEditPhotoForm({ ...editPhotoForm, caption: e.target.value })} 
+                                className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none" 
+                                placeholder="Photo caption..." 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Progress Phase</label>
+                              <select 
+                                value={editPhotoForm.category} 
+                                onChange={(e) => setEditPhotoForm({ ...editPhotoForm, category: e.target.value })} 
+                                className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white"
+                              >
+                                <option value="BEFORE">BEFORE (Current State)</option>
+                                <option value="DURING">DURING (Progress)</option>
+                                <option value="AFTER">AFTER (Completed)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Link to Checkpoint</label>
+                              <select 
+                                value={editPhotoForm.checkpoint_id} 
+                                onChange={(e) => setEditPhotoForm({ ...editPhotoForm, checkpoint_id: e.target.value })} 
+                                className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-white"
+                              >
+                                <option value="">-- No Checkpoint Linked --</option>
+                                {checkpoints.map(cp => (
+                                  <option key={cp.id} value={cp.id}>{cp.title}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                              <button type="submit" disabled={actionLoading} className="flex-1 bg-indigo-600 text-white text-xs font-bold py-3 rounded-xl hover:bg-indigo-700 transition">
+                                Save Changes
+                              </button>
+                              <button type="button" onClick={() => setEditingPhotoId(null)} className="flex-1 bg-slate-100 text-slate-700 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 transition">
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               )}
