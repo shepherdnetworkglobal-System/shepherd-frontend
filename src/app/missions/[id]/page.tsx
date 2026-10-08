@@ -21,7 +21,8 @@ import {
   Camera,
   ExternalLink,
   Layers,
-  Info
+  Info,
+  User
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -53,13 +54,16 @@ interface Mission {
   map_location?: string;
 }
 
-const COUNTRY_CODES: Record<string, string> = {
+const ISO_COUNTRY_CODES: Record<string, string> = {
   Kenya: "ke",
   Philippines: "ph",
   Nigeria: "ng",
   Pakistan: "pk",
   Uganda: "ug",
   India: "in",
+  Brazil: "br",
+  Tanzania: "tz",
+  Ghana: "gh",
 };
 
 export default function MissionDetailPage() {
@@ -130,7 +134,7 @@ export default function MissionDetailPage() {
         else coords = [parts[1], parts[0]];
       }
     } catch {
-      // Use defaults if parse fails
+      // fallback
     }
 
     const link = document.createElement("link");
@@ -156,10 +160,10 @@ export default function MissionDetailPage() {
         cooperativeGestures: true
       });
 
-      new mapboxgl.Marker({ color: "#3b82f6" })
+      new mapboxgl.Marker({ color: "#064E3B" })
         .setLngLat(coords)
         .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(
-          `<div class="p-2 font-sans"><h4 class="font-bold text-slate-900 text-xs">${mission.title}</h4></div>`
+          `<div class="p-2 font-sans"><h4 class="font-semibold text-[#1A1612] text-xs">${mission.title}</h4></div>`
         ))
         .addTo(map);
 
@@ -174,10 +178,10 @@ export default function MissionDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="min-h-screen bg-[#F7F4EF] text-[#1A1612]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#064E3B] animate-spin" />
         </div>
       </div>
     );
@@ -185,11 +189,11 @@ export default function MissionDetailPage() {
 
   if (!mission) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="min-h-screen bg-[#F7F4EF] text-[#1A1612]">
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-xl font-bold text-slate-900">Mission Pipeline Not Found</h2>
-          <Link href="/missions" className="text-xs uppercase tracking-wider font-bold text-blue-600 hover:text-blue-700 mt-4 inline-block">
+          <h2 className="font-serif text-2xl font-semibold text-[#1A1612]">Mission Pipeline Not Found</h2>
+          <Link href="/missions" className="text-xs uppercase tracking-[0.14em] font-semibold text-[#064E3B] hover:text-[#047857] mt-4 inline-block transition-colors">
             Return to Active Deployments
           </Link>
         </div>
@@ -197,85 +201,84 @@ export default function MissionDetailPage() {
     );
   }
 
-  const progress =
-    Number(mission.goal_amount_usd) > 0
-      ? Math.min((Number(mission.raised_amount_usd) / Number(mission.goal_amount_usd)) * 100, 100)
-      : 0;
+  const progress = Number(mission.goal_amount_usd) > 0
+    ? Math.min((Number(mission.raised_amount_usd) / Number(mission.goal_amount_usd)) * 100, 100)
+    : 0;
 
   const totalSpent = receipts.reduce((sum, r) => sum + Number(r.amount_spent_usd), 0);
   const totalBudgeted = budgetItems.reduce((sum, b) => sum + Number(b.total_cost_usd), 0);
 
-  const countryCode = COUNTRY_CODES[mission.target_country] || "un";
+  const isoCode = ISO_COUNTRY_CODES[mission.target_country] || "un";
   const beforePhotos = photos.filter(p => p.category === "BEFORE");
   const duringPhotos = photos.filter(p => p.category === "DURING" || p.category === "AFTER");
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200/50 pb-20">
+    <div className="min-h-screen bg-[#F7F4EF] text-[#3D3832] selection:bg-[#064E3B]/10 pb-24 overflow-x-hidden">
       <Navbar />
 
-      <div className="absolute top-24 left-[10%] w-[500px] h-[500px] glow-blue rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-1/2 right-[5%] w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10" />
+      {/* V7 Editorial Ambient Orbs */}
+      <div className="fixed top-24 left-[10%] w-[500px] h-[500px] glow-taupe rounded-full pointer-events-none -z-10" />
+      <div className="fixed top-1/2 right-[5%] w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10 opacity-70" />
 
-      {/* Changed to max-w-4xl for single column readability */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 relative z-10">
         
         <Link
           href="/missions"
-          className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-slate-500 hover:text-slate-900 font-bold transition-colors"
+          className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] hover:text-[#1A1612] font-semibold transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> <span>Back to Active Fields</span>
+          <ArrowLeft className="w-3.5 h-3.5" /> <span>Back to Active Fields</span>
         </Link>
 
         {/* 1. Hero Card */}
-        <div className="relative rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="h-[4px] w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500" />
-          <div className="p-8">
+        <div className="relative rounded-3xl glass border border-[rgba(26,22,18,0.08)] bg-white/70 backdrop-blur-xl shadow-sm overflow-hidden">
+          <div className="h-[2px] w-full bg-gradient-to-r from-[#064E3B] via-[#047857] to-[#C4A35A]" />
+          <div className="p-8 sm:p-10">
             <div className="flex flex-wrap items-center gap-3 mb-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
-                <span className={`fi fi-${countryCode} rounded-sm text-sm`} />
-                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-600">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EFEBE4]/50 border border-[rgba(26,22,18,0.05)]">
+                <span className={`fi fi-${isoCode} rounded-sm text-sm`} />
+                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
                   {mission.target_country} Region
                 </span>
               </div>
               <span
-                className={`text-[10px] uppercase tracking-widest font-bold px-2.5 py-1.5 rounded-md border ${
+                className={`text-[9px] uppercase tracking-[0.16em] font-semibold px-2.5 py-1.5 rounded-full border ${
                   mission.status === "ACTIVE"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : "bg-blue-50 text-blue-700 border-blue-200"
+                    ? "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/20"
+                    : "bg-[#C4A35A]/15 text-[#1A1612] border-[#C4A35A]/30"
                 }`}
               >
                 {mission.status}
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-5">
+            <h1 className="font-serif text-3xl sm:text-5xl font-semibold text-[#1A1612] tracking-tight leading-[1.1] mb-6">
               {mission.title}
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal mb-8 whitespace-pre-wrap">
+            <p className="text-sm sm:text-base text-[#3D3832]/90 leading-relaxed font-normal mb-10 whitespace-pre-wrap">
               {mission.description}
             </p>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
+            <div className="bg-[#EFEBE4]/50 border border-[rgba(26,22,18,0.05)] rounded-2xl p-6 sm:p-8 space-y-4">
               <div className="flex items-end justify-between">
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500 block mb-1">
-                    Sovereign Allocation Reached
+                  <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] block mb-2">
+                    Sovereign Capital Deployed
                   </span>
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900">
+                  <span className="text-3xl sm:text-4xl font-semibold text-[#1A1612] num-tabular">
                     ${Number(mission.raised_amount_usd).toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-500 font-bold ml-1.5">
-                    of ${Number(mission.goal_amount_usd).toLocaleString()} goal cap
+                  <span className="text-xs text-[#7A736A] font-medium ml-2">
+                    of ${Number(mission.goal_amount_usd).toLocaleString()} limit
                   </span>
                 </div>
-                <span className="text-xl font-black text-blue-600">
+                <span className="text-xl sm:text-2xl font-semibold text-[#064E3B] num-tabular">
                   {progress.toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+              <div className="w-full h-2 bg-[#E3DDD3] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-[#064E3B] to-[#C4A35A] rounded-full transition-all duration-1000"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -284,97 +287,104 @@ export default function MissionDetailPage() {
         </div>
 
         {/* 2. Direct Support CTA */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="rounded-3xl glass bg-white/70 border border-[rgba(26,22,18,0.08)] shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 hover-lift">
           <div className="w-full sm:w-2/3">
-            <h3 className="text-lg font-bold text-slate-900 mb-1.5">Fund This Deployment Directly</h3>
-            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+            <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-2">Fund This Deployment</h3>
+            <p className="text-sm text-[#7A736A] leading-relaxed">
               100% of your gift settles instantly on-chain. Shepherd handles full transparency and zero-custody routing automatically.
             </p>
-            <div className="flex items-center gap-4 mt-4">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                <Wallet className="w-3.5 h-3.5 text-emerald-500" /> USDC Settlement
+            <div className="flex flex-wrap items-center gap-4 mt-4">
+              <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] text-[#3D3832] font-semibold">
+                <Wallet className="w-3.5 h-3.5 text-[#064E3B]" /> USDC Settlement
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                <FileText className="w-3.5 h-3.5 text-emerald-500" /> Cryptographic Ledger
+              <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] text-[#3D3832] font-semibold">
+                <FileText className="w-3.5 h-3.5 text-[#064E3B]" /> Cryptographic Ledger
               </div>
             </div>
           </div>
           <button
             onClick={() => setShowPayment(true)}
-            className="w-full sm:w-1/3 group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm uppercase tracking-wider font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
+            className="w-full sm:w-1/3 group inline-flex items-center justify-center gap-2 bg-[#064E3B] text-white text-[11px] uppercase tracking-[0.14em] font-semibold py-4 px-6 rounded-2xl shadow-[0_12px_32px_-8px_rgba(6,78,59,0.35)] hover:bg-[#047857] hover:shadow-[0_16px_40px_-8px_rgba(6,78,59,0.5)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 whitespace-nowrap"
           >
-            <Heart className="w-4 h-4 fill-white" />
-            <span>Deploy Support</span>
+            <Heart className="w-4 h-4 text-white fill-white/20" />
+            <span>Deploy Capital</span>
           </button>
         </div>
 
         {/* 3. Sovereign Operator Profile Card */}
         <Link
           href={`/missionaries/${mission.missionary_id}`}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 group"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-3xl glass bg-white/70 border border-[rgba(26,22,18,0.08)] hover:border-[#064E3B]/30 p-6 sm:p-8 shadow-sm hover:shadow-md hover-lift transition-all duration-300 group"
         >
           <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#EFEBE4] border-2 border-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
               {mission.missionary?.profile_photo_url ? (
                 <img src={mission.missionary.profile_photo_url} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <ShieldCheck className="w-8 h-8 text-slate-400" />
+                <User className="w-8 h-8 text-[#064E3B]/40" />
               )}
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-blue-700 transition duration-200">
+              <span className="text-[9px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] block mb-1">Lead Operator</span>
+              <h3 className="font-serif text-xl font-semibold text-[#1A1612] group-hover:text-[#064E3B] transition duration-300">
                 {mission.missionary?.name || "Verified Operator"}
               </h3>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">
-                {mission.missionary?.organization_name || "Independent"} • {mission.missionary?.years_of_service || 0} Years Active
-              </p>
-              <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Fully Vetted Identity
-                </span>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-[#7A736A] mt-1.5">
+                <span className="font-semibold text-[#3D3832]">{mission.missionary?.organization_name || "Independent"}</span>
+                {mission.missionary?.shepherd_id && (
+                  <>
+                    <span>•</span>
+                    <span className="font-mono tracking-tight">{mission.missionary.shepherd_id}</span>
+                  </>
+                )}
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] font-semibold text-[#064E3B] bg-[#064E3B]/10 px-2.5 py-1 rounded-full mt-3">
+                <ShieldCheck className="w-3.5 h-3.5" /> Fully Vetted Identity
               </div>
             </div>
           </div>
-          <div className="flex items-center text-[10px] uppercase tracking-wider font-bold text-slate-500 group-hover:text-blue-600 transition duration-200 shrink-0">
-            Know More <ArrowRight className="w-4 h-4 ml-1 transition-transform duration-200 group-hover:translate-x-0.5" />
+          <div className="flex items-center text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] group-hover:text-[#064E3B] transition duration-200 shrink-0">
+            View Profile <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-300 group-hover:translate-x-1" />
           </div>
         </Link>
 
         {/* 4. Tech Specs + Mapbox Split Card */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row">
-          <div className="p-6 sm:p-8 md:w-1/2 flex flex-col justify-center space-y-5">
-            <h3 className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
-              Deployment specifications
+        <div className="rounded-3xl glass bg-white/70 border border-[rgba(26,22,18,0.08)] shadow-sm overflow-hidden flex flex-col md:flex-row relative z-10">
+          <div className="p-6 sm:p-8 md:w-1/2 flex flex-col justify-center space-y-6">
+            <h3 className="text-[10px] uppercase tracking-[0.18em] font-semibold text-[#7A736A]">
+              Deployment Specs
             </h3>
-            {[
-              { icon: MapPin, label: "Target Area", value: mission.target_country },
-              { icon: Calendar, label: "Initialized", value: new Date(mission.created_at).toLocaleDateString() },
-              { icon: DollarSign, label: "Hard Limit", value: `$${Number(mission.goal_amount_usd).toLocaleString()}` },
-              { icon: ShieldCheck, label: "Sovereign Escrow", value: "Active" },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between text-xs py-2 border-b border-slate-100 last:border-0 last:pb-0">
-                <div className="flex items-center gap-2.5 text-slate-500 font-bold">
-                  <item.icon className="w-4 h-4 text-slate-400" />
-                  <span>{item.label}</span>
+            <div className="space-y-4">
+              {[
+                { icon: MapPin, label: "Target Area", value: mission.target_country },
+                { icon: Calendar, label: "Initialized", value: new Date(mission.created_at).toLocaleDateString() },
+                { icon: DollarSign, label: "Hard Limit", value: `$${Number(mission.goal_amount_usd).toLocaleString()}` },
+                { icon: ShieldCheck, label: "Sovereign Escrow", value: "Active", accent: "text-[#064E3B]" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center justify-between text-xs py-2 border-b border-[rgba(26,22,18,0.04)] last:border-0 last:pb-0">
+                  <div className="flex items-center gap-2.5 text-[#7A736A] font-semibold">
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </div>
+                  <span className={`font-semibold ${item.accent || "text-[#1A1612]"}`}>{item.value}</span>
                 </div>
-                <span className="font-bold text-slate-900">{item.value}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           {mission.map_location ? (
-            <div className="md:w-1/2 h-64 md:h-auto border-t md:border-t-0 md:border-l border-slate-200 bg-slate-100 relative">
+            <div className="md:w-1/2 h-64 md:h-auto border-t md:border-t-0 md:border-l border-[rgba(26,22,18,0.08)] relative z-0">
               <div id="mapbox-sidebar-map" className="absolute inset-0" />
             </div>
           ) : (
-            <div className="md:w-1/2 h-64 md:h-auto border-t md:border-t-0 md:border-l border-slate-200 bg-slate-50 flex items-center justify-center">
-               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Map telemetry unavailable</span>
+            <div className="md:w-1/2 h-64 md:h-auto border-t md:border-t-0 md:border-l border-[rgba(26,22,18,0.08)] bg-[#EFEBE4]/50 flex items-center justify-center">
+               <span className="text-[10px] font-semibold text-[#7A736A] uppercase tracking-[0.16em]">Map telemetry unavailable</span>
             </div>
           )}
         </div>
 
         {/* 5. TAB SYSTEM WORKSPACE */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-none bg-slate-50/50">
+        <div className="rounded-3xl glass bg-white/70 border border-[rgba(26,22,18,0.08)] shadow-sm overflow-hidden mt-8">
+          <div className="flex border-b border-[rgba(26,22,18,0.08)] overflow-x-auto scrollbar-none bg-[#EFEBE4]/30">
             {[
               { id: "brief", label: "Mission Brief", icon: FileText },
               { id: "budget", label: "Budget & Receipts", icon: Receipt },
@@ -384,10 +394,10 @@ export default function MissionDetailPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex justify-center items-center gap-2 px-6 py-4 border-b-2 text-xs uppercase tracking-wider font-bold transition-all duration-200 whitespace-nowrap ${
+                className={`flex-1 flex justify-center items-center gap-2 px-6 py-5 border-b-[3px] text-[10px] uppercase tracking-[0.16em] font-semibold transition-all duration-300 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "border-blue-600 text-blue-600 bg-white"
-                    : "border-transparent text-slate-500 hover:text-slate-950 hover:bg-slate-100/50"
+                    ? "border-[#064E3B] text-[#064E3B] bg-white/50"
+                    : "border-transparent text-[#7A736A] hover:text-[#1A1612] hover:bg-white/30"
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -396,113 +406,113 @@ export default function MissionDetailPage() {
             ))}
           </div>
 
-          <div className="p-6 sm:p-8">
+          <div className="p-6 sm:p-10">
             {/* 1. MISSION BRIEF TAB */}
             {activeTab === "brief" && (
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-slate-400" />
+              <div className="space-y-10">
+                <section>
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-4 flex items-center gap-2.5">
+                    <AlertTriangle className="w-5 h-5 text-[#C4A35A]" />
                     The Problem Statement
                   </h3>
-                  <div className="bg-slate-50/70 rounded-xl p-5 border border-slate-200">
-                    <p className="text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">
+                  <div className="bg-white/50 rounded-2xl p-6 border border-[rgba(26,22,18,0.04)] shadow-sm">
+                    <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
                       {mission.problem_statement || "No problem statement registered on setup."}
                     </p>
                   </div>
-                </div>
+                </section>
 
-                <div>
-                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                <section>
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-4 flex items-center gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-[#064E3B]" />
                     Operational Objectives
                   </h3>
-                  <div className="bg-slate-50/70 rounded-xl p-5 border border-slate-200">
-                    <p className="text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">
+                  <div className="bg-white/50 rounded-2xl p-6 border border-[rgba(26,22,18,0.04)] shadow-sm">
+                    <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
                       {mission.mission_objectives || "No operational milestones loaded on setup."}
                     </p>
                   </div>
-                </div>
+                </section>
 
-                <div>
-                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-slate-400" />
+                <section>
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-4 flex items-center gap-2.5">
+                    <Layers className="w-5 h-5 text-[#7A736A]" />
                     Execution Method
                   </h3>
-                  <div className="bg-slate-50/70 rounded-xl p-5 border border-slate-200">
-                    <p className="text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">
+                  <div className="bg-white/50 rounded-2xl p-6 border border-[rgba(26,22,18,0.04)] shadow-sm">
+                    <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
                       {mission.proposed_process || "No process strategy described."}
                     </p>
                   </div>
-                </div>
+                </section>
 
                 {beforePhotos.length > 0 && (
-                  <div>
-                    <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
-                      <Camera className="w-4 h-4 text-slate-400" />
-                      Initialization Context Photos (BEFORE)
+                  <section>
+                    <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-4 flex items-center gap-2.5">
+                      <Camera className="w-5 h-5 text-[#3D3832]" />
+                      Ground Reality (Before)
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                       {beforePhotos.map((photo) => (
-                        <div key={photo.id} className="relative rounded-xl overflow-hidden border border-slate-200 aspect-video group">
+                        <div key={photo.id} className="relative rounded-2xl overflow-hidden border border-[rgba(26,22,18,0.08)] aspect-video group shadow-sm">
                           <img
-                            src={photo.image_url}
+                            src={photo.url || photo.image_url}
                             alt={photo.caption || "Deployment Before image"}
-                            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                           />
                           {photo.caption && (
-                            <div className="absolute inset-x-0 bottom-0 bg-slate-950/80 backdrop-blur-md p-3">
+                            <div className="absolute inset-x-0 bottom-0 bg-[#1A1612]/80 backdrop-blur-md p-3">
                               <p className="text-[11px] text-white/90 font-medium truncate">{photo.caption}</p>
                             </div>
                           )}
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </section>
                 )}
               </div>
             )}
 
             {/* 2. BUDGET & RECEIPTS TAB */}
             {activeTab === "budget" && (
-              <div className="space-y-8">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-5">
-                    <span className="text-2xl font-black text-slate-900">${totalSpent.toLocaleString()}</span>
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-600 block mt-1">Verified Spent</span>
+              <div className="space-y-10">
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="bg-[#064E3B]/5 border border-[#064E3B]/10 rounded-2xl p-6">
+                    <span className="text-3xl font-semibold text-[#064E3B] num-tabular block">${totalSpent.toLocaleString()}</span>
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B] block mt-1.5">Verified Spent</span>
                   </div>
-                  <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-5">
-                    <span className="text-2xl font-black text-slate-900">${totalBudgeted.toLocaleString()}</span>
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-600 block mt-1">Total Target Budget</span>
+                  <div className="bg-[#1A1612]/5 border border-[#1A1612]/10 rounded-2xl p-6">
+                    <span className="text-3xl font-semibold text-[#1A1612] num-tabular block">${totalBudgeted.toLocaleString()}</span>
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] block mt-1.5">Total Target Budget</span>
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Budget Line Allocation Breakdown</h3>
+                <section>
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-5">Ledger Allocation</h3>
                   {budgetItems.length === 0 ? (
-                    <p className="text-xs text-slate-500 font-bold">No budget breakdown is declared for this mission.</p>
+                    <p className="text-sm text-[#7A736A] font-medium">No budget breakdown is declared for this mission.</p>
                   ) : (
-                    <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm overflow-x-auto">
+                    <div className="border border-[rgba(26,22,18,0.08)] rounded-2xl overflow-hidden shadow-sm overflow-x-auto bg-white/50">
                       <table className="w-full text-left border-collapse min-w-[500px]">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase tracking-wider font-bold text-slate-500">
-                            <th className="p-4">Item Name</th>
-                            <th className="p-4 text-right">Target (USD)</th>
-                            <th className="p-4 text-right">Actual Spent</th>
-                            <th className="p-4 text-right">Status</th>
+                          <tr className="bg-[#EFEBE4]/50 border-b border-[rgba(26,22,18,0.08)] text-[9px] uppercase tracking-[0.18em] font-semibold text-[#7A736A]">
+                            <th className="p-5">Item Name</th>
+                            <th className="p-5 text-right">Target (USD)</th>
+                            <th className="p-5 text-right">Actual Spent</th>
+                            <th className="p-5 text-right">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-150">
+                        <tbody className="divide-y divide-[rgba(26,22,18,0.04)]">
                           {budgetItems.map((item) => (
-                            <tr key={item.id} className="text-xs hover:bg-slate-50/50">
-                              <td className="p-4">
-                                <span className="font-bold text-slate-900 block">{item.item_name}</span>
-                                <span className="text-[9px] uppercase font-semibold text-slate-500 mt-0.5 block">{item.category}</span>
+                            <tr key={item.id} className="text-xs hover:bg-[#EFEBE4]/30 transition-colors">
+                              <td className="p-5">
+                                <span className="font-semibold text-[#1A1612] block mb-1">{item.item_name}</span>
+                                <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#7A736A] block">{item.category}</span>
                               </td>
-                              <td className="p-4 text-right font-semibold text-slate-700">${Number(item.total_cost_usd).toLocaleString()}</td>
-                              <td className="p-4 text-right font-bold text-emerald-600">${Number(item.actual_spent_usd).toLocaleString()}</td>
-                              <td className="p-4 text-right">
-                                <span className="inline-block text-[9px] font-bold px-2 py-1 rounded bg-slate-100 text-slate-700">
+                              <td className="p-5 text-right font-semibold text-[#3D3832] num-tabular">${Number(item.total_cost_usd).toLocaleString()}</td>
+                              <td className="p-5 text-right font-semibold text-[#064E3B] num-tabular">${Number(item.actual_spent_usd).toLocaleString()}</td>
+                              <td className="p-5 text-right">
+                                <span className="inline-block text-[9px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded bg-[#EFEBE4] text-[#3D3832]">
                                   {item.status}
                                 </span>
                               </td>
@@ -512,91 +522,115 @@ export default function MissionDetailPage() {
                       </table>
                     </div>
                   )}
-                </div>
+                </section>
 
-                <div>
-                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">On-Chain Verified Public Receipts</h3>
+                <section>
+                  <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-5">Verified Field Receipts</h3>
                   {receipts.length === 0 ? (
-                    <div className="py-12 border border-dashed border-slate-300 rounded-xl text-center bg-slate-50">
-                      <Receipt className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                      <p className="text-xs text-slate-500 font-bold">No verified expense receipts logged to this platform.</p>
+                    <div className="py-14 border border-dashed border-[rgba(26,22,18,0.15)] rounded-2xl text-center bg-white/40">
+                      <Receipt className="w-8 h-8 text-[#7A736A]/50 mx-auto mb-3" />
+                      <p className="text-sm text-[#7A736A] font-medium">No verified expense receipts logged to this platform.</p>
                     </div>
                   ) : (
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-2 gap-5">
                       {receipts.map((rec) => (
-                        <div key={rec.id} className="border border-slate-200 bg-white rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                        <div key={rec.id} className="border border-[rgba(26,22,18,0.08)] bg-white/60 rounded-2xl p-5 shadow-sm flex flex-col justify-between hover-lift">
                           <div>
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <h4 className="font-bold text-xs text-slate-900 leading-snug line-clamp-2">{rec.title}</h4>
-                              <span className="text-xs font-black text-emerald-600 shrink-0">${Number(rec.amount_spent_usd).toLocaleString()}</span>
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <h4 className="font-semibold text-sm text-[#1A1612] leading-snug line-clamp-2">{rec.title}</h4>
+                              <span className="text-sm font-semibold text-[#064E3B] num-tabular shrink-0">${Number(rec.amount_spent_usd).toLocaleString()}</span>
                             </div>
-                            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-3">{rec.category} • {rec.vendor_name || "Unknown Vendor"}</p>
-                            {rec.notes && <p className="text-[11px] text-slate-600 leading-normal mb-4 bg-slate-50/50 p-2.5 rounded border border-slate-100">{rec.notes}</p>}
+                            <p className="text-[9px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mb-4">{rec.category} • {rec.vendor_name || "Unknown Vendor"}</p>
+                            {rec.notes && <p className="text-[11px] text-[#3D3832] leading-relaxed mb-5 bg-[#EFEBE4]/50 p-3 rounded-xl border border-[rgba(26,22,18,0.04)]">{rec.notes}</p>}
                           </div>
                           <a
                             href={rec.receipt_image_url}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-black text-blue-600 hover:text-blue-700 transition"
+                            className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] hover:text-[#1A1612] transition-colors"
                           >
                             <ExternalLink className="w-3 h-3" />
-                            <span>Verify Image Document</span>
+                            <span>Verify Source Document</span>
                           </a>
                         </div>
                       ))}
                     </div>
                   )}
-                </div>
+                </section>
               </div>
             )}
 
-            {/* 3. TIMELINE & CHECKPOINTS TAB */}
+            {/* 3. TIMELINE & CHECKPOINTS TAB (NOW WITH PHOTOS) */}
             {activeTab === "checkpoints" && (
               <div className="space-y-8">
-                <div className="flex items-center gap-2 bg-slate-50 p-4 border border-slate-200 rounded-xl">
-                  <Info className="w-4 h-4 text-blue-600 shrink-0" />
-                  <p className="text-[11px] text-slate-600 leading-normal font-medium">
-                    The timeline of objectives displays operational weight allocations. To advance complete transparency, checkpoints map progress directly to the ground deployment.
+                <div className="flex items-center gap-3 bg-[#C4A35A]/10 p-5 border border-[#C4A35A]/20 rounded-2xl">
+                  <Info className="w-5 h-5 text-[#C4A35A] shrink-0" />
+                  <p className="text-[11px] text-[#3D3832] leading-relaxed font-medium">
+                    The operational timeline tracks ground deployment via weighted phases. Photos taken during each phase are logged directly to the respective checkpoint below.
                   </p>
                 </div>
 
                 {checkpoints.length === 0 ? (
-                  <p className="text-xs text-slate-500 font-bold text-center py-10">No checkpoints are logged for this deployment.</p>
+                  <p className="text-sm text-[#7A736A] font-medium text-center py-12">No checkpoints are logged for this deployment.</p>
                 ) : (
-                  <div className="relative border-l border-slate-200 ml-4 pl-8 space-y-8">
-                    {checkpoints.map((cp, idx) => {
+                  <div className="relative border-l-2 border-[rgba(26,22,18,0.08)] ml-4 pl-8 space-y-10">
+                    {checkpoints.map((cp) => {
                       const isCompleted = cp.status === "COMPLETED";
+                      const checkpointPhotos = photos.filter(p => p.checkpoint_id === cp.id);
+
                       return (
                         <div key={cp.id} className="relative">
-                          <div className={`absolute -left-[41px] top-1.5 w-6 h-6 rounded-full border-4 bg-white flex items-center justify-center transition-all ${
-                            isCompleted ? "border-emerald-500" : "border-slate-300"
+                          {/* Timeline Dot */}
+                          <div className={`absolute -left-[43px] top-1.5 w-6 h-6 rounded-full border-[3px] bg-[#F7F4EF] flex items-center justify-center transition-colors ${
+                            isCompleted ? "border-[#064E3B]" : "border-[rgba(26,22,18,0.2)]"
                           }`}>
-                            {isCompleted && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                            {isCompleted && <div className="w-2 h-2 rounded-full bg-[#064E3B]" />}
                           </div>
 
-                          <div className="p-5 border border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-300 transition-colors">
-                            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-900">{cp.title}</h4>
-                                <span className="text-[9px] font-bold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200">
+                          <div className="p-6 border border-[rgba(26,22,18,0.08)] rounded-2xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors">
+                            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                              <div className="flex items-center gap-3">
+                                <h4 className="font-serif text-lg font-semibold text-[#1A1612]">{cp.title}</h4>
+                                <span className="text-[9px] uppercase tracking-[0.16em] font-semibold bg-[#EFEBE4] text-[#7A736A] px-2 py-1 rounded-full">
                                   Weight: {Number(cp.weight_percent).toFixed(1)}%
                                 </span>
                               </div>
-                              <span className={`text-[9px] font-black uppercase px-2 py-1 rounded border ${
+                              <span className={`text-[9px] uppercase tracking-[0.16em] font-semibold px-2.5 py-1 rounded-full border ${
                                 isCompleted
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  ? "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/20"
                                   : cp.status === "IN_PROGRESS"
-                                  ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                  : "bg-slate-50 text-slate-500 border-slate-200"
+                                  ? "bg-[#C4A35A]/15 text-[#1A1612] border-[#C4A35A]/30"
+                                  : "bg-transparent text-[#7A736A] border-[rgba(26,22,18,0.15)]"
                               }`}>
                                 {cp.status}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-600 leading-relaxed font-normal mb-3">{cp.description}</p>
+                            
+                            {cp.description && (
+                              <p className="text-sm text-[#3D3832] leading-relaxed font-normal mb-5">{cp.description}</p>
+                            )}
+
+                            {/* Phase Media Gallery */}
+                            {checkpointPhotos.length > 0 && (
+                              <div className="mt-5 mb-5 border-t border-[rgba(26,22,18,0.06)] pt-5">
+                                <h5 className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] mb-3 flex items-center gap-1.5">
+                                  <Camera className="w-3 h-3" /> Phase Evidence
+                                </h5>
+                                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x">
+                                  {checkpointPhotos.map(photo => (
+                                    <div key={photo.id} className="relative w-32 h-32 rounded-xl overflow-hidden shrink-0 snap-start border border-[rgba(26,22,18,0.08)] bg-[#EFEBE4]">
+                                      <a href={photo.url || photo.image_url} target="_blank" rel="noreferrer">
+                                        <img src={photo.url || photo.image_url} alt="Checkpoint proof" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                      </a>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             
                             {cp.target_date && (
-                              <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold">
-                                <Clock className="w-3.5 h-3.5" />
+                              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold border-t border-[rgba(26,22,18,0.06)] pt-4 mt-2">
+                                <Clock className="w-3 h-3" />
                                 <span>Target Date: {new Date(cp.target_date).toLocaleDateString()}</span>
                               </div>
                             )}
@@ -613,40 +647,40 @@ export default function MissionDetailPage() {
             {activeTab === "updates" && (
               <div className="space-y-8">
                 {summary?.counts?.field_reports > 0 && (
-                  <div className="bg-slate-900 text-white rounded-2xl p-6 relative overflow-hidden shadow-md">
-                    <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)] pointer-events-none" />
-                    <span className="text-[10px] uppercase tracking-widest font-black text-emerald-400 block mb-1">Impact Generation Analytics</span>
-                    <span className="text-3xl font-black leading-none block">
+                  <div className="bg-[#1A1612] text-white rounded-3xl p-8 relative overflow-hidden shadow-lg">
+                    <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-[#C4A35A] to-transparent pointer-events-none" />
+                    <span className="text-[9px] uppercase tracking-[0.2em] font-semibold text-[#C4A35A] block mb-2">Impact Generation</span>
+                    <span className="font-serif text-5xl font-semibold leading-none block mb-2 num-tabular">
                       +{reports.reduce((acc, r) => acc + (r.people_served_delta || 0), 0).toLocaleString()}
                     </span>
-                    <span className="text-[11px] text-slate-300 mt-2 block font-medium">Verified local beneficiaries served and directly impacted on target field</span>
+                    <span className="text-[11px] uppercase tracking-[0.14em] text-[#7A736A] font-semibold">Verified ground beneficiaries</span>
                   </div>
                 )}
 
                 {reports.length === 0 ? (
-                  <div className="py-12 border border-dashed border-slate-300 rounded-xl text-center bg-slate-50">
-                    <TrendingUp className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                    <p className="text-xs text-slate-500 font-bold">No direct field reports submitted by operators yet.</p>
+                  <div className="py-14 border border-dashed border-[rgba(26,22,18,0.15)] rounded-2xl text-center bg-white/40">
+                    <TrendingUp className="w-8 h-8 text-[#7A736A]/50 mx-auto mb-3" />
+                    <p className="text-sm text-[#7A736A] font-medium">No direct field reports submitted by operators yet.</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
                     {reports.map((rep) => (
-                      <div key={rep.id} className="border border-slate-200 rounded-xl p-6 bg-white shadow-sm hover:border-slate-300 transition-colors">
-                        <div className="flex items-start justify-between gap-3 mb-4">
+                      <div key={rep.id} className="border border-[rgba(26,22,18,0.08)] rounded-2xl p-6 sm:p-8 bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
                           <div>
-                            <h4 className="font-extrabold text-sm text-slate-900 leading-tight mb-1">{rep.title}</h4>
-                            <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">
+                            <h4 className="font-serif text-xl font-semibold text-[#1A1612] leading-tight mb-2">{rep.title}</h4>
+                            <span className="text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold block">
                               Type: {rep.report_type} • Authored by {rep.author_name || "Head of Operations"}
                             </span>
                           </div>
                           {rep.people_served_delta > 0 && (
-                            <span className="text-[10px] font-black uppercase px-2.5 py-1.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] px-3 py-1.5 rounded-full bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/20 shrink-0 self-start">
                               +{rep.people_served_delta} Served
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 leading-relaxed font-normal whitespace-pre-wrap mb-4">{rep.body}</p>
-                        <span className="text-[10px] text-slate-400 font-bold block mt-2">
+                        <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap mb-5">{rep.body}</p>
+                        <span className="text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold block pt-5 border-t border-[rgba(26,22,18,0.06)]">
                           Logged: {new Date(rep.created_at).toLocaleDateString()}
                         </span>
                       </div>
@@ -658,28 +692,30 @@ export default function MissionDetailPage() {
           </div>
         </div>
 
-        {/* 6. Live Photo Gallery Feed */}
+        {/* 6. Live Photo Gallery Feed (DURING/AFTER) */}
         {duringPhotos.length > 0 && (
-          <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Camera className="w-5 h-5 text-indigo-600" />
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-6 px-2">
+              <Camera className="w-5 h-5 text-[#C4A35A]" />
               <div>
-                <h2 className="text-md font-bold text-slate-900">Live Field Operations Gallery</h2>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Historical ground reality visual stream</p>
+                <h2 className="font-serif text-2xl font-semibold text-[#1A1612]">Live Field Gallery</h2>
+                <p className="text-[10px] font-semibold text-[#7A736A] uppercase tracking-[0.16em] mt-1">Unfiltered ground visual stream</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {duringPhotos.map((photo) => (
-                <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group bg-slate-50">
-                  <img
-                    src={photo.image_url}
-                    alt={photo.caption || "Deployment photo"}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                  />
+                <div key={photo.id} className="relative aspect-square rounded-2xl overflow-hidden border border-[rgba(26,22,18,0.08)] group bg-[#EFEBE4]/50 shadow-sm">
+                  <a href={photo.url || photo.image_url} target="_blank" rel="noreferrer">
+                    <img
+                      src={photo.url || photo.image_url}
+                      alt={photo.caption || "Deployment photo"}
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </a>
                   {photo.caption && (
-                    <div className="absolute inset-x-0 bottom-0 bg-slate-950/80 backdrop-blur-md p-2">
-                      <p className="text-[9px] text-white/90 font-medium truncate">{photo.caption}</p>
+                    <div className="absolute inset-x-0 bottom-0 bg-[#1A1612]/80 backdrop-blur-md p-3">
+                      <p className="text-[10px] text-white/90 font-medium truncate">{photo.caption}</p>
                     </div>
                   )}
                 </div>
