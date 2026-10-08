@@ -23,10 +23,19 @@ import { apiRequest } from "@/lib/api";
 interface Mission {
   id: number;
   title: string;
+  description: string | null;
   target_country: string;
   goal_amount_usd: number;
   raised_amount_usd: number;
   status: string;
+  missionary_profile?: {
+    name: string;
+    organization_name: string | null;
+    shepherd_id: string | null;
+    profile_image_url: string | null;
+  };
+  photos?: { id: number; url: string; category: string; created_at: string }[];
+  reports?: { id: number; title: string; summary: string; created_at: string }[];
 }
 
 export default function Home() {
@@ -216,17 +225,31 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex flex-col gap-8 max-w-5xl mx-auto">
-              {missions.slice(0, 6).map((m) => (
-                <MissionCard
-                  key={m.id}
-                  id={m.id}
-                  title={m.title}
-                  targetCountry={m.target_country}
-                  goalAmount={Number(m.goal_amount_usd)}
-                  raisedAmount={Number(m.raised_amount_usd)}
-                  status={m.status}
-                />
-              ))}
+              {missions.slice(0, 6).map((m) => {
+                // Grab the latest uploaded field photo (if any)
+                const latestPhoto = m.photos && m.photos.length > 0 ? m.photos[m.photos.length - 1].url : undefined;
+                // Grab the most recent field report summary (if any)
+                const latestReport = m.reports && m.reports.length > 0 ? m.reports[m.reports.length - 1].summary : undefined;
+
+                return (
+                  <MissionCard
+                    key={m.id}
+                    id={m.id}
+                    title={m.title}
+                    description={m.description || undefined}
+                    targetCountry={m.target_country}
+                    goalAmount={Number(m.goal_amount_usd)}
+                    raisedAmount={Number(m.raised_amount_usd)}
+                    status={m.status}
+                    coverImage={latestPhoto}
+                    latestUpdate={latestReport}
+                    missionaryName={m.missionary_profile?.name}
+                    organizationName={m.missionary_profile?.organization_name || undefined}
+                    shepherdId={m.missionary_profile?.shepherd_id || undefined}
+                    missionaryPhoto={m.missionary_profile?.profile_image_url || undefined}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
