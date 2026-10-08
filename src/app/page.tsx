@@ -215,7 +215,7 @@ export default function Home() {
               </p>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="flex flex-col gap-8 max-w-5xl mx-auto">
               {missions.slice(0, 6).map((m) => (
                 <MissionCard
                   key={m.id}
