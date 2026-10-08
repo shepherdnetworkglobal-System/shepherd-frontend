@@ -401,12 +401,29 @@ export default function MissionDetailPage() {
                 </section>
 
                 <section className="bg-white/50 rounded-2xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift">
-                  <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-4 flex items-center gap-3">
-                    <Layers className="w-6 h-6 text-[#7A736A]" /> Method
+                  <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-6 flex items-center gap-3">
+                    <Layers className="w-6 h-6 text-[#7A736A]" /> Implementation Process
                   </h3>
-                  <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
-                    {mission.proposed_process || "No process strategy described."}
-                  </p>
+                  {checkpoints && checkpoints.length > 0 ? (
+                    <div className="space-y-6">
+                      {checkpoints.map((cp, idx) => (
+                        <div key={cp.id} className="pb-6 border-b border-[rgba(26,22,18,0.04)] last:border-0 last:pb-0">
+                          <h4 className="text-base font-semibold text-[#1A1612] mb-2">
+                            Phase {idx + 1}: {cp.title}
+                          </h4>
+                          {cp.description && (
+                            <p className="text-sm text-[#3D3832]/90 leading-relaxed font-normal whitespace-pre-wrap">
+                              {cp.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-[#3D3832] leading-relaxed font-normal whitespace-pre-wrap">
+                      {mission.proposed_process || "No process strategy described."}
+                    </p>
+                  )}
                 </section>
 
                 {beforePhotos.length > 0 && (
