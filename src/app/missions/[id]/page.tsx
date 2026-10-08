@@ -557,7 +557,7 @@ export default function MissionDetailPage() {
 
                           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             
-                            {/* Left Column: Clean Meta & Badges */}
+                            {/* Left Column: Phase Number + Badges + Detailed Context Description */}
                             <div className="lg:col-span-4 flex flex-col items-start gap-3">
                               <h4 className="font-serif text-3xl font-semibold text-[#1A1612] leading-tight">Phase {index + 1}</h4>
                               <div className="flex flex-wrap gap-2">
@@ -575,28 +575,28 @@ export default function MissionDetailPage() {
                                 </span>
                               </div>
 
+                              {/* Detailed Context Paragraph on Left */}
+                              {cp.description && (
+                                <p className="text-sm text-[#7A736A] leading-relaxed font-normal mt-2">
+                                  {cp.description}
+                                </p>
+                              )}
+
                               {cp.target_date && (
-                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-2">
+                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mt-2 pt-3 border-t border-[rgba(26,22,18,0.06)] w-full">
                                   <Clock className="w-4 h-4" />
                                   <span>Target: {new Date(cp.target_date).toLocaleDateString()}</span>
                                 </div>
                               )}
                             </div>
 
-                            {/* Right Column: Definitive Phase Title + Full Context + Evidence */}
-                            <div className="lg:col-span-8 p-8 sm:p-10 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors">
+                            {/* Right Column: Definitive Phase Title Heading Above Pictures */}
+                            <div className="lg:col-span-8 p-8 sm:p-10 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors flex flex-col justify-center">
                               
-                              {/* Definitive Phase Title */}
-                              <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] leading-tight mb-4">
+                              {/* Definitive Phase Title Heading */}
+                              <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] leading-tight mb-6">
                                 {cp.title}
                               </h3>
-
-                              {/* Phase Detailed Context */}
-                              {cp.description && (
-                                <p className="text-sm sm:text-base text-[#3D3832]/90 leading-relaxed font-normal mb-8 whitespace-pre-wrap">
-                                  {cp.description}
-                                </p>
-                              )}
 
                               {/* Phase Media Gallery */}
                               {checkpointPhotos.length > 0 ? (
