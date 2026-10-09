@@ -487,91 +487,120 @@ export default function MissionDetailPage() {
             {/* 2. BUDGET & RECEIPTS TAB */}
             {activeTab === "budget" && (
               <div className="space-y-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  
-                  {/* Summary Cards */}
-                  <div className="lg:col-span-4 space-y-5">
-                    <div className="bg-[#064E3B]/5 border border-[#064E3B]/10 rounded-2xl p-8 hover-lift">
-                      <span className="text-4xl font-semibold text-[#064E3B] num-tabular block mb-1">${totalSpent.toLocaleString()}</span>
-                      <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B]">Verified Spent on Ground</span>
-                    </div>
-                    <div className="bg-[#1A1612]/5 border border-[#1A1612]/10 rounded-2xl p-8 hover-lift">
-                      <span className="text-4xl font-semibold text-[#1A1612] num-tabular block mb-1">${totalBudgeted.toLocaleString()}</span>
-                      <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">Total Target Budget</span>
-                    </div>
+                
+                {/* Top KPI Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  <div className="bg-[#064E3B]/5 border border-[#064E3B]/10 rounded-3xl p-6 hover-lift flex flex-col justify-center">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B] mb-2">Verified Spent</span>
+                    <span className="text-4xl font-semibold text-[#064E3B] num-tabular leading-none">${totalSpent.toLocaleString()}</span>
                   </div>
-
-                  {/* Wide Ledger Table */}
-                  <div className="lg:col-span-8">
-                    <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-6">Ledger Allocation</h3>
-                    {budgetItems.length === 0 ? (
-                      <p className="text-sm text-[#7A736A] font-medium">No budget breakdown is declared for this mission.</p>
-                    ) : (
-                      <div className="border border-[rgba(26,22,18,0.08)] rounded-2xl overflow-hidden shadow-sm overflow-x-auto bg-white/50">
-                        <table className="w-full text-left border-collapse min-w-[600px]">
-                          <thead>
-                            <tr className="bg-[#EFEBE4]/50 border-b border-[rgba(26,22,18,0.08)] text-[9px] uppercase tracking-[0.18em] font-semibold text-[#7A736A]">
-                              <th className="p-6">Line Item</th>
-                              <th className="p-6 text-right">Target (USD)</th>
-                              <th className="p-6 text-right">Actual Spent</th>
-                              <th className="p-6 text-right">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[rgba(26,22,18,0.04)]">
-                            {budgetItems.map((item) => (
-                              <tr key={item.id} className="text-xs hover:bg-[#EFEBE4]/30 transition-colors">
-                                <td className="p-6">
-                                  <span className="font-semibold text-[#1A1612] block mb-1.5 text-sm">{item.item_name}</span>
-                                  <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#C4A35A] block">{item.category}</span>
-                                </td>
-                                <td className="p-6 text-right font-semibold text-[#3D3832] num-tabular text-sm">${Number(item.total_cost_usd).toLocaleString()}</td>
-                                <td className="p-6 text-right font-semibold text-[#064E3B] num-tabular text-sm">${Number(item.actual_spent_usd).toLocaleString()}</td>
-                                <td className="p-6 text-right">
-                                  <span className="inline-block text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1.5 rounded-full bg-[#EFEBE4] text-[#3D3832]">
-                                    {item.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                  <div className="bg-[#C4A35A]/10 border border-[#C4A35A]/20 rounded-3xl p-6 hover-lift flex flex-col justify-center">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] mb-2">Pending Expenditure</span>
+                    <span className="text-4xl font-semibold text-[#1A1612] num-tabular leading-none">${Math.max(0, totalBudgeted - totalSpent).toLocaleString()}</span>
+                  </div>
+                  <div className="bg-[#1A1612]/5 border border-[rgba(26,22,18,0.08)] rounded-3xl p-6 hover-lift flex flex-col justify-center">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] mb-2">Total Target Budget</span>
+                    <span className="text-4xl font-semibold text-[#1A1612] num-tabular leading-none">${totalBudgeted.toLocaleString()}</span>
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-[rgba(26,22,18,0.06)]">
-                  <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-6">Verified Field Receipts</h3>
-                  {receipts.length === 0 ? (
-                    <div className="py-16 border border-dashed border-[rgba(26,22,18,0.15)] rounded-2xl text-center bg-white/40">
-                      <Receipt className="w-10 h-10 text-[#7A736A]/50 mx-auto mb-4" />
-                      <p className="text-sm text-[#7A736A] font-medium">No verified expense receipts logged to this platform.</p>
+                {/* Split Columns: Allocations vs Receipts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                  
+                  {/* Left Column: Ledger Allocation */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-serif text-2xl font-semibold text-[#1A1612]">Ledger Allocation</h3>
+                      <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] bg-[#EFEBE4] px-3 py-1.5 rounded-full">{budgetItems.length} Lines</span>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {receipts.map((rec) => (
-                        <div key={rec.id} className="border border-[rgba(26,22,18,0.08)] bg-white/60 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover-lift">
-                          <div>
-                            <div className="flex items-start justify-between gap-3 mb-3">
-                              <h4 className="font-semibold text-base text-[#1A1612] leading-snug line-clamp-2">{rec.title}</h4>
-                              <span className="text-base font-semibold text-[#064E3B] num-tabular shrink-0">${Number(rec.amount_spent_usd).toLocaleString()}</span>
+
+                    {budgetItems.length === 0 ? (
+                      <p className="text-sm text-[#7A736A] font-medium py-10 border border-dashed border-[rgba(26,22,18,0.15)] rounded-3xl text-center">No budget breakdown declared.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {budgetItems.map((item) => (
+                          <div key={item.id} className="p-5 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors">
+                            <div className="flex items-start justify-between gap-3 mb-4">
+                              <div>
+                                <h4 className="font-semibold text-base text-[#1A1612] leading-tight mb-1">{item.item_name}</h4>
+                                <span className="text-[9px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A]">{item.category}</span>
+                              </div>
+                              <span className={`inline-block text-[9px] uppercase tracking-[0.16em] font-semibold px-2.5 py-1 rounded-full shrink-0 ${
+                                item.status === "PAID" ? "bg-[#064E3B]/10 text-[#064E3B]" : "bg-[#EFEBE4] text-[#3D3832]"
+                              }`}>
+                                {item.status}
+                              </span>
                             </div>
-                            <p className="text-[9px] uppercase tracking-[0.16em] text-[#7A736A] font-semibold mb-5">{rec.category} • {rec.vendor_name || "Unknown Vendor"}</p>
-                            {rec.notes && <p className="text-xs text-[#3D3832] leading-relaxed mb-6 bg-[#EFEBE4]/50 p-4 rounded-xl border border-[rgba(26,22,18,0.04)]">{rec.notes}</p>}
+                            
+                            <div className="flex items-center justify-between text-sm pt-4 border-t border-[rgba(26,22,18,0.04)]">
+                              <div>
+                                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] block mb-1">Target</span>
+                                <span className="font-semibold text-[#3D3832] num-tabular">${Number(item.total_cost_usd).toLocaleString()}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] block mb-1">Actual Spent</span>
+                                <span className="font-semibold text-[#064E3B] num-tabular">${Number(item.actual_spent_usd).toLocaleString()}</span>
+                              </div>
+                            </div>
                           </div>
-                          <a
-                            href={rec.receipt_image_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] hover:text-[#1A1612] transition-colors"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            <span>Verify Source Document</span>
-                          </a>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column: Verified Receipts */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-serif text-2xl font-semibold text-[#1A1612]">Verified Receipts</h3>
+                      <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B] bg-[#064E3B]/10 border border-[#064E3B]/20 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Immutable
+                      </span>
                     </div>
-                  )}
+
+                    {receipts.length === 0 ? (
+                      <div className="py-16 border border-dashed border-[rgba(26,22,18,0.15)] rounded-3xl text-center bg-white/40">
+                        <Receipt className="w-8 h-8 text-[#7A736A]/40 mx-auto mb-4" />
+                        <p className="text-sm text-[#7A736A] font-medium">No verified expense receipts logged.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {receipts.map((rec) => (
+                          <div key={rec.id} className="p-5 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors group">
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                              <div>
+                                <h4 className="font-semibold text-base text-[#1A1612] leading-tight mb-1">{rec.title}</h4>
+                                <span className="text-[9px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
+                                  {rec.category} • {rec.vendor_name || "Unknown Vendor"}
+                                </span>
+                              </div>
+                              <span className="text-lg font-semibold text-[#064E3B] num-tabular shrink-0">
+                                ${Number(rec.amount_spent_usd).toLocaleString()}
+                              </span>
+                            </div>
+                            
+                            {rec.notes && (
+                              <p className="text-xs text-[#3D3832] leading-relaxed mb-4 bg-[#EFEBE4]/50 p-3 rounded-xl border border-[rgba(26,22,18,0.04)]">
+                                {rec.notes}
+                              </p>
+                            )}
+                            
+                            <div className="pt-4 border-t border-[rgba(26,22,18,0.04)] flex justify-end">
+                              <a
+                                href={rec.receipt_image_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] hover:text-[#1A1612] transition-colors"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Verify Source Document</span>
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
                 </div>
               </div>
             )}
