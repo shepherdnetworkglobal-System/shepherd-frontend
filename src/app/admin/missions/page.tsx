@@ -23,7 +23,8 @@ import {
   Settings2,
   ChevronRight,
   Activity,
-  Package
+  Package,
+  X
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 
@@ -43,6 +44,7 @@ interface Mission {
   reporting_plan?: string | null;
   status: "ACTIVE" | "FUNDED" | "COMPLETED" | "PAUSED";
   created_at: string;
+  map_location?: string | null;
 }
 
 interface Receipt {
@@ -87,6 +89,7 @@ export default function MissionsWorkstation() {
   const [editLocationGranularity, setEditLocationGranularity] = useState("");
   const [editReportingPlan, setEditReportingPlan] = useState("");
   const [editLocalPartners, setEditLocalPartners] = useState("");
+  const [editMapLocation, setEditMapLocation] = useState("");
 
   // Independent Modals State
   const [showOpModal, setShowOpModal] = useState(false);
@@ -167,6 +170,7 @@ export default function MissionsWorkstation() {
     setEditLocationGranularity(m.location_granularity || "");
     setEditReportingPlan(m.reporting_plan || "");
     setEditLocalPartners(m.local_partners || "");
+    setEditMapLocation(m.map_location || "");
     setSaveMessage(null);
     setActivePanel("OVERVIEW");
     fetchMissionDetails(m.id);
@@ -255,7 +259,8 @@ export default function MissionsWorkstation() {
           exact_location_hidden: editLocationHidden,
           location_granularity: editLocationGranularity || null,
           reporting_plan: editReportingPlan || null,
-          local_partners: editLocalPartners || null
+          local_partners: editLocalPartners || null,
+          map_location: editMapLocation || null
         })
       })) as Mission;
 
@@ -263,7 +268,7 @@ export default function MissionsWorkstation() {
       setMissions(prev => prev.map(m => (m.id === updated.id ? { ...m, ...updated } : m)));
       setSelectedMission({ ...selectedMission, ...updated });
     } catch (err: any) {
-      setSaveMessage(err.message || "Failed to update mission. Backend may need PUT endpoint.");
+      setSaveMessage(err.message || "Failed to update mission parameters.");
     } finally {
       setSaving(false);
     }
@@ -288,18 +293,19 @@ export default function MissionsWorkstation() {
   };
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto h-full flex flex-col space-y-6 animate-in fade-in duration-300">
+    <div className="p-6 max-w-[1600px] mx-auto h-full flex flex-col space-y-6 animate-in fade-in duration-300 text-[#3D3832]">
+      
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[rgba(26,22,18,0.08)] pb-5">
         <div>
           <div className="flex items-center space-x-2 mb-1">
-            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
+            <span className="text-[10px] font-bold text-[#064E3B] uppercase tracking-widest bg-[#064E3B]/10 px-2.5 py-0.5 rounded-full border border-[#064E3B]/20">
               Module 01.07
             </span>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Field Operations & Mission Lifecycle</span>
+            <span className="text-[10px] font-semibold text-[#7A736A] uppercase tracking-wider">Field Operations & Mission Lifecycle</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Map className="w-7 h-7 text-indigo-600" />
+          <h1 className="font-serif text-2xl font-semibold text-[#1A1612] tracking-tight flex items-center gap-2">
+            <Map className="w-7 h-7 text-[#064E3B]" />
             Missions & Field Operations Workstation
           </h1>
         </div>
@@ -307,7 +313,7 @@ export default function MissionsWorkstation() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowOpModal(true)}
-            className="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2.5 bg-[#1A1612] hover:bg-[#3D3832] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
           >
             + Onboard Missionary
           </button>
@@ -317,14 +323,14 @@ export default function MissionsWorkstation() {
               fetchOperators();
               setShowMissionModal(true);
             }}
-            className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2.5 bg-[#064E3B] hover:bg-[#047857] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
           >
             + Create Mission
           </button>
           
           <button
             onClick={fetchMissions}
-            className="px-3.5 py-2.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 flex items-center gap-1.5 shadow-sm transition-all uppercase tracking-wider"
+            className="px-3.5 py-2.5 text-xs font-bold text-[#7A736A] bg-white/70 border border-[rgba(26,22,18,0.08)] rounded-xl hover:bg-[#EFEBE4]/50 flex items-center gap-1.5 shadow-sm transition-all uppercase tracking-wider"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             Sync
@@ -334,71 +340,63 @@ export default function MissionsWorkstation() {
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1">
-            <span>Active Deployments</span>
-            <PlayCircle className="w-4 h-4 text-emerald-600" />
+        {[
+          { label: "Active Deployments", value: activeCount, icon: PlayCircle, color: "text-[#064E3B]" },
+          { label: "Completed Missions", value: completedCount, icon: Flag, color: "text-[#C4A35A]" },
+          { 
+            label: "Total Raised", 
+            value: `$${totalRaised.toLocaleString("en-US", { maximumFractionDigits: 0 })}`, 
+            icon: DollarSign, 
+            color: "text-[#064E3B]" 
+          },
+          { 
+            label: "Funding Progress", 
+            value: `${totalGoal > 0 ? Math.round((totalRaised / totalGoal) * 100) : 0}%`, 
+            icon: Target, 
+            color: "text-[#1A1612]" 
+          }
+        ].map((kpi, idx) => (
+          <div key={idx} className="p-4 bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between text-xs font-semibold text-[#7A736A] mb-1">
+              <span>{kpi.label}</span>
+              <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+            </div>
+            <div className="text-2xl font-semibold text-[#1A1612] num-tabular">{kpi.value}</div>
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 num-tabular">{activeCount}</div>
-        </div>
-        <div className="p-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1">
-            <span>Completed Missions</span>
-            <Flag className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 num-tabular">{completedCount}</div>
-        </div>
-        <div className="p-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1">
-            <span>Total Raised</span>
-            <DollarSign className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 num-tabular">
-            ${totalRaised.toLocaleString("en-US", { maximumFractionDigits: 0 })}
-          </div>
-        </div>
-        <div className="p-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1">
-            <span>Funding Progress</span>
-            <Target className="w-4 h-4 text-indigo-600" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 num-tabular">
-            {totalGoal > 0 ? Math.round((totalRaised / totalGoal) * 100) : 0}%
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-start">
         {/* Left: Mission Queue */}
-        <div className="lg:col-span-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-              <Package className="w-4 h-4 text-slate-500" />
+        <div className="lg:col-span-4 bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-4 shadow-sm flex flex-col space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-[rgba(26,22,18,0.04)]">
+            <h2 className="text-xs uppercase tracking-[0.14em] font-semibold text-[#1A1612] flex items-center gap-2">
+              <Package className="w-4 h-4 text-[#7A736A]" />
               Mission Queue ({filteredMissions.length})
             </h2>
           </div>
 
           <div className="flex flex-col space-y-2">
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-[#7A736A] absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="Search title or country..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+                className="w-full pl-9 pr-3 py-2 text-xs bg-white/50 border border-[rgba(26,22,18,0.08)] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]"
               />
             </div>
-            <div className="flex space-x-1 overflow-x-auto pb-1 text-xs">
+            <div className="flex space-x-1 overflow-x-auto pb-1 text-[10px] uppercase tracking-wider scrollbar-none">
               {["ALL", "ACTIVE", "FUNDED", "COMPLETED", "PAUSED"].map(st => (
                 <button
                   key={st}
                   onClick={() => setFilterStatus(st)}
-                  className={`px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors ${
                     filterStatus === st
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-[#064E3B] text-white"
+                      : "bg-[#EFEBE4]/50 text-[#7A736A] hover:bg-[#EFEBE4]"
                   }`}
                 >
                   {st}
@@ -409,9 +407,9 @@ export default function MissionsWorkstation() {
 
           <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
             {loading ? (
-              <div className="text-center py-12 text-slate-400 text-xs font-medium">Loading missions...</div>
+              <div className="text-center py-12 text-[#7A736A] text-xs font-medium">Loading missions...</div>
             ) : filteredMissions.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-xs font-medium">No missions found.</div>
+              <div className="text-center py-12 text-[#7A736A] text-xs font-medium">No missions found.</div>
             ) : (
               filteredMissions.map(m => {
                 const isSelected = selectedMission?.id === m.id;
@@ -420,39 +418,39 @@ export default function MissionsWorkstation() {
                   <div
                     key={m.id}
                     onClick={() => selectMission(m)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer space-y-2 ${
+                    className={`p-4 rounded-xl border transition-all cursor-pointer space-y-2.5 ${
                       isSelected
-                        ? "bg-indigo-50/70 border-indigo-300 ring-1 ring-indigo-300 shadow-sm"
-                        : "bg-white border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/50"
+                        ? "bg-[#EFEBE4]/60 border-[#064E3B]/40 shadow-sm"
+                        : "bg-white border-[rgba(26,22,18,0.08)] hover:border-[#064E3B]/20 hover:bg-[#F7F4EF]/50"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900 line-clamp-1">{m.title}</span>
+                    <div className="flex items-start justify-between">
+                      <span className="font-serif text-sm font-semibold text-[#1A1612] line-clamp-1">{m.title}</span>
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ml-2 ${
+                        className={`text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full border shrink-0 ml-2 ${
                           m.status === "ACTIVE"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/20"
                             : m.status === "COMPLETED"
-                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                            ? "bg-[#C4A35A]/15 text-[#C4A35A] border-[#C4A35A]/30"
                             : m.status === "PAUSED"
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : "bg-slate-100 text-slate-600 border-slate-200"
+                            ? "bg-[#7A736A]/10 text-[#7A736A] border-[#7A736A]/20"
+                            : "bg-[#EFEBE4] text-[#1A1612] border-[rgba(26,22,18,0.08)]"
                         }`}
                       >
                         {m.status}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {m.target_country}
+                    <div className="flex items-center justify-between text-[11px] text-[#7A736A]">
+                      <span className="flex items-center gap-1 font-medium">
+                        <MapPin className="w-3.5 h-3.5 text-[#064E3B]" /> {m.target_country}
                       </span>
                       <span className="font-semibold num-tabular">
                         ${Number(m.raised_amount_usd).toLocaleString()} / ${Number(m.goal_amount_usd).toLocaleString()}
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-[#EFEBE4] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-indigo-500 rounded-full transition-all"
+                        className="h-full bg-gradient-to-r from-[#064E3B] to-[#C4A35A] rounded-full transition-all"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -467,12 +465,12 @@ export default function MissionsWorkstation() {
         {selectedMission ? (
           <div className="lg:col-span-8 space-y-5">
             {/* Mission Header Card */}
-            <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-[rgba(26,22,18,0.04)] pb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900">{selectedMission.title}</h2>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5">
-                    Mission #{selectedMission.id} • Missionary Profile #{selectedMission.missionary_id} •{" "}
+                  <h2 className="font-serif text-xl font-semibold text-[#1A1612]">{selectedMission.title}</h2>
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mt-1">
+                    Mission #{selectedMission.id} • Lead Operator #{selectedMission.missionary_id} •{" "}
                     {selectedMission.target_country}
                   </p>
                 </div>
@@ -480,7 +478,7 @@ export default function MissionsWorkstation() {
                   <select
                     value={editStatus}
                     onChange={e => setEditStatus(e.target.value)}
-                    className="text-xs font-bold bg-slate-900 text-white rounded-lg px-3 py-2 focus:outline-none"
+                    className="text-xs font-semibold bg-[#1A1612] text-white rounded-lg px-3 py-2 focus:outline-none"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="FUNDED">FUNDED</option>
@@ -490,26 +488,26 @@ export default function MissionsWorkstation() {
                 </div>
               </div>
 
-              <p className="text-xs font-medium text-slate-600 leading-relaxed line-clamp-3">
+              <p className="text-xs text-[#3D3832]/90 leading-relaxed font-normal whitespace-pre-wrap">
                 {selectedMission.description}
               </p>
 
               <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Raised</span>
-                  <span className="text-base font-extrabold text-slate-900 num-tabular">
+                <div className="p-3 bg-[#EFEBE4]/30 rounded-xl border border-[rgba(26,22,18,0.04)]">
+                  <span className="text-[9px] uppercase tracking-wider font-semibold text-[#7A736A] block">Raised</span>
+                  <span className="text-base font-semibold text-[#1A1612] num-tabular">
                     ${Number(selectedMission.raised_amount_usd).toLocaleString()}
                   </span>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Goal</span>
-                  <span className="text-base font-extrabold text-slate-900 num-tabular">
+                <div className="p-3 bg-[#EFEBE4]/30 rounded-xl border border-[rgba(26,22,18,0.04)]">
+                  <span className="text-[9px] uppercase tracking-wider font-semibold text-[#7A736A] block">Goal</span>
+                  <span className="text-base font-semibold text-[#1A1612] num-tabular">
                     ${Number(selectedMission.goal_amount_usd).toLocaleString()}
                   </span>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Progress</span>
-                  <span className="text-base font-extrabold text-indigo-600 num-tabular">
+                <div className="p-3 bg-[#EFEBE4]/30 rounded-xl border border-[rgba(26,22,18,0.04)]">
+                  <span className="text-[9px] uppercase tracking-wider font-semibold text-[#7A736A] block">Progress</span>
+                  <span className="text-base font-semibold text-[#064E3B] num-tabular">
                     {progressPct(selectedMission)}%
                   </span>
                 </div>
@@ -517,7 +515,7 @@ export default function MissionsWorkstation() {
             </div>
 
             {/* Panel Tabs */}
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-none">
               {[
                 { id: "OVERVIEW", label: "Overview & Privacy", icon: Eye },
                 { id: "RECEIPTS", label: `Field Receipts (${receipts.length})`, icon: FileText },
@@ -530,10 +528,10 @@ export default function MissionsWorkstation() {
                   <button
                     key={tab.id}
                     onClick={() => setActivePanel(tab.id as any)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                    className={`px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1.5 transition-all ${
                       isActive
-                        ? "bg-slate-900 text-white shadow-sm"
-                        : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/60"
+                        ? "bg-[#064E3B] text-white shadow-sm"
+                        : "bg-white/70 text-[#7A736A] hover:bg-[#EFEBE4]/50 border border-[rgba(26,22,18,0.08)]"
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -545,15 +543,27 @@ export default function MissionsWorkstation() {
 
             {/* OVERVIEW Panel */}
             {activePanel === "OVERVIEW" && (
-              <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Shield className="w-4 h-4 text-indigo-600" />
-                  Location Privacy & Field Partners
+              <div className="bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-6 shadow-sm space-y-5">
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#7A736A] flex items-center gap-1.5 border-b border-[rgba(26,22,18,0.04)] pb-3">
+                  <Shield className="w-4 h-4 text-[#064E3B]" />
+                  Telemetry, Location Privacy & Field Partners
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">
+                    <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">
+                      GPS Coordinates (Latitude, Longitude)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. -1.2921, 36.8219"
+                      value={editMapLocation}
+                      onChange={e => setEditMapLocation(e.target.value)}
+                      className="w-full text-xs font-semibold bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-xl p-3 text-[#1A1612] focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">
                       Location Granularity (Public Display)
                     </label>
                     <input
@@ -561,50 +571,51 @@ export default function MissionsWorkstation() {
                       placeholder="e.g. Turkana East, Kenya"
                       value={editLocationGranularity}
                       onChange={e => setEditLocationGranularity(e.target.value)}
-                      className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full text-xs font-semibold bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-xl p-3 text-[#1A1612] focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
                     />
-                  </div>
-                  <div className="flex items-end">
-                    <label
-                      className={`w-full p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                        editLocationHidden
-                          ? "bg-amber-50/80 border-amber-300 text-amber-900"
-                          : "bg-slate-50 border-slate-200 text-slate-600"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {editLocationHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        <span className="text-xs font-semibold">Hide Exact Location (Safeguarding)</span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={editLocationHidden}
-                        onChange={e => setEditLocationHidden(e.target.checked)}
-                        className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
-                      />
-                    </label>
                   </div>
                 </div>
 
+                <div className="pt-2">
+                  <label
+                    className={`w-full p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                      editLocationHidden
+                        ? "bg-[#C4A35A]/10 border-[#C4A35A]/30 text-[#1A1612]"
+                        : "bg-[#F7F4EF]/50 border-[rgba(26,22,18,0.08)] text-[#7A736A]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {editLocationHidden ? <EyeOff className="w-4 h-4 text-[#C4A35A]" /> : <Eye className="w-4 h-4 text-[#064E3B]" />}
+                      <span className="text-xs font-semibold">Hide Exact Location (Safeguarding Protocols)</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={editLocationHidden}
+                      onChange={e => setEditLocationHidden(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#064E3B] focus:ring-[#064E3B]"
+                    />
+                  </label>
+                </div>
+
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Local Partners</label>
+                  <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">Local Partners</label>
                   <textarea
                     rows={2}
                     placeholder="Local church partners, NGOs, community leaders..."
                     value={editLocalPartners}
                     onChange={e => setEditLocalPartners(e.target.value)}
-                    className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+                    className="w-full text-xs font-semibold bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Reporting Plan</label>
+                  <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">Reporting Plan</label>
                   <textarea
                     rows={2}
                     placeholder="Cadence of field reports, photo evidence, milestone schedule..."
                     value={editReportingPlan}
                     onChange={e => setEditReportingPlan(e.target.value)}
-                    className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+                    className="w-full text-xs font-semibold bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]"
                   />
                 </div>
               </div>
@@ -612,13 +623,13 @@ export default function MissionsWorkstation() {
 
             {/* RECEIPTS Panel */}
             {activePanel === "RECEIPTS" && (
-              <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-emerald-600" />
+              <div className="bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-6 shadow-sm space-y-4">
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#7A736A] flex items-center gap-1.5 border-b border-[rgba(26,22,18,0.04)] pb-3">
+                  <FileText className="w-4 h-4 text-[#064E3B]" />
                   Field Receipt Evidence
                 </h3>
                 {receipts.length === 0 ? (
-                  <div className="py-10 text-center text-xs font-medium text-slate-400">
+                  <div className="py-10 text-center text-xs font-medium text-[#7A736A]">
                     No field receipts submitted for this mission yet.
                   </div>
                 ) : (
@@ -626,21 +637,21 @@ export default function MissionsWorkstation() {
                     {receipts.map(r => (
                       <div
                         key={r.id}
-                        className="p-3 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center justify-between gap-3"
+                        className="p-4 bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.04)] rounded-xl flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-900">{r.title}</span>
-                            <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                            <span className="text-xs font-bold text-[#1A1612]">{r.title}</span>
+                            <span className="text-[9px] uppercase tracking-wider font-semibold text-[#C4A35A] bg-white px-2 py-0.5 rounded border border-[rgba(26,22,18,0.08)]">
                               {r.category}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
+                          <p className="text-[11px] text-[#7A736A] mt-0.5 font-medium">
                             {r.vendor_name || "Unknown vendor"} • {new Date(r.created_at).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-sm font-extrabold text-slate-900 num-tabular block">
+                          <span className="text-sm font-semibold text-[#1A1612] num-tabular block">
                             ${Number(r.amount_spent_usd).toFixed(2)}
                           </span>
                           {r.receipt_image_url && (
@@ -648,9 +659,9 @@ export default function MissionsWorkstation() {
                               href={r.receipt_image_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-[10px] font-semibold text-blue-600 hover:underline"
+                              className="text-[10px] uppercase tracking-wider font-bold text-[#C4A35A] hover:text-[#1A1612]"
                             >
-                              View Image
+                              Verify Source
                             </a>
                           )}
                         </div>
@@ -663,43 +674,43 @@ export default function MissionsWorkstation() {
 
             {/* MILESTONES Panel */}
             {activePanel === "MILESTONES" && (
-              <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Camera className="w-4 h-4 text-blue-600" />
+              <div className="bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-6 shadow-sm space-y-4">
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#7A736A] flex items-center gap-1.5 border-b border-[rgba(26,22,18,0.04)] pb-3">
+                  <Camera className="w-4 h-4 text-[#C4A35A]" />
                   Field Milestone Updates
                 </h3>
                 {milestones.length === 0 ? (
-                  <div className="py-10 text-center text-xs font-medium text-slate-400">
+                  <div className="py-10 text-center text-xs font-medium text-[#7A736A]">
                     No milestone updates posted for this mission yet.
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {milestones.map(ms => (
                       <div
                         key={ms.id}
-                        className="p-3 bg-slate-50 border border-slate-200/70 rounded-xl space-y-1.5"
+                        className="p-4 bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.04)] rounded-xl space-y-2"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-900">{ms.title}</span>
-                          <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
-                            <Users className="w-3 h-3" /> {ms.people_served} served
+                          <span className="text-xs font-bold text-[#1A1612]">{ms.title}</span>
+                          <span className="text-[10px] font-semibold text-[#7A736A] flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5" /> {ms.people_served} served
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-medium leading-relaxed line-clamp-2">
+                        <p className="text-xs text-[#3D3832]/85 font-medium leading-relaxed">
                           {ms.description}
                         </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(ms.created_at).toLocaleDateString()}
+                        <div className="flex items-center justify-between pt-2 border-t border-[rgba(26,22,18,0.04)]">
+                          <span className="text-[10px] text-[#7A736A]">
+                            Logged: {new Date(ms.created_at).toLocaleDateString()}
                           </span>
                           {ms.photo_url && (
                             <a
                               href={ms.photo_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-[10px] font-semibold text-blue-600 hover:underline"
+                              className="text-[10px] uppercase tracking-wider font-bold text-[#064E3B] hover:text-[#047857]"
                             >
-                              View Photo Evidence
+                              Proof Image
                             </a>
                           )}
                         </div>
@@ -712,20 +723,20 @@ export default function MissionsWorkstation() {
 
             {/* RULES Panel */}
             {activePanel === "RULES" && (
-              <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Settings2 className="w-4 h-4 text-amber-600" />
-                  Underfunding & Overfunding Policy
+              <div className="bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-6 shadow-sm space-y-4">
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#7A736A] flex items-center gap-1.5 border-b border-[rgba(26,22,18,0.04)] pb-3">
+                  <Settings2 className="w-4 h-4 text-[#C4A35A]" />
+                  Underfunding & Overfunding Policies
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">
+                    <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">
                       If Goal Not Reached (Underfunding)
                     </label>
                     <select
                       value={editUnderfunding}
                       onChange={e => setEditUnderfunding(e.target.value)}
-                      className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800"
+                      className="w-full text-xs font-semibold bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-lg p-3 text-[#1A1612]"
                     >
                       <option value="HOLD_UNTIL_THRESHOLD">Hold Until Threshold Met</option>
                       <option value="REFUND">Refund Donors</option>
@@ -733,13 +744,13 @@ export default function MissionsWorkstation() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">
+                    <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">
                       If Goal Exceeded (Overfunding)
                     </label>
                     <select
                       value={editOverfunding}
                       onChange={e => setEditOverfunding(e.target.value)}
-                      className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800"
+                      className="w-full text-xs font-semibold bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-lg p-3 text-[#1A1612]"
                     >
                       <option value="EXPAND_SCOPE">Expand Mission Scope</option>
                       <option value="NEXT_MISSION_POOL">Pool for Next Mission</option>
@@ -747,40 +758,39 @@ export default function MissionsWorkstation() {
                     </select>
                   </div>
                 </div>
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-[11px] font-medium text-amber-800 leading-relaxed">
-                    Funding rules must be set before a mission goes live. Changing rules mid-campaign requires donor
-                    notification and may need dual-approval under financial controls policy.
+                <div className="p-4 bg-[#C4A35A]/10 border border-[#C4A35A]/20 rounded-xl flex items-start gap-2.5">
+                  <AlertTriangle className="w-4.5 h-4.5 text-[#C4A35A] shrink-0 mt-0.5" />
+                  <p className="text-xs font-semibold text-[#1A1612] leading-relaxed">
+                    Funding parameters must be fully configured before public mobilization occurs. Amending strategic rules during an active campaign triggers automatic logging on the governance block.
                   </p>
                 </div>
               </div>
             )}
 
             {/* Save Bar */}
-            <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
               {saveMessage ? (
-                <div className="text-xs font-medium text-blue-800 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-blue-600" />
+                <div className="text-xs font-bold text-[#064E3B] flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-[#064E3B]" />
                   {saveMessage}
                 </div>
               ) : (
-                <div className="text-xs font-medium text-slate-400">
-                  Commit status, privacy, partners, and funding rule changes.
+                <div className="text-[11px] font-semibold text-[#7A736A] uppercase tracking-wider">
+                  Operational Parameters & Governance Core Commit
                 </div>
               )}
               <button
                 onClick={handleSaveMission}
                 disabled={saving}
-                className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 disabled:opacity-50 transition-all flex items-center gap-2 shadow-sm shrink-0"
+                className="px-5 py-3 bg-[#064E3B] hover:bg-[#047857] text-white rounded-xl text-xs font-bold hover-lift transition-all flex items-center gap-2 shadow-sm shrink-0"
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <CheckCircle2 className="w-4 h-4 text-white" />
                 {saving ? "Saving..." : "Commit Field Operations Update"}
               </button>
             </div>
           </div>
         ) : (
-          <div className="lg:col-span-8 bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-12 text-center text-slate-400 text-xs font-medium">
+          <div className="lg:col-span-8 bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-12 text-center text-[#7A736A] text-xs font-medium">
             Select a mission from the queue to open the field operations inspector.
           </div>
         )}
@@ -788,47 +798,48 @@ export default function MissionsWorkstation() {
 
       {/* 1. Standalone Missionary Onboarding Modal */}
       {showOpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-lg w-full p-8 relative my-auto">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 lg:p-12">
+          <div className="absolute inset-0 bg-[#1A1612]/40 backdrop-blur-sm" onClick={() => setShowOpModal(false)} />
+          <div className="relative bg-[#F7F4EF] rounded-[2rem] border border-[rgba(26,22,18,0.08)] shadow-2xl max-w-lg w-full p-8 overflow-hidden animate-in zoom-in-95 duration-200">
             <button
               type="button"
               onClick={() => setShowOpModal(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold"
+              className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/80 border border-[rgba(26,22,18,0.08)] flex items-center justify-center text-[#7A736A] hover:text-[#1A1612] transition-colors"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded">
+            <span className="text-[9px] font-bold text-[#064E3B] uppercase tracking-widest bg-[#064E3B]/10 px-2 py-1 rounded">
               Step 1: Operator Registry
             </span>
-            <h2 className="text-xl font-bold text-slate-900 mt-2 mb-4">Onboard Field Missionary</h2>
+            <h2 className="font-serif text-xl font-semibold text-[#1A1612] mt-3 mb-5">Onboard Field Missionary</h2>
             
             <form onSubmit={handleCreateMissionary} className="space-y-4">
               <div>
-                <label className="text-[11px] font-bold text-slate-500 block mb-1">Full Name</label>
-                <input required type="text" value={opName} onChange={e => setOpName(e.target.value)} placeholder="e.g. John Doe" className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Full Name</label>
+                <input required type="text" value={opName} onChange={e => setOpName(e.target.value)} placeholder="e.g. John Doe" className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
               </div>
               <div>
-                <label className="text-[11px] font-bold text-slate-500 block mb-1">Email Address</label>
-                <input required type="email" value={opEmail} onChange={e => setOpEmail(e.target.value)} placeholder="john@mission.org" className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Email Address</label>
+                <input required type="email" value={opEmail} onChange={e => setOpEmail(e.target.value)} placeholder="john@mission.org" className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Country</label>
-                  <input required type="text" value={opCountry} onChange={e => setOpCountry(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                  <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Country</label>
+                  <input required type="text" value={opCountry} onChange={e => setOpCountry(e.target.value)} className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Organization</label>
-                  <input required type="text" value={opOrg} onChange={e => setOpOrg(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                  <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Organization</label>
+                  <input required type="text" value={opOrg} onChange={e => setOpOrg(e.target.value)} className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
                 </div>
               </div>
               <div>
-                <label className="text-[11px] font-bold text-slate-500 block mb-1">Stellar Wallet Address</label>
-                <input type="text" value={opWallet} onChange={e => setOpWallet(e.target.value)} placeholder="G..." className="w-full text-xs font-mono p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Stellar Wallet Address</label>
+                <input type="text" value={opWallet} onChange={e => setOpWallet(e.target.value)} placeholder="G..." className="w-full text-xs font-semibold font-mono p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
               </div>
               <button
                 type="submit"
                 disabled={creatingOp}
-                className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider hover:bg-slate-800 transition-all disabled:opacity-50"
+                className="w-full bg-[#1A1612] text-white font-semibold py-4 rounded-xl text-[10px] uppercase tracking-widest hover:bg-[#3D3832] transition-all disabled:opacity-50 mt-2"
               >
                 {creatingOp ? "Saving..." : "Onboard Missionary"}
               </button>
@@ -839,30 +850,31 @@ export default function MissionsWorkstation() {
 
       {/* 2. Standalone Mission Campaign Creation Modal */}
       {showMissionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-lg w-full p-8 relative my-auto">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 lg:p-12">
+          <div className="absolute inset-0 bg-[#1A1612]/40 backdrop-blur-sm" onClick={() => setShowMissionModal(false)} />
+          <div className="relative bg-[#F7F4EF] rounded-[2rem] border border-[rgba(26,22,18,0.08)] shadow-2xl max-w-lg w-full p-8 overflow-hidden animate-in zoom-in-95 duration-200">
             <button
               type="button"
               onClick={() => setShowMissionModal(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold"
+              className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/80 border border-[rgba(26,22,18,0.08)] flex items-center justify-center text-[#7A736A] hover:text-[#1A1612] transition-colors"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
-            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded">
+            <span className="text-[9px] font-bold text-[#064E3B] uppercase tracking-widest bg-[#064E3B]/10 px-2 py-1 rounded">
               Step 2: Campaign Deployment
             </span>
-            <h2 className="text-xl font-bold text-slate-900 mt-2 mb-4">Create Mission Campaign</h2>
+            <h2 className="font-serif text-xl font-semibold text-[#1A1612] mt-3 mb-5">Create Mission Campaign</h2>
             
             <form onSubmit={handleCreateMission} className="space-y-4">
               <div>
-                <label className="text-[11px] font-bold text-slate-500 block mb-1">Assigned Missionary</label>
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Assigned Missionary</label>
                 {availableOperators.length === 0 ? (
-                  <p className="text-xs text-red-600 font-medium">No missionaries found. Please onboard a missionary first.</p>
+                  <p className="text-xs text-[#C4A35A] font-semibold">No missionaries found. Please onboard a missionary first.</p>
                 ) : (
                   <select
                     value={selectedOpId}
                     onChange={e => setSelectedOpId(e.target.value)}
-                    className="w-full text-xs font-semibold p-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500"
+                    className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]"
                   >
                     {availableOperators.map(op => (
                       <option key={op.id} value={op.id}>
@@ -874,30 +886,30 @@ export default function MissionsWorkstation() {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-500 block mb-1">Mission Title</label>
-                <input required type="text" value={missionTitle} onChange={e => setMissionTitle(e.target.value)} placeholder="e.g. Clean Water Wells" className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Mission Title</label>
+                <input required type="text" value={missionTitle} onChange={e => setMissionTitle(e.target.value)} placeholder="e.g. Clean Water Wells" className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-500 block mb-1">Description</label>
-                <textarea required rows={3} value={missionDesc} onChange={e => setMissionDesc(e.target.value)} placeholder="Mission scope and goals..." className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Description</label>
+                <textarea required rows={3} value={missionDesc} onChange={e => setMissionDesc(e.target.value)} placeholder="Mission scope and goals..." className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Funding Goal (USD)</label>
-                  <input required type="number" value={missionGoal} onChange={e => setMissionGoal(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                  <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Funding Goal (USD)</label>
+                  <input required type="number" value={missionGoal} onChange={e => setMissionGoal(e.target.value)} className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 block mb-1">Target Country</label>
-                  <input required type="text" value={missionCountry} onChange={e => setMissionCountry(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                  <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] block mb-1.5">Target Country</label>
+                  <input required type="text" value={missionCountry} onChange={e => setMissionCountry(e.target.value)} className="w-full text-xs font-semibold p-3.5 bg-white border border-[rgba(26,22,18,0.08)] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#064E3B] text-[#1A1612]" />
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={creatingMission || availableOperators.length === 0}
-                className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider hover:bg-indigo-700 transition-all disabled:opacity-50"
+                className="w-full bg-[#064E3B] hover:bg-[#047857] text-white font-semibold py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 mt-2"
               >
                 {creatingMission ? "Deploying..." : "Deploy Mission Campaign"}
               </button>
