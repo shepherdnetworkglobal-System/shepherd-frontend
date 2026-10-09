@@ -31,6 +31,8 @@ import Navbar from "@/components/Navbar";
 import PaymentWall from "@/components/PaymentWall";
 import { apiRequest } from "@/lib/api";
 import "flag-icons/css/flag-icons.min.css";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 interface Mission {
   id: number;
@@ -125,15 +127,14 @@ export default function MissionDetailPage() {
     loadData();
   }, [missionId]);
 
-  // Mapbox telemetry renderer
+  // Native Mapbox Telemetry Renderer
   useEffect(() => {
     if (loading || !mission || !mapContainerRef.current) return;
 
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
-    if (!token) {
-      console.warn("NEXT_PUBLIC_MAPBOX_TOKEN is missing.");
-      return;
-    }
+    if (!token) return;
+
+    mapboxgl.accessToken = token;
 
     const countryFallbacks: Record<string, [number, number]> = {
       Kenya: [36.8219, -1.2921],
@@ -153,6 +154,7 @@ export default function MissionDetailPage() {
       try {
         const parts = mission.map_location.split(",").map(p => parseFloat(p.trim()));
         if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          // Mapbox standard is [longitude, latitude]
           if (Math.abs(parts[0]) <= 90 && Math.abs(parts[1]) <= 180) {
             coords = [parts[1], parts[0]];
           } else {
@@ -160,69 +162,35 @@ export default function MissionDetailPage() {
           }
         }
       } catch (err) {
-        console.warn("Coordinate parse error. Using country fallback.", err);
+        console.warn("Using country default coordinates:", err);
       }
     }
 
-    const initializeMap = (mapboxgl: any) => {
-      if (!mapContainerRef.current) return;
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-
-      mapboxgl.accessToken = token;
-
-      const map = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: "mapbox://styles/mapbox/light-v11",
-        center: coords,
-        zoom: 6,
-        attributionControl: false,
-        cooperativeGestures: true
-      });
-
-      map.on("load", () => {
-        map.resize();
-      });
-
-      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
-
-      new mapboxgl.Marker({ color: "#064E3B" })
-        .setLngLat(coords)
-        .addTo(map);
-
-      mapInstanceRef.current = map;
-    };
-
-    // Load stylesheet if not already added
-    if (!document.getElementById("mapbox-gl-css")) {
-      const link = document.createElement("link");
-      link.id = "mapbox-gl-css";
-      link.href = "https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css";
-      link.rel = "stylesheet";
-      document.head.appendChild(link);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
     }
 
-    // Check if Mapbox script already exists on window
-    const existingMapbox = (window as any).mapboxgl;
-    if (existingMapbox) {
-      initializeMap(existingMapbox);
-    } else {
-      let script = document.getElementById("mapbox-gl-js") as HTMLScriptElement;
-      if (!script) {
-        script = document.createElement("script");
-        script.id = "mapbox-gl-js";
-        script.src = "https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js";
-        script.async = true;
-        document.body.appendChild(script);
-      }
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: "mapbox://styles/mapbox/light-v11",
+      center: coords,
+      zoom: 6,
+      attributionControl: false,
+      cooperativeGestures: true
+    });
 
-      script.onload = () => {
-        const loadedMapbox = (window as any).mapboxgl;
-        if (loadedMapbox) initializeMap(loadedMapbox);
-      };
-    }
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+
+    new mapboxgl.Marker({ color: "#064E3B" })
+      .setLngLat(coords)
+      .addTo(map);
+
+    map.on("load", () => {
+      map.resize();
+    });
+
+    mapInstanceRef.current = map;
 
     return () => {
       if (mapInstanceRef.current) {
