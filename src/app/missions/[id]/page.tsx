@@ -188,6 +188,16 @@ export default function MissionDetailPage() {
         .addTo(map);
 
       mapInstanceRef.current = map;
+
+      // Ensure canvas resizes when container dimensions change
+      if (typeof ResizeObserver !== "undefined" && mapContainerRef.current) {
+        const observer = new ResizeObserver(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.resize();
+          }
+        });
+        observer.observe(mapContainerRef.current);
+      }
     };
 
     if (!document.getElementById("mapbox-gl-css")) {
@@ -372,9 +382,9 @@ export default function MissionDetailPage() {
             </Link>
 
             {/* Specs & Map Card */}
-            <div className="rounded-3xl glass bg-white/70 border border-[rgba(26,22,18,0.08)] shadow-sm flex flex-col flex-1 overflow-hidden">
-              <div className="h-44 bg-[#EFEBE4]/50 relative shrink-0 overflow-hidden">
-                <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
+            <div className="rounded-3xl glass bg-white/70 border border-[rgba(26,22,18,0.08)] shadow-sm flex flex-col overflow-hidden">
+              <div className="h-64 sm:h-72 w-full bg-[#EFEBE4]/50 relative overflow-hidden">
+                <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0 [&_.mapboxgl-canvas]:w-full [&_.mapboxgl-canvas]:h-full" />
                 <div className="absolute top-3 left-3 z-10 bg-white/85 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-sm pointer-events-none">
                   <span className="w-2 h-2 rounded-full bg-[#064E3B] animate-pulse" />
                   <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#1A1612]">
@@ -382,15 +392,15 @@ export default function MissionDetailPage() {
                   </span>
                 </div>
               </div>
-              <div className="p-6 flex flex-col justify-center flex-1 space-y-4 relative z-10 bg-white/80 backdrop-blur-md">
+              <div className="p-5 space-y-3 relative z-10 bg-white/90 backdrop-blur-md border-t border-[rgba(26,22,18,0.06)]">
                 {[
                   { icon: MapPin, label: "Target Area", value: mission.target_country },
                   { icon: Calendar, label: "Initialized", value: new Date(mission.created_at).toLocaleDateString() },
                   { icon: DollarSign, label: "Hard Limit", value: `$${Number(mission.goal_amount_usd).toLocaleString()}` },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs py-2 border-b border-[rgba(26,22,18,0.04)] last:border-0 last:pb-0">
+                  <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-[rgba(26,22,18,0.04)] last:border-0 last:pb-0">
                     <div className="flex items-center gap-2.5 text-[#7A736A] font-semibold">
-                      <item.icon className="w-4 h-4" />
+                      <item.icon className="w-4 h-4 text-[#064E3B]" />
                       <span>{item.label}</span>
                     </div>
                     <span className="font-semibold text-[#1A1612]">{item.value}</span>
