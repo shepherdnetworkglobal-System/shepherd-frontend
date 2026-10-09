@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import {
   ShieldCheck,
@@ -84,6 +84,8 @@ export default function MissionDetailPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [activeBriefModal, setActiveBriefModal] = useState<"problem" | "objectives" | "method" | null>(null);
   const [loading, setLoading] = useState(true);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -122,6 +124,106 @@ export default function MissionDetailPage() {
     };
     loadData();
   }, [missionId]);
+
+    // Mapbox GL Telemetry Renderer
+  useEffect(() => {
+    if (loading || !mission || !mapContainerRef.current) return;
+
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+    if (!token) return;
+
+    const countryFallbacks: Record<string, [number, number]> = {
+      Kenya: [36.8219, -1.2921],
+      Philippines: [120.9842, 14.5995],
+      Nigeria: [7.4951, 9.0820],
+      Pakistan: [73.0479, 33.6844],
+      Uganda: [32.5825, 0.3476],
+      India: [77.2090, 28.6139],
+      Brazil: [-47.9292, -15.7801],
+      Tanzania: [35.7516, -6.1630],
+      Ghana: [-0.1869, 5.6037]
+    };
+
+    let coords: [number, number] = countryFallbacks[mission.target_country] || [36.8219, -1.2921];
+
+    if (mission.map_location) {
+      try {
+        const parts = mission.map_location.split(",").map(p => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          if (Math.abs(parts[0]) <= 90 && Math.abs(parts[1]) <= 180) {
+            coords = [parts[1], parts[0]];
+          } else {
+            coords = [parts[0], parts[1]];
+          }
+        }
+      } catch (err) {}
+    }
+
+    const initializeMap = (mapboxgl: any) => {
+      if (!mapContainerRef.current) return;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+
+      mapboxgl.accessToken = token;
+
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: "mapbox://styles/mapbox/light-v11",
+        center: coords,
+        zoom: 6,
+        cooperativeGestures: true,
+        attributionControl: false
+      });
+
+      map.on("load", () => {
+        map.resize();
+      });
+
+      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+
+      new mapboxgl.Marker({ color: "#064E3B" })
+        .setLngLat(coords)
+        .addTo(map);
+
+      mapInstanceRef.current = map;
+    };
+
+    if (!document.getElementById("mapbox-gl-css")) {
+      const link = document.createElement("link");
+      link.id = "mapbox-gl-css";
+      link.href = "https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css";
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+
+    const existingMapbox = (window as any).mapboxgl;
+    if (existingMapbox) {
+      initializeMap(existingMapbox);
+    } else {
+      let script = document.getElementById("mapbox-gl-js") as HTMLScriptElement;
+      if (!script) {
+        script = document.createElement("script");
+        script.id = "mapbox-gl-js";
+        script.src = "https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      script.onload = () => {
+        const loadedMapbox = (window as any).mapboxgl;
+        if (loadedMapbox) initializeMap(loadedMapbox);
+      };
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [mission, loading]);
 
   if (loading) {
     return (
@@ -272,59 +374,13 @@ export default function MissionDetailPage() {
             {/* Specs & Map Card */}
             <div className="rounded-3xl glass bg-white/70 border border-[rgba(26,22,18,0.08)] shadow-sm flex flex-col flex-1 overflow-hidden">
               <div className="h-44 bg-[#EFEBE4]/50 relative shrink-0 overflow-hidden">
-                {(() => {
-                  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
-                  const countryFallbacks: Record<string, [number, number]> = {
-                    Kenya: [36.8219, -1.2921],
-                    Philippines: [120.9842, 14.5995],
-                    Nigeria: [7.4951, 9.0820],
-                    Pakistan: [73.0479, 33.6844],
-                    Uganda: [32.5825, 0.3476],
-                    India: [77.2090, 28.6139],
-                    Brazil: [-47.9292, -15.7801],
-                    Tanzania: [35.7516, -6.1630],
-                    Ghana: [-0.1869, 5.6037]
-                  };
-                  let lng = 36.8219;
-                  let lat = -1.2921;
-                  const fb = countryFallbacks[mission.target_country];
-                  if (fb) { lng = fb[0]; lat = fb[1]; }
-                  if (mission.map_location) {
-                    try {
-                      const parts = mission.map_location.split(",").map((p: string) => parseFloat(p.trim()));
-                      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-                        if (Math.abs(parts[0]) <= 90 && Math.abs(parts[1]) <= 180) {
-                          lat = parts[0]; lng = parts[1];
-                        } else {
-                          lng = parts[0]; lat = parts[1];
-                        }
-                      }
-                    } catch {}
-                  }
-                  if (!token) {
-                    return (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[10px] font-semibold text-[#7A736A] uppercase tracking-[0.16em]">Map Token Missing</span>
-                      </div>
-                    );
-                  }
-                  const staticUrl = `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/pin-l+064E3B(${lng},${lat})/${lng},${lat},6,0/600x300@2x?access_token=${token}`;
-                  return (
-                    <>
-                      <img
-                        src={staticUrl}
-                        alt={`Map of ${mission.target_country}`}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                      <div className="absolute top-3 left-3 z-10 bg-white/85 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-sm">
-                        <span className="w-2 h-2 rounded-full bg-[#064E3B] animate-pulse" />
-                        <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#1A1612]">
-                          Telemetry Live
-                        </span>
-                      </div>
-                    </>
-                  );
-                })()}
+                <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
+                <div className="absolute top-3 left-3 z-10 bg-white/85 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-sm pointer-events-none">
+                  <span className="w-2 h-2 rounded-full bg-[#064E3B] animate-pulse" />
+                  <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#1A1612]">
+                    Telemetry Live
+                  </span>
+                </div>
               </div>
               <div className="p-6 flex flex-col justify-center flex-1 space-y-4 relative z-10 bg-white/80 backdrop-blur-md">
                 {[
