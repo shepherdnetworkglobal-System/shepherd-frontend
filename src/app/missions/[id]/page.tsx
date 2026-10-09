@@ -123,19 +123,42 @@ export default function MissionDetailPage() {
     loadData();
   }, [missionId]);
 
-  // Mapbox initialization
+  // Mapbox initialization & coordinate resolution
   useEffect(() => {
-    if (!mission?.map_location || loading) return;
+    if (loading || !mission) return;
 
-    const token = "pk.eyJ1Ijoic2hlcGhlcmRuZXR3b3JrIiwiYSI6ImNsd3B6YmZ4dzAxbXYya28xdHpqNXdtYnoifQ.fallback_token"; 
-    let coords: [number, number] = [36.8219, -1.2921]; 
-    try {
-      const parts = mission.map_location.split(",").map(p => parseFloat(p.trim()));
-      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-        if (Math.abs(parts[0]) > 90) coords = [parts[0], parts[1]];
-        else coords = [parts[1], parts[0]];
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+    
+    // Fallback coordinates for our core missionary regions [lng, lat]
+    const countryFallbacks: Record<string, [number, number]> = {
+      Kenya: [36.8219, -1.2921],
+      Philippines: [120.9842, 14.5995],
+      Nigeria: [7.4951, 9.0820],
+      Pakistan: [73.0479, 33.6844],
+      Uganda: [32.5825, 0.3476],
+      India: [77.2090, 28.6139],
+      Brazil: [-47.9292, -15.7801],
+      Tanzania: [35.7516, -6.1630],
+      Ghana: [-0.1869, 5.6037]
+    };
+
+    let coords: [number, number] = countryFallbacks[mission.target_country] || [36.8219, -1.2921];
+
+    if (mission.map_location) {
+      try {
+        const parts = mission.map_location.split(",").map(p => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          // Mapbox standard expects [longitude, latitude]
+          if (Math.abs(parts[0]) <= 90 && Math.abs(parts[1]) <= 180) {
+            coords = [parts[1], parts[0]];
+          } else {
+            coords = [parts[0], parts[1]];
+          }
+        }
+      } catch (err) {
+        console.warn("Coordinate parse error. Reverting to country fallback.", err);
       }
-    } catch {}
+    }
 
     const link = document.createElement("link");
     link.href = "https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css";
@@ -147,6 +170,8 @@ export default function MissionDetailPage() {
     script.async = true;
     document.body.appendChild(script);
 
+    let mapInstance: any = null;
+
     script.onload = () => {
       const mapboxgl = (window as any).mapboxgl;
       if (!mapboxgl) return;
@@ -155,20 +180,31 @@ export default function MissionDetailPage() {
       const container = document.getElementById("mapbox-sidebar-map");
       if (!container) return;
 
-      const map = new mapboxgl.Map({
+      // Clear inner content in case of double render
+      container.innerHTML = "";
+
+      mapInstance = new mapboxgl.Map({
         container: "mapbox-sidebar-map",
         style: "mapbox://styles/mapbox/light-v11",
         center: coords,
-        zoom: 7,
-        cooperativeGestures: true
+        zoom: 6,
+        cooperativeGestures: true,
+        attributionControl: false
       });
 
+      // Simple zoom controls
+      mapInstance.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+
+      // Custom marker pointing directly to the mission region
       new mapboxgl.Marker({ color: "#064E3B" })
         .setLngLat(coords)
-        .addTo(map);
+        .addTo(mapInstance);
     };
 
     return () => {
+      if (mapInstance) {
+        mapInstance.remove();
+      }
       link.remove();
       script.remove();
     };
