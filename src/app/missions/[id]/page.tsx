@@ -9,7 +9,6 @@ import {
   Calendar,
   ArrowLeft,
   Heart,
-  Wallet,
   CheckCircle2,
   Loader2,
   ArrowRight,
@@ -127,7 +126,7 @@ export default function MissionDetailPage() {
     loadData();
   }, [missionId]);
 
-    // Mapbox GL Telemetry Renderer
+  // Mapbox GL Telemetry Renderer
   useEffect(() => {
     if (loading || !mission || !mapContainerRef.current) return;
 
@@ -191,7 +190,6 @@ export default function MissionDetailPage() {
 
       mapInstanceRef.current = map;
 
-      // Ensure canvas resizes when container dimensions change
       if (typeof ResizeObserver !== "undefined" && mapContainerRef.current) {
         const observer = new ResizeObserver(() => {
           if (mapInstanceRef.current) {
@@ -269,7 +267,7 @@ export default function MissionDetailPage() {
   const totalBudgeted = budgetItems.reduce((sum, b) => sum + Number(b.total_cost_usd), 0);
   const isoCode = ISO_COUNTRY_CODES[mission.target_country] || "un";
   const beforePhotos = photos.filter(p => p.category === "BEFORE");
-  const duringPhotos = photos.filter(p => p.category === "DURING" || p.category === "AFTER");
+
   const galleryPhotos = galleryFilter === "ALL"
     ? photos
     : photos.filter(p => String(p.category || "").toUpperCase() === galleryFilter);
@@ -289,7 +287,6 @@ export default function MissionDetailPage() {
       <div className="fixed top-1/4 right-[-5%] w-[600px] h-[600px] glow-emerald rounded-full pointer-events-none -z-10 opacity-50" />
       <div className="fixed bottom-0 left-[20%] w-[700px] h-[700px] glow-gold rounded-full pointer-events-none translate-y-1/3 -z-10 opacity-40" />
 
-      {/* EXPANDED TO MAX-W-7XL */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 space-y-12">
         
         <Link
@@ -302,9 +299,8 @@ export default function MissionDetailPage() {
         {/* SECTION 1: BENTO BOX COLLAGE */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          {/* Main Left Intro Panel (Spans 8 columns) */}
+          {/* Main Left Intro Panel */}
           <div className="lg:col-span-8 flex flex-col justify-between rounded-3xl glass border border-[rgba(26,22,18,0.08)] bg-white/70 backdrop-blur-2xl shadow-sm p-8 lg:p-12 relative overflow-hidden">
-            {/* Top Hairline */}
             <div className="absolute top-0 left-0 h-[2px] w-full bg-gradient-to-r from-[#064E3B] via-[#047857] to-[#C4A35A]" />
             
             <div className="space-y-6">
@@ -365,7 +361,7 @@ export default function MissionDetailPage() {
             </div>
           </div>
 
-          {/* Right Side Stack (Spans 4 columns) */}
+          {/* Right Side Stack */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             
             {/* Operator Card */}
@@ -423,7 +419,7 @@ export default function MissionDetailPage() {
           </div>
         </div>
 
-        {/* FIELD EVIDENCE STRIP — photos first, words second */}
+        {/* FIELD EVIDENCE STRIP — 100% CLEAN PHOTOS (NO OVERLAYS) */}
         {photos.length > 0 && (
           <section className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
@@ -432,7 +428,7 @@ export default function MissionDetailPage() {
                   Ground Truth
                 </span>
                 <h2 className="font-serif text-xl sm:text-2xl font-semibold text-[#1A1612]">
-                  Field Gallery
+                  Field Evidence Gallery
                 </h2>
               </div>
               <button
@@ -454,7 +450,7 @@ export default function MissionDetailPage() {
                     onClick={() => setSelectedPhoto(photo)}
                     className="group shrink-0 w-[280px] sm:w-[320px] snap-start text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/70 shadow-sm hover:border-[#064E3B]/30 hover:shadow-lg hover-lift transition-all duration-300"
                   >
-                    {/* Clean photo without text overlays */}
+                    {/* Clean photo — absolutely zero text badges over image */}
                     <div className="relative h-52 sm:h-56 overflow-hidden bg-[#EFEBE4]">
                       <img
                         src={photo.url || photo.image_url}
@@ -470,7 +466,7 @@ export default function MissionDetailPage() {
                             {phaseTitle}
                           </span>
                         )}
-                        <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#7A736A] ml-auto">
+                        <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#7A736A] ml-auto shrink-0">
                           {photo.category || "FIELD"}
                         </span>
                       </div>
@@ -519,8 +515,6 @@ export default function MissionDetailPage() {
             {/* 1. MISSION BRIEF TAB */}
             {activeTab === "brief" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                
-                {/* Problem Preview Card */}
                 <section 
                   onClick={() => setActiveBriefModal("problem")}
                   className="bg-white/50 rounded-3xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift cursor-pointer group flex flex-col relative overflow-hidden"
@@ -540,7 +534,6 @@ export default function MissionDetailPage() {
                   </div>
                 </section>
 
-                {/* Objectives Preview Card */}
                 <section 
                   onClick={() => setActiveBriefModal("objectives")}
                   className="bg-white/50 rounded-3xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift cursor-pointer group flex flex-col relative overflow-hidden"
@@ -560,7 +553,6 @@ export default function MissionDetailPage() {
                   </div>
                 </section>
 
-                {/* Implementation Preview Card */}
                 <section 
                   onClick={() => setActiveBriefModal("method")}
                   className="bg-white/50 rounded-3xl p-8 border border-[rgba(26,22,18,0.04)] shadow-sm hover-lift cursor-pointer group flex flex-col relative overflow-hidden"
@@ -591,7 +583,6 @@ export default function MissionDetailPage() {
                   </div>
                 </section>
 
-                {/* Before Photos */}
                 {beforePhotos.length > 0 && (
                   <section className="md:col-span-3 mt-4">
                     <h3 className="font-serif text-xl font-semibold text-[#1A1612] mb-6 flex items-center gap-2.5">
@@ -659,7 +650,7 @@ export default function MissionDetailPage() {
                       if (phasePhotos.length === 0) return null;
 
                       return (
-                        <div key={cp.id} className="space-y-6 pt-4 border-t border-[rgba(26,22,18,0.06)] first:border-0 first:pt-0">
+                        <div key={cp.id} className="space-y-6 pt-6 border-t border-[rgba(26,22,18,0.06)] first:border-0 first:pt-0">
                           <div className="flex items-center gap-3">
                             <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B] bg-[#064E3B]/10 px-3 py-1 rounded-full border border-[#064E3B]/20">
                               Phase {idx + 1}
@@ -680,7 +671,7 @@ export default function MissionDetailPage() {
                                 onClick={() => setSelectedPhoto(photo)}
                                 className="group text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/60 shadow-sm hover:border-[#064E3B]/30 hover-lift transition-all duration-300"
                               >
-                                {/* 100% clean photo presentation */}
+                                {/* 100% clean photo presentation — NO image overlays */}
                                 <div className="relative aspect-[4/3] overflow-hidden bg-[#EFEBE4]">
                                   <img
                                     src={photo.url || photo.image_url}
@@ -758,8 +749,6 @@ export default function MissionDetailPage() {
             {activeTab === "budget" && (
               <div className="space-y-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  
-                  {/* Summary Cards */}
                   <div className="lg:col-span-4 space-y-5">
                     <div className="bg-[#064E3B]/5 border border-[#064E3B]/10 rounded-2xl p-8 hover-lift">
                       <span className="text-4xl font-semibold text-[#064E3B] num-tabular block mb-1">${totalSpent.toLocaleString()}</span>
@@ -771,7 +760,6 @@ export default function MissionDetailPage() {
                     </div>
                   </div>
 
-                  {/* Wide Ledger Table */}
                   <div className="lg:col-span-8">
                     <h3 className="font-serif text-2xl font-semibold text-[#1A1612] mb-6">Ledger Allocation</h3>
                     {budgetItems.length === 0 ? (
@@ -846,7 +834,7 @@ export default function MissionDetailPage() {
               </div>
             )}
 
-            {/* 3. TIMELINE & CHECKPOINTS TAB (EXPANDED TO WIDE GRID) */}
+            {/* 3. TIMELINE & CHECKPOINTS TAB */}
             {activeTab === "checkpoints" && (
               <div className="space-y-12">
                 <div className="flex items-center gap-4 bg-[#EFEBE4]/50 p-6 border border-[rgba(26,22,18,0.06)] rounded-2xl">
@@ -866,7 +854,6 @@ export default function MissionDetailPage() {
 
                       return (
                         <div key={cp.id} className="relative">
-                          {/* Timeline Dot */}
                           <div className={`absolute -left-[57px] top-1.5 w-8 h-8 rounded-full border-[4px] bg-[#F7F4EF] flex items-center justify-center transition-colors ${
                             isCompleted ? "border-[#064E3B]" : "border-[rgba(26,22,18,0.2)]"
                           }`}>
@@ -874,8 +861,6 @@ export default function MissionDetailPage() {
                           </div>
 
                           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            
-                            {/* Left Column: Phase Number + Badges + Detailed Context Description */}
                             <div className="lg:col-span-4 flex flex-col items-start gap-3">
                               <h4 className="font-serif text-xl font-semibold text-[#1A1612] leading-snug">Phase {index + 1}</h4>
                               <div className="flex flex-wrap gap-2">
@@ -893,7 +878,6 @@ export default function MissionDetailPage() {
                                 </span>
                               </div>
 
-                              {/* Detailed Context Paragraph on Left */}
                               {cp.description && (
                                 <p className="text-xs sm:text-sm text-[#7A736A] leading-relaxed font-normal mt-1">
                                   {cp.description}
@@ -908,15 +892,11 @@ export default function MissionDetailPage() {
                               )}
                             </div>
 
-                            {/* Right Column: Definitive Phase Title Heading Above Pictures */}
-                            <div className="lg:col-span-8 p-6 sm:p-8 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm hover:border-[rgba(26,22,18,0.15)] transition-colors flex flex-col justify-center">
-                              
-                              {/* Definitive Phase Title Heading */}
+                            <div className="lg:col-span-8 p-6 sm:p-8 border border-[rgba(26,22,18,0.08)] rounded-3xl bg-white/60 shadow-sm flex flex-col justify-center">
                               <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#1A1612] leading-snug mb-4">
                                 {cp.title}
                               </h3>
 
-                              {/* Phase Media Gallery */}
                               {checkpointPhotos.length > 0 ? (
                                 <div className="border-t border-[rgba(26,22,18,0.06)] pt-6 mt-6">
                                   <h5 className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] mb-4 flex items-center gap-2">
@@ -959,7 +939,6 @@ export default function MissionDetailPage() {
             {/* 4. FIELD REPORTS TAB */}
             {activeTab === "updates" && (
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-                {/* Metrics Sidebar */}
                 <div className="xl:col-span-4 space-y-6">
                   {summary?.counts?.field_reports > 0 && (
                     <div className="bg-[#1A1612] text-white rounded-3xl p-10 relative overflow-hidden shadow-lg hover-lift">
@@ -980,7 +959,6 @@ export default function MissionDetailPage() {
                   </div>
                 </div>
 
-                {/* Reports Feed */}
                 <div className="xl:col-span-8">
                   {reports.length === 0 ? (
                     <div className="py-20 border border-dashed border-[rgba(26,22,18,0.15)] rounded-3xl text-center bg-white/40">
@@ -1083,16 +1061,12 @@ export default function MissionDetailPage() {
       {/* FLOATING LANDSCAPE DIALOGUE FOR MISSION BRIEF */}
       {activeBriefModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12">
-          {/* Blur Backdrop */}
           <div 
             className="absolute inset-0 bg-[#1A1612]/40 backdrop-blur-sm transition-opacity" 
             onClick={() => setActiveBriefModal(null)} 
           />
           
-          {/* Modal Container */}
           <div className="relative w-full max-w-5xl max-h-[85vh] flex flex-col rounded-3xl glass bg-[#F7F4EF]/95 border border-[rgba(26,22,18,0.08)] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            
-            {/* Header */}
             <div className="flex items-center justify-between p-6 sm:p-8 border-b border-[rgba(26,22,18,0.06)] bg-white/50 shrink-0">
               <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-[#1A1612] flex items-center gap-3">
                 {activeBriefModal === "problem" && <><AlertTriangle className="w-6 h-6 text-[#C4A35A]" /> The Problem Statement</>}
@@ -1107,7 +1081,6 @@ export default function MissionDetailPage() {
               </button>
             </div>
 
-            {/* Scrollable Content Body */}
             <div className="p-6 sm:p-10 overflow-y-auto bg-white/40 flex-1 scrollbar-none">
               <div className="max-w-4xl mx-auto">
                 {activeBriefModal === "problem" && (
