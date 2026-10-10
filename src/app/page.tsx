@@ -68,22 +68,6 @@ export default function Home() {
     <div className="min-h-screen bg-[#F7F4EF] text-[#3D3832] selection:bg-[#064E3B]/10 overflow-hidden">
       <Navbar />
 
-      {/* Injected CSS for Infinite Marquee */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes marquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          display: flex;
-          width: max-content;
-          animation: marquee 40s linear infinite;
-        }
-        .animate-marquee:hover {
-          animation-play-state: paused;
-        }
-      `}} />
-
       {/* V7 Editorial Ambient Orbs */}
       <div className="fixed top-[-10%] left-[10%] w-[600px] h-[600px] glow-taupe rounded-full pointer-events-none -z-20 opacity-70" />
       <div className="fixed top-[30%] right-[-5%] w-[700px] h-[700px] glow-emerald rounded-full pointer-events-none -z-20 opacity-50" />
@@ -100,14 +84,14 @@ export default function Home() {
             </span>
           </div>
 
-          <h1 className="font-serif font-semibold tracking-tight leading-[1.05] text-[#1A1612] max-w-5xl mx-auto">
-            <span className="block text-[clamp(2.5rem,6vw,5.5rem)]">
+          <h1 className="font-serif font-semibold tracking-tight leading-[1.1] text-[#1A1612] max-w-4xl mx-auto">
+            <span className="block text-3xl sm:text-4xl">
               Removing the cloak
             </span>
-            <span className="block text-[clamp(2.5rem,6vw,5.5rem)] mt-2">
+            <span className="block text-3xl sm:text-4xl mt-2">
               from <span className="italic text-[#064E3B]">Humanitarian</span>
             </span>
-            <span className="block text-[clamp(2.5rem,6vw,5.5rem)] mt-2 italic text-[#C4A35A]">
+            <span className="block text-3xl sm:text-4xl mt-2 italic text-[#C4A35A]">
               Giving
             </span>
           </h1>
@@ -206,7 +190,7 @@ export default function Home() {
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#064E3B]">
                 The Trust Protocol
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#1A1612] leading-[1.1]">
+              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#1A1612] leading-[1.15]">
                 Absolute transparency. <br />
                 <span className="italic text-[#C4A35A]">By architecture.</span>
               </h2>
@@ -343,7 +327,7 @@ export default function Home() {
           <div className="glass bg-white/70 rounded-[3rem] p-12 sm:p-20 border border-[rgba(26,22,18,0.08)] shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#064E3B] via-[#047857] to-[#C4A35A]" />
             <ShieldCheck className="w-12 h-12 text-[#C4A35A] mx-auto mb-6" />
-            <h2 className="font-serif text-3xl sm:text-5xl font-semibold text-[#1A1612] mb-6 leading-tight">
+            <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#1A1612] mb-6 leading-tight">
               Ready to bypass <br/><span className="italic text-[#064E3B]">the middlemen?</span>
             </h2>
             <p className="text-base text-[#7A736A] max-w-lg mx-auto mb-10">
