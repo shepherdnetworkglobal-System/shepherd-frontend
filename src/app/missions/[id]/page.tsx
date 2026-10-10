@@ -454,30 +454,29 @@ export default function MissionDetailPage() {
                     onClick={() => setSelectedPhoto(photo)}
                     className="group shrink-0 w-[280px] sm:w-[320px] snap-start text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/70 shadow-sm hover:border-[#064E3B]/30 hover:shadow-lg hover-lift transition-all duration-300"
                   >
+                    {/* Clean photo without text overlays */}
                     <div className="relative h-52 sm:h-56 overflow-hidden bg-[#EFEBE4]">
                       <img
                         src={photo.url || photo.image_url}
                         alt={photo.caption || "Field evidence"}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
-                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-[#1A1612]/75 text-white backdrop-blur-md">
-                          {photo.category || "FIELD"}
-                        </span>
+                    </div>
+                    {/* Metadata cleanly positioned below photo */}
+                    <div className="p-5 space-y-2">
+                      <div className="flex items-center gap-2">
                         {phaseTitle && (
-                          <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-white/90 text-[#064E3B] backdrop-blur-md border border-[rgba(26,22,18,0.06)]">
+                          <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#064E3B] bg-[#064E3B]/5 px-2.5 py-0.5 rounded-md border border-[#064E3B]/10 truncate max-w-[200px]">
                             {phaseTitle}
                           </span>
                         )}
+                        <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#7A736A] ml-auto">
+                          {photo.category || "FIELD"}
+                        </span>
                       </div>
-                    </div>
-                    <div className="p-4 space-y-2">
-                      <p className="text-sm font-semibold text-[#1A1612] leading-snug line-clamp-2 min-h-[2.5rem]">
+                      <p className="text-sm font-semibold text-[#1A1612] leading-snug line-clamp-2">
                         {photo.caption || "Field capture — caption pending"}
                       </p>
-                      <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#7A736A]">
-                        Tap to expand
-                      </span>
                     </div>
                   </button>
                 );
@@ -620,14 +619,14 @@ export default function MissionDetailPage() {
               </div>
             )}
 
-            {/* GALLERY TAB */}
+            {/* GALLERY TAB — GROUPED BY PHASE */}
             {activeTab === "gallery" && (
-              <div className="space-y-8">
+              <div className="space-y-12">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-serif text-2xl font-semibold text-[#1A1612]">Field Evidence Archive</h3>
                     <p className="text-sm text-[#7A736A] mt-1 font-medium">
-                      Every public capture from this deployment — with captions, categories, and linked phases.
+                      Every public capture from this deployment, organized by operational phase.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -653,46 +652,103 @@ export default function MissionDetailPage() {
                     <p className="text-sm text-[#7A736A] font-medium">No photos in this category yet.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {galleryPhotos.map((photo) => {
-                      const phaseTitle = getCheckpointTitle(photo.checkpoint_id);
+                  <div className="space-y-12">
+                    {/* Render photos grouped by Checkpoint / Phase */}
+                    {checkpoints.map((cp, idx) => {
+                      const phasePhotos = galleryPhotos.filter(p => p.checkpoint_id === cp.id);
+                      if (phasePhotos.length === 0) return null;
+
                       return (
-                        <button
-                          key={photo.id}
-                          type="button"
-                          onClick={() => setSelectedPhoto(photo)}
-                          className="group text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/60 shadow-sm hover:border-[#064E3B]/30 hover-lift transition-all duration-300"
-                        >
-                          <div className="relative aspect-[4/3] overflow-hidden bg-[#EFEBE4]">
-                            <img
-                              src={photo.url || photo.image_url}
-                              alt={photo.caption || "Field evidence"}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
-                            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5">
-                              <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-[#1A1612]/75 text-white backdrop-blur-md">
-                                {photo.category || "FIELD"}
-                              </span>
-                              {phaseTitle && (
-                                <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-white/90 text-[#064E3B] backdrop-blur-md">
-                                  {phaseTitle}
-                                </span>
-                              )}
-                            </div>
+                        <div key={cp.id} className="space-y-6 pt-4 border-t border-[rgba(26,22,18,0.06)] first:border-0 first:pt-0">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B] bg-[#064E3B]/10 px-3 py-1 rounded-full border border-[#064E3B]/20">
+                              Phase {idx + 1}
+                            </span>
+                            <h4 className="font-serif text-xl font-semibold text-[#1A1612]">
+                              {cp.title}
+                            </h4>
+                            <span className="text-xs font-semibold text-[#7A736A] ml-auto">
+                              {phasePhotos.length} {phasePhotos.length === 1 ? "photo" : "photos"}
+                            </span>
                           </div>
-                          <div className="p-5 space-y-2">
-                            <p className="text-sm font-semibold text-[#1A1612] leading-snug line-clamp-3">
-                              {photo.caption || "Field capture — caption pending"}
-                            </p>
-                            {photo.created_at && (
-                              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#7A736A] block">
-                                Captured {new Date(photo.created_at).toLocaleDateString()}
-                              </span>
-                            )}
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {phasePhotos.map((photo) => (
+                              <button
+                                key={photo.id}
+                                type="button"
+                                onClick={() => setSelectedPhoto(photo)}
+                                className="group text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/60 shadow-sm hover:border-[#064E3B]/30 hover-lift transition-all duration-300"
+                              >
+                                {/* 100% clean photo presentation */}
+                                <div className="relative aspect-[4/3] overflow-hidden bg-[#EFEBE4]">
+                                  <img
+                                    src={photo.url || photo.image_url}
+                                    alt={photo.caption || "Field evidence"}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                  />
+                                </div>
+                                <div className="p-5 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#C4A35A] bg-[#C4A35A]/10 px-2 py-0.5 rounded">
+                                      {photo.category || "DURING"}
+                                    </span>
+                                    {photo.created_at && (
+                                      <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#7A736A]">
+                                        {new Date(photo.created_at).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-sm font-semibold text-[#1A1612] leading-snug line-clamp-3">
+                                    {photo.caption || "Field capture — caption pending"}
+                                  </p>
+                                </div>
+                              </button>
+                            ))}
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
+
+                    {/* Unassigned photos section */}
+                    {galleryPhotos.filter(p => !p.checkpoint_id).length > 0 && (
+                      <div className="space-y-6 pt-6 border-t border-[rgba(26,22,18,0.06)]">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] bg-[#EFEBE4] px-3 py-1 rounded-full">
+                            General
+                          </span>
+                          <h4 className="font-serif text-xl font-semibold text-[#1A1612]">
+                            General Field Evidence
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {galleryPhotos.filter(p => !p.checkpoint_id).map((photo) => (
+                            <button
+                              key={photo.id}
+                              type="button"
+                              onClick={() => setSelectedPhoto(photo)}
+                              className="group text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/60 shadow-sm hover:border-[#064E3B]/30 hover-lift transition-all duration-300"
+                            >
+                              <div className="relative aspect-[4/3] overflow-hidden bg-[#EFEBE4]">
+                                <img
+                                  src={photo.url || photo.image_url}
+                                  alt={photo.caption || "Field evidence"}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                />
+                              </div>
+                              <div className="p-5 space-y-2">
+                                <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-[#C4A35A] bg-[#C4A35A]/10 px-2 py-0.5 rounded inline-block">
+                                  {photo.category || "FIELD"}
+                                </span>
+                                <p className="text-sm font-semibold text-[#1A1612] leading-snug line-clamp-3">
+                                  {photo.caption || "Field capture — caption pending"}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
