@@ -35,6 +35,135 @@ const ISO_COUNTRY_CODES: Record<string, string> = {
   Ghana: "gh",
 };
 
+function formatUsd(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function getStatusStyles(status: string) {
+  switch (status) {
+    case "ACTIVE":
+      return "bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/20";
+    case "FUNDED":
+      return "bg-[#C4A35A]/10 text-[#8A6A1F] border border-[#C4A35A]/20";
+    case "COMPLETED":
+      return "bg-[#0F172A]/10 text-[#0F172A] border border-[#0F172A]/20";
+    case "PAUSED":
+      return "bg-[#7A736A]/10 text-[#7A736A] border border-[#7A736A]/20";
+    default:
+      return "bg-[#F3F4F6] text-[#374151] border border-[#E5E7EB]";
+  }
+}
+
+function MissionCard({ mission }: { mission: Mission }) {
+  const countryCode = ISO_COUNTRY_CODES[mission.target_country] ?? "us";
+  const progress = Math.min((mission.raised_amount_usd / Math.max(mission.goal_amount_usd, 1)) * 100, 100);
+  const operatorName = mission.missionary?.name ?? "Field Operator";
+  const organizationName = mission.missionary?.organization_name ?? "Humanitarian Network";
+
+  return (
+    <article className="glass bg-white/80 border border-[rgba(26,22,18,0.08)] rounded-[28px] shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+      <div className="md:flex">
+        <div className="relative md:w-[320px] min-h-[220px] bg-[#EDE7DE] overflow-hidden">
+          {mission.cover_image ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${mission.cover_image})` }}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(6,78,59,0.18),_rgba(6,78,59,0)_45%),linear-gradient(135deg,#E9D7B6_0%,#F7F4EF_52%,#D9EBDD_100%)]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1A1612]/55 via-[#1A1612]/10 to-transparent" />
+
+          <div className="absolute top-4 left-4 flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm px-2.5 py-1.5 border border-white/60 shadow-sm">
+            <span className={`fi fi-${countryCode} text-lg rounded-[2px] shadow-sm`} />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1A1612]">
+              {mission.target_country}
+            </span>
+          </div>
+
+          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-white/75">Mission Lead</p>
+              <p className="text-sm font-medium">{operatorName}</p>
+            </div>
+            <div className="flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm border border-white/30">
+              <Camera className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 p-5 sm:p-6 lg:p-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyles(mission.status)}`}>
+                  {mission.status}
+                </span>
+              </div>
+
+              <div>
+                <h2 className="font-serif text-2xl font-semibold text-[#1A1612] leading-tight">
+                  {mission.title}
+                </h2>
+                <p className="mt-2 text-xs text-[#7A736A] leading-relaxed max-w-2xl">
+                  {mission.description ?? "This field mission is being coordinated to deliver essential humanitarian support on the ground."}
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href={`/missions/${mission.id}`}
+              className="inline-flex items-center gap-2 rounded-full bg-[#064E3B] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm hover:bg-[#05382e] transition-colors duration-200 whitespace-nowrap"
+            >
+              View mission
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl border border-[rgba(26,22,18,0.06)] bg-[#F7F4EF] p-3.5">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-[#7A736A]">Goal</p>
+              <p className="mt-2 text-lg font-semibold text-[#1A1612]">{formatUsd(mission.goal_amount_usd)}</p>
+            </div>
+            <div className="rounded-2xl border border-[rgba(26,22,18,0.06)] bg-[#F7F4EF] p-3.5">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-[#7A736A]">Raised</p>
+              <p className="mt-2 text-lg font-semibold text-[#1A1612]">{formatUsd(mission.raised_amount_usd)}</p>
+            </div>
+            <div className="rounded-2xl border border-[rgba(26,22,18,0.06)] bg-[#F7F4EF] p-3.5">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-[#7A736A]">Operator</p>
+              <p className="mt-2 text-sm font-semibold text-[#1A1612]">{organizationName}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-2">
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-[#7A736A]">
+              <span>Allocation progress</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#EDE7DE]">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#064E3B] via-[#0F766E] to-[#C4A35A]"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+
+          {mission.latest_update && (
+            <div className="mt-6 rounded-2xl border border-[rgba(26,22,18,0.06)] bg-[#F7F4EF]/80 p-3.5">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-[#7A736A]">Latest update</p>
+              <p className="mt-2 text-sm text-[#1A1612] leading-relaxed">{mission.latest_update}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function MissionsPage() {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [search, setSearch] = useState("");
@@ -160,91 +289,10 @@ export default function MissionsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {filtered.map((m) => {
-              const progress = m.goal_amount_usd > 0 ? Math.min((m.raised_amount_usd / m.goal_amount_usd) * 100, 100) : 0;
-              const isoCode = ISO_COUNTRY_CODES[m.target_country] || "un";
-              const isActive = m.status === "ACTIVE";
-
-              return (
-                <Link
-                  href={`/missions/${m.id}`}
-                  key={m.id}
-                  className="group flex flex-col glass bg-white/60 rounded-3xl border border-[rgba(26,22,18,0.08)] shadow-sm hover:border-[#064E3B]/20 hover:shadow-xl hover-lift overflow-hidden transition-all duration-500"
-                >
-                  {/* Taller Lookbook Image Header */}
-                  <div className="relative h-60 sm:h-64 w-full bg-[#EFEBE4]/80 overflow-hidden shrink-0 flex items-center justify-center">
-                    {m.cover_image ? (
-                      <img 
-                        src={m.cover_image} 
-                        alt={m.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 opacity-50">
-                        <Camera className="w-8 h-8 text-[#C4A35A]" />
-                        <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#C4A35A]">Media Pending</span>
-                      </div>
-                    )}
-
-                    {/* Floating Badges */}
-                    <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[rgba(26,22,18,0.04)] shadow-sm">
-                        <span className={`fi fi-${isoCode} rounded-sm text-xs drop-shadow-sm`} />
-                        <span className="text-[9px] uppercase tracking-[0.16em] font-semibold text-[#1A1612]">
-                          {m.target_country}
-                        </span>
-                      </div>
-                      
-                      <span className={`text-[9px] uppercase tracking-[0.16em] font-bold px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border ${
-                        isActive 
-                          ? "bg-[#064E3B]/90 text-white border-[#064E3B]/20" 
-                          : "bg-white/90 text-[#1A1612] border-[rgba(26,22,18,0.08)]"
-                      }`}>
-                        {m.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-6 sm:p-8 flex flex-col flex-1 bg-white/40">
-                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] mb-2 block truncate">
-                      Lead: {m.missionary?.name || "Verified Operator"}
-                    </span>
-                    
-                    <h3 className="font-serif text-xl sm:text-2xl font-semibold text-[#1A1612] mb-3 leading-snug line-clamp-2 group-hover:text-[#064E3B] transition-colors">
-                      {m.title}
-                    </h3>
-                    
-                    <p className="text-sm text-[#3D3832]/80 leading-relaxed font-normal line-clamp-3 mb-8 flex-1">
-                      {m.description || "Mission details pending configuration."}
-                    </p>
-
-                    {/* Progress & Financials */}
-                    <div className="mt-auto">
-                      <div className="flex items-end justify-between mb-2.5">
-                        <div>
-                          <span className="text-xl font-semibold text-[#1A1612] num-tabular">
-                            ${Number(m.raised_amount_usd).toLocaleString()}
-                          </span>
-                          <span className="text-xs text-[#7A736A] font-medium ml-1">
-                            / ${Number(m.goal_amount_usd).toLocaleString()}
-                          </span>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-[#C4A35A] group-hover:translate-x-1 transition-transform" />
-                      </div>
-                      
-                      <div className="w-full h-2 bg-[#EFEBE4] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#064E3B] to-[#C4A35A] rounded-full transition-all duration-1000 ease-out"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="flex flex-col space-y-8">
+            {filtered.map((m) => (
+              <MissionCard key={m.id} mission={m} />
+            ))}
           </div>
         )}
       </div>
