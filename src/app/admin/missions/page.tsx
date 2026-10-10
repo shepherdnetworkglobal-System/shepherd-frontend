@@ -24,7 +24,8 @@ import {
   UserMinus,
   TrendingUp,
   Wallet,
-  Info
+  Info,
+  FileText
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 
@@ -94,6 +95,9 @@ export default function MissionsWorkstation() {
   const [editLocationGranularity, setEditLocationGranularity] = useState("");
   const [editReportingPlan, setEditReportingPlan] = useState("");
   const [editLocalPartners, setEditLocalPartners] = useState("");
+  const [editProblemStatement, setEditProblemStatement] = useState("");
+  const [editMissionObjectives, setEditMissionObjectives] = useState("");
+  const [editProposedProcess, setEditProposedProcess] = useState("");
 
   // Partner management
   const [showPartnerModal, setShowPartnerModal] = useState(false);
@@ -180,6 +184,9 @@ export default function MissionsWorkstation() {
     setEditLocationGranularity(m.location_granularity || "");
     setEditReportingPlan(m.reporting_plan || "");
     setEditLocalPartners(m.local_partners || "");
+    setEditProblemStatement((m as any).problem_statement || "");
+    setEditMissionObjectives((m as any).mission_objectives || "");
+    setEditProposedProcess((m as any).proposed_process || "");
     setSaveMessage(null);
     fetchFinancials(m.id);
   };
@@ -203,7 +210,10 @@ export default function MissionsWorkstation() {
           exact_location_hidden: editLocationHidden,
           location_granularity: editLocationGranularity || null,
           reporting_plan: editReportingPlan || null,
-          local_partners: editLocalPartners || null
+          local_partners: editLocalPartners || null,
+          problem_statement: editProblemStatement || null,
+          mission_objectives: editMissionObjectives || null,
+          proposed_process: editProposedProcess || null
         })
       })) as Mission;
 
@@ -556,6 +566,44 @@ export default function MissionsWorkstation() {
                   className="w-4 h-4 rounded text-[#064E3B] focus:ring-[#064E3B]"
                 />
               </label>
+            </div>
+
+            {/* Master Brief Details */}
+            <div className="bg-white/70 backdrop-blur-md border border-[rgba(26,22,18,0.08)] rounded-2xl p-6 shadow-sm space-y-5">
+              <h3 className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] flex items-center gap-1.5 border-b border-[rgba(26,22,18,0.04)] pb-3">
+                <FileText className="w-4 h-4 text-[#064E3B]" />
+                Master Brief Details
+              </h3>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">Problem / Need Statement</label>
+                <textarea
+                  rows={4}
+                  value={editProblemStatement}
+                  onChange={e => setEditProblemStatement(e.target.value)}
+                  placeholder="Describe the core problem this mission addresses..."
+                  className="w-full text-xs font-medium bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-xl p-3 text-[#1A1612] focus:outline-none focus:ring-1 focus:ring-[#064E3B] leading-relaxed"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">Mission Objectives</label>
+                <textarea
+                  rows={4}
+                  value={editMissionObjectives}
+                  onChange={e => setEditMissionObjectives(e.target.value)}
+                  placeholder="List operational objectives (one per line preferred)..."
+                  className="w-full text-xs font-medium bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-xl p-3 text-[#1A1612] focus:outline-none focus:ring-1 focus:ring-[#064E3B] leading-relaxed"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-semibold text-[#7A736A] mb-1 block">Proposed Implementation Process</label>
+                <textarea
+                  rows={5}
+                  value={editProposedProcess}
+                  onChange={e => setEditProposedProcess(e.target.value)}
+                  placeholder="Describe the implementation strategy and phases..."
+                  className="w-full text-xs font-medium bg-[#F7F4EF]/50 border border-[rgba(26,22,18,0.08)] rounded-xl p-3 text-[#1A1612] focus:outline-none focus:ring-1 focus:ring-[#064E3B] leading-relaxed"
+                />
+              </div>
             </div>
 
             {/* Funding Rules & Status */}
