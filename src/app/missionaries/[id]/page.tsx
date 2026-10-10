@@ -51,6 +51,7 @@ export default function MissionaryProfilePage() {
   const params = useParams();
   const profileId = Number(params.id);
   const [data, setData] = useState<MissionaryData | null>(null);
+  const [richMissions, setRichMissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "past">("overview");
@@ -58,16 +59,34 @@ export default function MissionaryProfilePage() {
   useEffect(() => {
     setLoading(true);
     setErrorMsg(null);
-    apiRequest(`/api/verification/public/${profileId}`)
-      .then((res) => {
+
+    const load = async () => {
+      try {
+        const res = await apiRequest(`/api/verification/public/${profileId}`);
         setData(res);
-      })
-      .catch((err: any) => {
+
+        // Pull full mission dossiers (photos, reports, checkpoints) — same source as /missions
+        try {
+          const allMissions = await apiRequest("/api/missions");
+          if (Array.isArray(allMissions)) {
+            const mine = allMissions.filter(
+              (m: any) => Number(m.missionary_id) === Number(profileId) || Number(m.missionary_id) === Number(res?.id)
+            );
+            setRichMissions(mine);
+          }
+        } catch {
+          setRichMissions(res?.active_missions || []);
+        }
+      } catch (err: any) {
         console.error("Public missionary load failed:", err);
         setData(null);
         setErrorMsg(err?.message || "Failed to load missionary profile");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
   }, [profileId]);
 
   if (loading) {
@@ -242,7 +261,7 @@ export default function MissionaryProfilePage() {
           <div className="flex">
             <div className="inline-flex items-center gap-2 p-1.5 rounded-2xl glass bg-white/60 border border-[rgba(26,22,18,0.08)] shadow-sm overflow-x-auto scrollbar-none max-w-full">
               {[
-                { id: "overview", label: "Active Dossiers", icon: BookOpen, count: data.active_missions.length },
+                { id: "overview", label: "Active Dossiers", icon: BookOpen, count: richMissions.length || data.active_missions.length },
                 { id: "past", label: "Past Missions", icon: Briefcase, count: data.past_projects.length },
               ].map((tab) => {
                 const Icon = tab.icon;
@@ -273,10 +292,10 @@ export default function MissionaryProfilePage() {
             <div className="space-y-8 animate-in fade-in">
               
               {data.calling_description && (
-                <div className="glass bg-white/70 border border-[rgba(26,22,18,0.08)] rounded-3xl p-8 shadow-sm relative overflow-hidden">
+                <div className="glass bg-white/70 border border-[rgba(26,22,18,0.08)] rounded-3xl p-6 sm:p-7 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#064E3B] to-[#C4A35A]" />
-                  <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] block mb-3">Operator Calling</span>
-                  <p className="font-serif text-xl sm:text-2xl text-[#1A1612] italic leading-relaxed">
+                  <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] block mb-2">Operator Calling</span>
+                  <p className="font-serif text-sm sm:text-base text-[#1A1612] italic leading-relaxed">
                     "{data.calling_description}"
                   </p>
                 </div>
@@ -287,18 +306,25 @@ export default function MissionaryProfilePage() {
                 <div className="flex items-center justify-between border-b border-[rgba(26,22,18,0.06)] pb-3">
                   <h3 className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#1A1612]">Pinned Deployments</h3>
                 </div>
-                {data.active_missions.length === 0 ? (
+                {(richMissions.length === 0 && data.active_missions.length === 0) ? (
                   <div className="py-16 border border-dashed border-[rgba(26,22,18,0.15)] rounded-3xl text-center glass bg-white/40">
                     <Activity className="w-8 h-8 text-[#7A736A]/50 mx-auto mb-3" />
                     <p className="text-sm text-[#7A736A] font-semibold uppercase tracking-[0.16em]">No active dossiers deployed.</p>
                   </div>
                 ) : (
                   <div className="flex flex-col space-y-8">
-                    {/* Maps over the active missions, injecting the Dossier Cards at FULL WIDTH */}
-                    {data.active_missions.map((m) => (
-                      <MissionCard 
-                        key={m.id} 
-                        mission={{ ...m, missionary: data }} 
+                    {(richMissions.length > 0 ? richMissions : data.active_missions).map((m: any) => (
+                      <MissionCard
+                        key={m.id}
+                        mission={{
+                          ...m,
+                          missionary: m.missionary || {
+                            name: data.full_name,
+                            profile_photo_url: data.profile_photo_url,
+                            shepherd_id: data.shepherd_id,
+                            organization_name: data.organization_name,
+                          },
+                        }}
                       />
                     ))}
                   </div>
