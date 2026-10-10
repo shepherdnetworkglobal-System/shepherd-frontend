@@ -41,8 +41,15 @@ interface Mission {
   checkpoints?: any[];
 }
 
+interface HeroSlide {
+  url: string;
+  mission: Mission;
+}
+
 export default function Home() {
   const [missions, setMissions] = useState<Mission[]>([]);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [bgIdx, setBgIdx] = useState(0);
 
   useEffect(() => {
     apiRequest("/api/missions/")
@@ -50,10 +57,54 @@ export default function Home() {
       .catch(() => setMissions([]));
   }, []);
 
+  // Build the dynamic carousel from active mission photos
+  useEffect(() => {
+    if (missions.length === 0) return;
+    
+    const slides: HeroSlide[] = [];
+    missions.filter(m => m.status === "ACTIVE").forEach(m => {
+      if (m.cover_image) slides.push({ url: m.cover_image, mission: m });
+      m.photos?.forEach(p => {
+        if (p.url || p.image_url) slides.push({ url: p.url || p.image_url, mission: m });
+      });
+    });
+
+    // Deduplicate and limit to 6 slides
+    const uniqueMap = new Map<string, HeroSlide>();
+    slides.forEach(s => {
+      if (!uniqueMap.has(s.url)) uniqueMap.set(s.url, s);
+    });
+    
+    const uniqueSlides = Array.from(uniqueMap.values()).sort(() => 0.5 - Math.random()).slice(0, 6);
+    
+    if (uniqueSlides.length > 0) {
+      setHeroSlides(uniqueSlides);
+    } else if (missions.length > 0) {
+      setHeroSlides([{
+        url: "https://res.cloudinary.com/xo4onwh5/image/upload/v1791543058/shepherd_network/shepherd_media/2eda6d5be6da481092dcd661d2291451.jpg",
+        mission: missions[0]
+      }]);
+    }
+  }, [missions]);
+
+  // Auto-advance carousel
+  useEffect(() => {
+    if (heroSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      setBgIdx((prev) => (prev + 1) % heroSlides.length);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [heroSlides]);
+
   const totalRaised = missions.reduce((sum, m) => sum + Number(m.raised_amount_usd), 0);
   const activeCount = missions.filter((m) => m.status === "ACTIVE").length;
 
-  // Mock ticker data for the live ledger effect
+  const currentSlide = heroSlides[bgIdx];
+  const currentMission = currentSlide?.mission;
+  const currentProgress = currentMission && currentMission.goal_amount_usd > 0 
+    ? Math.min((currentMission.raised_amount_usd / currentMission.goal_amount_usd) * 100, 100) 
+    : 0;
+
   const tickerItems = [
     "USDC 500.00 routed to M-12 (Kenya)",
     "Operator JOE-KE-1002 verified",
@@ -66,52 +117,52 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF] text-[#3D3832] selection:bg-[#064E3B]/10 overflow-hidden">
-      <Navbar />
-
-      {/* V7 Editorial Ambient Orbs */}
-      <div className="fixed top-[-10%] left-[10%] w-[600px] h-[600px] glow-taupe rounded-full pointer-events-none -z-20 opacity-70" />
-      <div className="fixed top-[30%] right-[-5%] w-[700px] h-[700px] glow-emerald rounded-full pointer-events-none -z-20 opacity-50" />
-      <div className="fixed bottom-[-10%] left-[20%] w-[800px] h-[800px] glow-gold rounded-full pointer-events-none -z-20 opacity-40" />
-
-      {/* 1. JAMES EDITION + DIMENSIONAL HERO (CSS 3D, no WebGL) */}
-      <section className="relative w-full h-[88vh] min-h-[640px] flex flex-col justify-end overflow-hidden z-10 bg-[#1A1612] perspective-[1200px]">
-
-        {/* Depth layer — slow Ken Burns (feels 3D without globe) */}
-        <div className="absolute inset-0 scale-110 origin-center animate-[heroDrift_28s_ease-in-out_infinite_alternate]">
+    <div className="min-h-screen bg-[#F7F4EF] text-[#3D3832] selection:bg-[#064E3B]/10 overflow-x-hidden relative">
+      
+      {/* ABSOLUTE BACKGROUND - Covers behind Navbar to the very top edge */}
+      <div className="absolute top-0 left-0 w-full h-[100vh] min-h-[640px] z-0 overflow-hidden bg-[#1A1612]">
+        {heroSlides.map((slide, idx) => (
           <img
-            src={
-              missions[0]?.cover_image ||
-              missions[0]?.photos?.[0]?.url ||
-              missions[0]?.photos?.[0]?.image_url ||
-              "https://res.cloudinary.com/xo4onwh5/image/upload/v1791543058/shepherd_network/shepherd_media/2eda6d5be6da481092dcd661d2291451.jpg"
-            }
-            alt="Featured Field Deployment"
-            className="absolute inset-0 w-full h-full object-cover"
+            key={idx}
+            src={slide.url}
+            alt="Field Deployment"
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+              idx === bgIdx ? "opacity-100 scale-105 animate-[heroDrift_28s_ease-in-out_infinite_alternate]" : "opacity-0 scale-100"
+            }`}
           />
-        </div>
+        ))}
+        {/* Dark Gradient Overlay for Typography Legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1612] via-[#1A1612]/60 to-[#1A1612]/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1A1612]/50 via-transparent to-[#1A1612]/20" />
+      </div>
 
-        {/* Atmospheric depth veils */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1612] via-[#1A1612]/45 to-[#1A1612]/15" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1A1612]/55 via-transparent to-[#1A1612]/25" />
-        <div className="absolute inset-0 opacity-30 mix-blend-soft-light bg-[radial-gradient(ellipse_at_30%_40%,rgba(196,163,90,0.35),transparent_55%)]" />
+      {/* NAVBAR - Floating over the background */}
+      <div className="relative z-50 pt-4">
+        <Navbar />
+      </div>
 
-        {/* Floating 3D glass telemetry panel */}
-        <div className="absolute right-6 top-28 sm:right-10 sm:top-32 lg:right-16 lg:top-36 z-20 hidden md:block">
+      {/* 1. HERO FOREGROUND (Flexes to fill remaining screen height) */}
+      <section className="relative z-20 w-full h-[calc(100vh-80px)] min-h-[560px] flex flex-col justify-end pb-20 sm:pb-28 perspective-[1200px] pointer-events-none">
+        
+        {/* Floating 3D Telemetry Card (Dynamically tied to the visible photo) */}
+        <div className="absolute right-6 top-16 sm:right-10 sm:top-20 lg:right-16 lg:top-24 z-20 hidden md:block pointer-events-auto">
           <div className="w-[280px] lg:w-[320px] rounded-[1.75rem] border border-white/20 bg-white/10 backdrop-blur-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] p-5 transform-gpu rotate-y-[-8deg] rotate-x-[4deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-700 ease-out">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/80">Live Field Link</span>
-              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] font-bold text-emerald-200">
+              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] font-bold text-[#34D399]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" /> On-chain
               </span>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between text-xs text-white/90">
                 <span className="text-white/60">Capital Routed</span>
-                <span className="font-semibold num-tabular">${totalRaised.toLocaleString()}</span>
+                <span className="font-semibold num-tabular">${Number(currentMission?.raised_amount_usd || 0).toLocaleString()}</span>
               </div>
               <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
-                <div className="h-full w-[62%] rounded-full bg-gradient-to-r from-[#064E3B] to-[#C4A35A]" />
+                <div 
+                  className="h-full rounded-full bg-gradient-to-r from-[#34D399] to-[#C4A35A] transition-all duration-1000" 
+                  style={{ width: `${currentProgress}%` }}
+                />
               </div>
               <div className="flex justify-between text-xs text-white/90">
                 <span className="text-white/60">Active Fields</span>
@@ -120,69 +171,87 @@ export default function Home() {
               <div className="pt-3 border-t border-white/15">
                 <p className="text-[10px] uppercase tracking-[0.14em] text-white/55 mb-1">Featured theater</p>
                 <p className="text-sm font-semibold text-white leading-snug line-clamp-2">
-                  {missions[0]?.title || "Awaiting next deployment"}
+                  {currentMission?.title || "Awaiting next deployment"}
                 </p>
-                <p className="text-[11px] text-white/70 mt-1">
-                  {missions[0]?.target_country || "Global network"}
+                <p className="text-[11px] text-[#34D399] font-semibold mt-1">
+                  {currentMission?.target_country || "Global network"}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom-left editorial type (JamesEdition) */}
-        <div className="relative z-10 w-full max-w-[1600px] mx-auto px-6 lg:px-12 pb-24 sm:pb-28 flex flex-col md:flex-row md:items-end justify-between gap-10">
+        {/* Bottom-left Editorial Typography & Actions */}
+        <div className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row md:items-end justify-between gap-10 pointer-events-auto">
+          
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md mb-5">
-              <Sparkles className="w-3.5 h-3.5 text-[#E8D5A3]" />
-              <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/90">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md mb-6 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-[#34D399]" />
+              <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/95">
                 Non-Custodial · Stellar Rails
               </span>
             </div>
-            <h1 className="font-serif text-white leading-[1.05] tracking-tight text-4xl sm:text-5xl lg:text-6xl xl:text-7xl">
-              Removing the cloak
-              <br />
-              from <span className="italic text-white/90">Humanitarian</span>
-              <br />
-              <span className="italic text-[#E8D5A3]">Giving.</span>
+            
+            {/* White font with Emerald Accents */}
+            <h1 className="font-serif text-white leading-[1.05] tracking-tight text-5xl sm:text-6xl lg:text-[6.5rem] drop-shadow-xl">
+              Removing the cloak <br />
+              from <span className="italic text-[#34D399]">Humanitarian</span><br/>
+              <span className="italic text-[#34D399]">Giving.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-sm sm:text-base text-white/75 leading-relaxed font-normal">
-              Donor pays normally. Missionary receives normally. Every dollar is tracked on-chain. Every receipt is public.
-            </p>
           </div>
 
           <div className="flex flex-col items-start md:items-end gap-6 shrink-0">
             <Link
               href="/missions"
-              className="group flex items-center justify-center gap-2.5 bg-white text-[#1A1612] text-[11px] uppercase tracking-[0.16em] font-bold px-8 py-4 rounded-full hover:bg-[#F7F4EF] transition-all duration-300 shadow-2xl"
+              className="group flex items-center justify-center gap-2.5 bg-white text-[#1A1612] text-[11px] uppercase tracking-[0.16em] font-bold px-8 py-4.5 rounded-full hover:bg-[#F7F4EF] transition-all duration-300 shadow-2xl"
             >
               <span>Deploy Capital</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link
-              href="/transparency"
-              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] font-bold text-white/80 hover:text-white transition-colors"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              Audit Ledger
-            </Link>
+            
+            {/* Carousel Indicators */}
+            {heroSlides.length > 1 && (
+              <div className="hidden md:flex items-center gap-3">
+                {heroSlides.map((_, i) => (
+                  <div key={i} className={`h-[2px] transition-all duration-500 ${i === bgIdx ? "w-10 bg-[#34D399]" : "w-6 bg-white/30"}`} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Bottom metadata strip */}
-        <div className="absolute bottom-0 left-0 w-full border-t border-white/10 bg-[#1A1612]/55 backdrop-blur-xl z-20">
-          <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-3.5 flex flex-col md:flex-row items-center justify-between gap-2">
+        {/* Bottom Metadata Strip (JamesEdition Style) */}
+        <div className="absolute bottom-0 left-0 w-full border-t border-white/10 bg-[#1A1612]/50 backdrop-blur-xl pointer-events-auto">
+          <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-bold text-white/95">
-              Non-Custodial · ${totalRaised.toLocaleString()} Deployed · {activeCount} Active Fields · On-Chain Verified
+              NON-CUSTODIAL &nbsp;•&nbsp; ${totalRaised.toLocaleString()} DEPLOYED &nbsp;•&nbsp; {activeCount} ACTIVE FIELDS &nbsp;•&nbsp; ON-CHAIN VERIFIED
             </div>
-            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.14em] font-medium text-white/65 truncate max-w-xl">
-              {missions[0]
-                ? `Featured: ${missions[0].title} · ${missions[0].target_country}`
-                : "Live Stellar Ledger"}
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.16em] font-bold text-[#34D399] truncate max-w-xl">
+              {currentMission ? `FEATURED: ${currentMission.title.toUpperCase()} • ${currentMission.target_country.toUpperCase()}` : "LIVE STELLAR LEDGER"}
             </div>
           </div>
         </div>
       </section>
+
+      {/* 2. INFINITE LEDGER TICKER */}
+      <div className="w-full border-y border-[rgba(26,22,18,0.08)] bg-[#EFEBE4]/50 overflow-hidden relative z-10 py-3 backdrop-blur-md">
+        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#F7F4EF] to-transparent z-10" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#F7F4EF] to-transparent z-10" />
+        <div className="animate-marquee flex items-center">
+          {[...tickerItems, ...tickerItems].map((item, idx) => (
+            <div key={idx} className="flex items-center whitespace-nowrap px-8">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#064E3B] mr-3 animate-pulse" />
+              <span className="text-[11px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
+                {item}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* V7 Editorial Ambient Orbs for the rest of the page */}
+      <div className="fixed top-[30%] right-[-5%] w-[700px] h-[700px] glow-emerald rounded-full pointer-events-none -z-20 opacity-50" />
+      <div className="fixed bottom-[-10%] left-[20%] w-[800px] h-[800px] glow-gold rounded-full pointer-events-none -z-20 opacity-40" />
 
       {/* 3. SCRIPTURE BAND */}
       <section className="relative z-10 py-16 bg-white/30 backdrop-blur-sm border-b border-[rgba(26,22,18,0.04)]">
@@ -231,13 +300,12 @@ export default function Home() {
       <section className="relative z-10 bg-[#EFEBE4]/40 border-y border-[rgba(26,22,18,0.06)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col lg:flex-row gap-16 lg:gap-24">
           
-          {/* Sticky Left Column */}
           <div className="lg:w-1/3">
             <div className="lg:sticky lg:top-32 space-y-6">
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#064E3B]">
                 The Trust Protocol
               </span>
-              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#1A1612] leading-[1.15]">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#1A1612] leading-[1.1]">
                 Absolute transparency. <br />
                 <span className="italic text-[#C4A35A]">By architecture.</span>
               </h2>
@@ -250,7 +318,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Scrolling Right Column */}
           <div className="lg:w-2/3 space-y-8">
             {[
               {
@@ -374,7 +441,7 @@ export default function Home() {
           <div className="glass bg-white/70 rounded-[3rem] p-12 sm:p-20 border border-[rgba(26,22,18,0.08)] shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#064E3B] via-[#047857] to-[#C4A35A]" />
             <ShieldCheck className="w-12 h-12 text-[#C4A35A] mx-auto mb-6" />
-            <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#1A1612] mb-6 leading-tight">
+            <h2 className="font-serif text-3xl sm:text-5xl font-semibold text-[#1A1612] mb-6 leading-tight">
               Ready to bypass <br/><span className="italic text-[#064E3B]">the middlemen?</span>
             </h2>
             <p className="text-base text-[#7A736A] max-w-lg mx-auto mb-10">
