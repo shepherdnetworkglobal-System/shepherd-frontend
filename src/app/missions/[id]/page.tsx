@@ -80,9 +80,11 @@ export default function MissionDetailPage() {
   const [photos, setPhotos] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
   
-  const [activeTab, setActiveTab] = useState<"brief" | "budget" | "checkpoints" | "updates">("brief");
+  const [activeTab, setActiveTab] = useState<"brief" | "budget" | "checkpoints" | "updates" | "gallery">("brief");
   const [showPayment, setShowPayment] = useState(false);
   const [activeBriefModal, setActiveBriefModal] = useState<"problem" | "objectives" | "method" | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
+  const [galleryFilter, setGalleryFilter] = useState<"ALL" | "BEFORE" | "DURING" | "AFTER">("ALL");
   const [loading, setLoading] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -268,6 +270,15 @@ export default function MissionDetailPage() {
   const isoCode = ISO_COUNTRY_CODES[mission.target_country] || "un";
   const beforePhotos = photos.filter(p => p.category === "BEFORE");
   const duringPhotos = photos.filter(p => p.category === "DURING" || p.category === "AFTER");
+  const galleryPhotos = galleryFilter === "ALL"
+    ? photos
+    : photos.filter(p => String(p.category || "").toUpperCase() === galleryFilter);
+
+  const getCheckpointTitle = (checkpointId: number | null | undefined) => {
+    if (!checkpointId) return null;
+    const cp = checkpoints.find((c: any) => c.id === checkpointId);
+    return cp?.title || null;
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F4EF] text-[#3D3832] selection:bg-[#064E3B]/10 pb-24 overflow-x-hidden">
@@ -412,6 +423,69 @@ export default function MissionDetailPage() {
           </div>
         </div>
 
+        {/* FIELD EVIDENCE STRIP — photos first, words second */}
+        {photos.length > 0 && (
+          <section className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] block mb-1">
+                  Ground Truth
+                </span>
+                <h2 className="font-serif text-xl sm:text-2xl font-semibold text-[#1A1612]">
+                  Field Evidence Gallery
+                </h2>
+              </div>
+              <button
+                onClick={() => setActiveTab("gallery")}
+                className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold text-[#064E3B] hover:text-[#047857] transition-colors"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                Open Full Gallery ({photos.length})
+              </button>
+            </div>
+
+            <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory">
+              {photos.map((photo) => {
+                const phaseTitle = getCheckpointTitle(photo.checkpoint_id);
+                return (
+                  <button
+                    key={photo.id}
+                    type="button"
+                    onClick={() => setSelectedPhoto(photo)}
+                    className="group shrink-0 w-[280px] sm:w-[320px] snap-start text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/70 shadow-sm hover:border-[#064E3B]/30 hover:shadow-lg hover-lift transition-all duration-300"
+                  >
+                    <div className="relative h-52 sm:h-56 overflow-hidden bg-[#EFEBE4]">
+                      <img
+                        src={photo.url || photo.image_url}
+                        alt={photo.caption || "Field evidence"}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                        <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-[#1A1612]/75 text-white backdrop-blur-md">
+                          {photo.category || "FIELD"}
+                        </span>
+                        {phaseTitle && (
+                          <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-white/90 text-[#064E3B] backdrop-blur-md border border-[rgba(26,22,18,0.06)]">
+                            {phaseTitle}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      <p className="text-sm font-semibold text-[#1A1612] leading-snug line-clamp-2 min-h-[2.5rem]">
+                        {photo.caption || "Field capture — caption pending"}
+                      </p>
+                      <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#7A736A]">
+                        Tap to expand
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* SECTION 2: END-TO-END WORKSTATION TABS */}
         <div className="pt-8">
           {/* Floating Glass Tab Bar */}
@@ -419,6 +493,7 @@ export default function MissionDetailPage() {
             <div className="inline-flex items-center gap-2 p-1.5 rounded-2xl glass bg-white/60 border border-[rgba(26,22,18,0.08)] shadow-sm overflow-x-auto scrollbar-none max-w-full">
               {[
                 { id: "brief", label: "Mission Brief", icon: FileText },
+                { id: "gallery", label: `Gallery (${photos.length})`, icon: Camera },
                 { id: "budget", label: "Budget & Receipts", icon: Receipt },
                 { id: "checkpoints", label: "Checkpoints", icon: CheckCircle2 },
                 { id: "updates", label: "Field Reports", icon: TrendingUp },
@@ -541,6 +616,84 @@ export default function MissionDetailPage() {
                       ))}
                     </div>
                   </section>
+                )}
+              </div>
+            )}
+
+            {/* GALLERY TAB */}
+            {activeTab === "gallery" && (
+              <div className="space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-serif text-2xl font-semibold text-[#1A1612]">Field Evidence Archive</h3>
+                    <p className="text-sm text-[#7A736A] mt-1 font-medium">
+                      Every public capture from this deployment — with captions, categories, and linked phases.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(["ALL", "BEFORE", "DURING", "AFTER"] as const).map((filter) => (
+                      <button
+                        key={filter}
+                        onClick={() => setGalleryFilter(filter)}
+                        className={`px-3.5 py-2 rounded-xl text-[10px] uppercase tracking-[0.14em] font-semibold transition-all ${
+                          galleryFilter === filter
+                            ? "bg-[#064E3B] text-white shadow-sm"
+                            : "bg-white/70 text-[#7A736A] border border-[rgba(26,22,18,0.08)] hover:bg-[#EFEBE4]/50"
+                        }`}
+                      >
+                        {filter === "ALL" ? `All (${photos.length})` : filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {galleryPhotos.length === 0 ? (
+                  <div className="py-20 border border-dashed border-[rgba(26,22,18,0.15)] rounded-3xl text-center bg-white/40">
+                    <Camera className="w-12 h-12 text-[#7A736A]/40 mx-auto mb-4" />
+                    <p className="text-sm text-[#7A736A] font-medium">No photos in this category yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {galleryPhotos.map((photo) => {
+                      const phaseTitle = getCheckpointTitle(photo.checkpoint_id);
+                      return (
+                        <button
+                          key={photo.id}
+                          type="button"
+                          onClick={() => setSelectedPhoto(photo)}
+                          className="group text-left rounded-3xl overflow-hidden border border-[rgba(26,22,18,0.08)] bg-white/60 shadow-sm hover:border-[#064E3B]/30 hover-lift transition-all duration-300"
+                        >
+                          <div className="relative aspect-[4/3] overflow-hidden bg-[#EFEBE4]">
+                            <img
+                              src={photo.url || photo.image_url}
+                              alt={photo.caption || "Field evidence"}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5">
+                              <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-[#1A1612]/75 text-white backdrop-blur-md">
+                                {photo.category || "FIELD"}
+                              </span>
+                              {phaseTitle && (
+                                <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-white/90 text-[#064E3B] backdrop-blur-md">
+                                  {phaseTitle}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="p-5 space-y-2">
+                            <p className="text-sm font-semibold text-[#1A1612] leading-snug line-clamp-3">
+                              {photo.caption || "Field capture — caption pending"}
+                            </p>
+                            {photo.created_at && (
+                              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#7A736A] block">
+                                Captured {new Date(photo.created_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             )}
@@ -715,11 +868,19 @@ export default function MissionDetailPage() {
                                   </h5>
                                   <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x">
                                     {checkpointPhotos.map(photo => (
-                                      <div key={photo.id} className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden shrink-0 snap-start border border-[rgba(26,22,18,0.08)] bg-[#EFEBE4] group">
-                                        <a href={photo.url || photo.image_url} target="_blank" rel="noreferrer">
-                                          <img src={photo.url || photo.image_url} alt="Checkpoint proof" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                        </a>
-                                      </div>
+                                      <button
+                                        key={photo.id}
+                                        type="button"
+                                        onClick={() => setSelectedPhoto(photo)}
+                                        className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden shrink-0 snap-start border border-[rgba(26,22,18,0.08)] bg-[#EFEBE4] group text-left"
+                                      >
+                                        <img src={photo.url || photo.image_url} alt={photo.caption || "Checkpoint proof"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        {photo.caption && (
+                                          <div className="absolute inset-x-0 bottom-0 bg-[#1A1612]/75 backdrop-blur-sm p-2.5">
+                                            <p className="text-[10px] text-white/90 font-medium line-clamp-2">{photo.caption}</p>
+                                          </div>
+                                        )}
+                                      </button>
                                     ))}
                                   </div>
                                 </div>
@@ -802,6 +963,66 @@ export default function MissionDetailPage() {
         </div>
 
       </div>
+
+      {/* PHOTO LIGHTBOX */}
+      {selectedPhoto && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 lg:p-10">
+          <div
+            className="absolute inset-0 bg-[#1A1612]/55 backdrop-blur-md"
+            onClick={() => setSelectedPhoto(null)}
+          />
+          <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col rounded-3xl overflow-hidden glass bg-[#F7F4EF]/95 border border-[rgba(26,22,18,0.08)] shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between gap-4 p-4 sm:p-5 border-b border-[rgba(26,22,18,0.06)] bg-white/50 shrink-0">
+              <div className="min-w-0 flex flex-wrap items-center gap-2">
+                <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/20">
+                  {selectedPhoto.category || "FIELD"}
+                </span>
+                {getCheckpointTitle(selectedPhoto.checkpoint_id) && (
+                  <span className="text-[9px] uppercase tracking-[0.14em] font-semibold px-2.5 py-1 rounded-full bg-[#C4A35A]/15 text-[#1A1612] border border-[#C4A35A]/25">
+                    {getCheckpointTitle(selectedPhoto.checkpoint_id)}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedPhoto(null)}
+                className="w-10 h-10 rounded-full bg-white border border-[rgba(26,22,18,0.08)] flex items-center justify-center text-[#7A736A] hover:text-[#1A1612] hover:bg-[#EFEBE4] transition-colors shadow-sm shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="relative bg-[#1A1612] flex items-center justify-center min-h-[280px] max-h-[60vh]">
+              <img
+                src={selectedPhoto.url || selectedPhoto.image_url}
+                alt={selectedPhoto.caption || "Field evidence"}
+                className="max-w-full max-h-[60vh] object-contain"
+              />
+            </div>
+
+            <div className="p-5 sm:p-7 space-y-3 bg-white/60">
+              <p className="text-base sm:text-lg font-semibold text-[#1A1612] leading-relaxed">
+                {selectedPhoto.caption || "Field capture — caption pending from operator."}
+              </p>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[rgba(26,22,18,0.06)]">
+                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
+                  {selectedPhoto.created_at
+                    ? `Logged ${new Date(selectedPhoto.created_at).toLocaleDateString()}`
+                    : "Field archive"}
+                </span>
+                <a
+                  href={selectedPhoto.url || selectedPhoto.image_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold text-[#C4A35A] hover:text-[#1A1612] transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Open Source File
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* FLOATING LANDSCAPE DIALOGUE FOR MISSION BRIEF */}
       {activeBriefModal && (
