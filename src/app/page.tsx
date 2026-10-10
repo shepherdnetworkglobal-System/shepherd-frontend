@@ -19,6 +19,7 @@ import {
   CreditCard,
   Award,
   ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MissionCard from "@/components/MissionCard";
@@ -73,69 +74,115 @@ export default function Home() {
       <div className="fixed top-[30%] right-[-5%] w-[700px] h-[700px] glow-emerald rounded-full pointer-events-none -z-20 opacity-50" />
       <div className="fixed bottom-[-10%] left-[20%] w-[800px] h-[800px] glow-gold rounded-full pointer-events-none -z-20 opacity-40" />
 
-      {/* 1. HERO SECTION */}
-      <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 flex flex-col justify-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full text-center">
-          
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass bg-white/70 border border-[rgba(26,22,18,0.08)] shadow-sm mb-8">
-            <Sparkles className="w-3.5 h-3.5 text-[#C4A35A]" />
-            <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-bold text-[#1A1612]">
-              Sovereign Humanitarian Rails
-            </span>
+      {/* 1. JAMES EDITION + DIMENSIONAL HERO (CSS 3D, no WebGL) */}
+      <section className="relative w-full h-[88vh] min-h-[640px] flex flex-col justify-end overflow-hidden z-10 bg-[#1A1612] perspective-[1200px]">
+
+        {/* Depth layer — slow Ken Burns (feels 3D without globe) */}
+        <div className="absolute inset-0 scale-110 origin-center animate-[heroDrift_28s_ease-in-out_infinite_alternate]">
+          <img
+            src={
+              missions[0]?.cover_image ||
+              missions[0]?.photos?.[0]?.url ||
+              missions[0]?.photos?.[0]?.image_url ||
+              "https://res.cloudinary.com/xo4onwh5/image/upload/v1791543058/shepherd_network/shepherd_media/2eda6d5be6da481092dcd661d2291451.jpg"
+            }
+            alt="Featured Field Deployment"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
+
+        {/* Atmospheric depth veils */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1612] via-[#1A1612]/45 to-[#1A1612]/15" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1A1612]/55 via-transparent to-[#1A1612]/25" />
+        <div className="absolute inset-0 opacity-30 mix-blend-soft-light bg-[radial-gradient(ellipse_at_30%_40%,rgba(196,163,90,0.35),transparent_55%)]" />
+
+        {/* Floating 3D glass telemetry panel */}
+        <div className="absolute right-6 top-28 sm:right-10 sm:top-32 lg:right-16 lg:top-36 z-20 hidden md:block">
+          <div className="w-[280px] lg:w-[320px] rounded-[1.75rem] border border-white/20 bg-white/10 backdrop-blur-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] p-5 transform-gpu rotate-y-[-8deg] rotate-x-[4deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-700 ease-out">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/80">Live Field Link</span>
+              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] font-bold text-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" /> On-chain
+              </span>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs text-white/90">
+                <span className="text-white/60">Capital Routed</span>
+                <span className="font-semibold num-tabular">${totalRaised.toLocaleString()}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
+                <div className="h-full w-[62%] rounded-full bg-gradient-to-r from-[#064E3B] to-[#C4A35A]" />
+              </div>
+              <div className="flex justify-between text-xs text-white/90">
+                <span className="text-white/60">Active Fields</span>
+                <span className="font-semibold num-tabular">{activeCount}</span>
+              </div>
+              <div className="pt-3 border-t border-white/15">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-white/55 mb-1">Featured theater</p>
+                <p className="text-sm font-semibold text-white leading-snug line-clamp-2">
+                  {missions[0]?.title || "Awaiting next deployment"}
+                </p>
+                <p className="text-[11px] text-white/70 mt-1">
+                  {missions[0]?.target_country || "Global network"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom-left editorial type (JamesEdition) */}
+        <div className="relative z-10 w-full max-w-[1600px] mx-auto px-6 lg:px-12 pb-24 sm:pb-28 flex flex-col md:flex-row md:items-end justify-between gap-10">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md mb-5">
+              <Sparkles className="w-3.5 h-3.5 text-[#E8D5A3]" />
+              <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/90">
+                Non-Custodial · Stellar Rails
+              </span>
+            </div>
+            <h1 className="font-serif text-white leading-[1.05] tracking-tight text-4xl sm:text-5xl lg:text-6xl xl:text-7xl">
+              Removing the cloak
+              <br />
+              from <span className="italic text-white/90">Humanitarian</span>
+              <br />
+              <span className="italic text-[#E8D5A3]">Giving.</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-sm sm:text-base text-white/75 leading-relaxed font-normal">
+              Donor pays normally. Missionary receives normally. Every dollar is tracked on-chain. Every receipt is public.
+            </p>
           </div>
 
-          <h1 className="font-serif font-semibold tracking-tight leading-[1.1] text-[#1A1612] max-w-4xl mx-auto">
-            <span className="block text-3xl sm:text-4xl">
-              Removing the cloak
-            </span>
-            <span className="block text-3xl sm:text-4xl mt-2">
-              from <span className="italic text-[#064E3B]">Humanitarian</span>
-            </span>
-            <span className="block text-3xl sm:text-4xl mt-2 italic text-[#C4A35A]">
-              Giving
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg lg:text-xl text-[#3D3832]/90 max-w-2xl mx-auto mt-10 leading-relaxed font-normal">
-            Every transaction is signed directly, routed on-chain, and matched
-            instantly to verified field receipts. Zero middlemen. Direct
-            custody. Absolute transparency.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
+          <div className="flex flex-col items-start md:items-end gap-6 shrink-0">
             <Link
               href="/missions"
-              className="w-full sm:w-auto group inline-flex items-center justify-center gap-2.5 bg-[#064E3B] text-white text-[11px] uppercase tracking-[0.16em] font-bold px-8 py-4.5 rounded-2xl shadow-[0_12px_32px_-8px_rgba(6,78,59,0.4)] hover:bg-[#047857] hover:shadow-[0_16px_40px_-8px_rgba(6,78,59,0.6)] hover:-translate-y-1 transition-all duration-300"
+              className="group flex items-center justify-center gap-2.5 bg-white text-[#1A1612] text-[11px] uppercase tracking-[0.16em] font-bold px-8 py-4 rounded-full hover:bg-[#F7F4EF] transition-all duration-300 shadow-2xl"
             >
               <span>Deploy Capital</span>
-              <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/transparency"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 glass bg-white/60 text-[#1A1612] text-[11px] uppercase tracking-[0.16em] font-bold px-8 py-4.5 rounded-2xl border border-[rgba(26,22,18,0.08)] shadow-sm hover:bg-white/80 hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] font-bold text-white/80 hover:text-white transition-colors"
             >
-              <Eye className="w-4 h-4 text-[#7A736A]" />
-              <span>Audit Ledger</span>
+              <Eye className="w-3.5 h-3.5" />
+              Audit Ledger
             </Link>
           </div>
         </div>
-      </section>
 
-      {/* 2. INFINITE LEDGER TICKER */}
-      <div className="w-full border-y border-[rgba(26,22,18,0.08)] bg-[#EFEBE4]/50 overflow-hidden relative z-10 py-3 backdrop-blur-md">
-        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#F7F4EF] to-transparent z-10" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#F7F4EF] to-transparent z-10" />
-        <div className="animate-marquee flex items-center">
-          {[...tickerItems, ...tickerItems].map((item, idx) => (
-            <div key={idx} className="flex items-center whitespace-nowrap px-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#064E3B] mr-3 animate-pulse" />
-              <span className="text-[11px] uppercase tracking-[0.16em] font-semibold text-[#7A736A]">
-                {item}
-              </span>
+        {/* Bottom metadata strip */}
+        <div className="absolute bottom-0 left-0 w-full border-t border-white/10 bg-[#1A1612]/55 backdrop-blur-xl z-20">
+          <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-3.5 flex flex-col md:flex-row items-center justify-between gap-2">
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-bold text-white/95">
+              Non-Custodial · ${totalRaised.toLocaleString()} Deployed · {activeCount} Active Fields · On-Chain Verified
             </div>
-          ))}
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.14em] font-medium text-white/65 truncate max-w-xl">
+              {missions[0]
+                ? `Featured: ${missions[0].title} · ${missions[0].target_country}`
+                : "Live Stellar Ledger"}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* 3. SCRIPTURE BAND */}
       <section className="relative z-10 py-16 bg-white/30 backdrop-blur-sm border-b border-[rgba(26,22,18,0.04)]">

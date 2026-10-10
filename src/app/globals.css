@@ -121,3 +121,8 @@ h1, h2, h3, h4, h5, h6 {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+@keyframes heroDrift {
+  0% { transform: scale(1.08) translate(0%, 0%); }
+  100% { transform: scale(1.16) translate(-1.5%, -1%); }
+}
