@@ -432,7 +432,7 @@ export default function MissionDetailPage() {
                   Ground Truth
                 </span>
                 <h2 className="font-serif text-xl sm:text-2xl font-semibold text-[#1A1612]">
-                  Field Evidence Gallery
+                  Field Gallery
                 </h2>
               </div>
               <button
