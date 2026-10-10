@@ -5,22 +5,6 @@ import Link from "next/link";
 import { ArrowRight, Camera, TrendingUp, Users, ShieldCheck, Activity } from "lucide-react";
 import "flag-icons/css/flag-icons.min.css";
 
-interface MissionCardProps {
-  // Option A: Pass single mission object
-  mission?: any;
-  // Option B: Pass individual props
-  id?: number;
-  title?: string;
-  targetCountry?: string;
-  goalAmount?: number;
-  raisedAmount?: number;
-  status?: string;
-  description?: string;
-  coverImage?: string;
-  latestUpdate?: string;
-  missionary?: any;
-}
-
 const ISO_COUNTRY_CODES: Record<string, string> = {
   Kenya: "ke",
   Philippines: "ph",
@@ -33,21 +17,21 @@ const ISO_COUNTRY_CODES: Record<string, string> = {
   Ghana: "gh",
 };
 
-export default function MissionCard(props: MissionCardProps) {
-  // Normalize data whether passed as an object or individual props
+export default function MissionCard(props: any) {
+  // Normalize data whether passed as an object or individual flat props
   const m = props.mission || {
     id: props.id,
     title: props.title || "Untitled Mission",
-    target_country: props.targetCountry || "Global",
-    goal_amount_usd: props.goalAmount || 0,
-    raised_amount_usd: props.raisedAmount || 0,
+    target_country: props.targetCountry || props.target_country || "Global",
+    goal_amount_usd: props.goalAmount || props.goal_amount_usd || 0,
+    raised_amount_usd: props.raisedAmount || props.raised_amount_usd || 0,
     status: props.status || "ACTIVE",
     description: props.description,
-    cover_image: props.coverImage,
-    latest_update: props.latestUpdate,
-    missionary: props.missionary,
-    photos: props.coverImage ? [{ id: 1, image_url: props.coverImage }] : [],
-    reports: props.latestUpdate ? [{ title: "Latest Update", summary: props.latestUpdate }] : [],
+    cover_image: props.coverImage || props.cover_image,
+    latest_update: props.latestUpdate || props.latest_update,
+    missionary: props.missionary || (props.missionaryName ? { name: props.missionaryName, profile_photo_url: props.missionaryPhoto } : undefined),
+    photos: props.coverImage || props.cover_image ? [{ id: 1, image_url: props.coverImage || props.cover_image }] : [],
+    reports: props.latestUpdate || props.latest_update ? [{ title: "Latest Update", summary: props.latestUpdate || props.latest_update }] : [],
     checkpoints: []
   };
 
