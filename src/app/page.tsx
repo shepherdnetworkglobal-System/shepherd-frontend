@@ -192,14 +192,14 @@ export default function Home() {
               </span>
             </div>
             
-            {/* Ivory + Emerald — neutral scale (~4–5% of hero height) */}
-            <h1 className="font-serif text-[#F7F4EF] leading-[1.12] tracking-tight text-3xl sm:text-4xl lg:text-5xl drop-shadow-lg max-w-3xl">
-              Removing the cloak
+            {/* Ivory + Emerald — wrapped in explicit spans to override globals.css h1 color */}
+            <h1 className="font-serif leading-[1.12] tracking-tight text-3xl sm:text-4xl lg:text-5xl drop-shadow-lg max-w-3xl">
+              <span className="text-[#F7F4EF]">Removing the cloak</span>
               <br />
-              from{" "}
-              <span className="italic text-[#6EE7B7]">Humanitarian</span>
+              <span className="text-[#F7F4EF]">from </span>
+              <span className="italic text-[#34D399]">Humanitarian</span>
               <br />
-              <span className="italic text-[#6EE7B7]">Giving.</span>
+              <span className="italic text-[#34D399]">Giving.</span>
             </h1>
           </div>
 
