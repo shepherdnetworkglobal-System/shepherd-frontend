@@ -149,8 +149,8 @@ export default function Home() {
           <div className="w-[280px] lg:w-[320px] rounded-[1.75rem] border border-white/20 bg-white/10 backdrop-blur-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] p-5 transform-gpu rotate-y-[-8deg] rotate-x-[4deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-700 ease-out">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/80">Live Field Link</span>
-              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] font-bold text-[#34D399]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" /> On-chain
+              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] font-bold text-[#6EE7B7]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#6EE7B7] animate-pulse" /> On-chain
               </span>
             </div>
             <div className="space-y-3">
@@ -173,7 +173,7 @@ export default function Home() {
                 <p className="text-sm font-semibold text-white leading-snug line-clamp-2">
                   {currentMission?.title || "Awaiting next deployment"}
                 </p>
-                <p className="text-[11px] text-[#34D399] font-semibold mt-1">
+                <p className="text-[11px] text-[#6EE7B7] font-semibold mt-1">
                   {currentMission?.target_country || "Global network"}
                 </p>
               </div>
@@ -186,17 +186,20 @@ export default function Home() {
           
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md mb-6 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-[#34D399]" />
-              <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/95">
+              <Sparkles className="w-3.5 h-3.5 text-[#6EE7B7]" />
+              <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-[#F7F4EF]/95">
                 Non-Custodial · Stellar Rails
               </span>
             </div>
             
-            {/* White font with Emerald Accents */}
-            <h1 className="font-serif text-white leading-[1.05] tracking-tight text-5xl sm:text-6xl lg:text-[6.5rem] drop-shadow-xl">
-              Removing the cloak <br />
-              from <span className="italic text-[#34D399]">Humanitarian</span><br/>
-              <span className="italic text-[#34D399]">Giving.</span>
+            {/* Ivory + Emerald — neutral scale (~4–5% of hero height) */}
+            <h1 className="font-serif text-[#F7F4EF] leading-[1.12] tracking-tight text-3xl sm:text-4xl lg:text-5xl drop-shadow-lg max-w-3xl">
+              Removing the cloak
+              <br />
+              from{" "}
+              <span className="italic text-[#6EE7B7]">Humanitarian</span>
+              <br />
+              <span className="italic text-[#6EE7B7]">Giving.</span>
             </h1>
           </div>
 
@@ -213,7 +216,7 @@ export default function Home() {
             {heroSlides.length > 1 && (
               <div className="hidden md:flex items-center gap-3">
                 {heroSlides.map((_, i) => (
-                  <div key={i} className={`h-[2px] transition-all duration-500 ${i === bgIdx ? "w-10 bg-[#34D399]" : "w-6 bg-white/30"}`} />
+                  <div key={i} className={`h-[2px] transition-all duration-500 ${i === bgIdx ? "w-10 bg-[#6EE7B7]" : "w-6 bg-[#F7F4EF]/30"}`} />
                 ))}
               </div>
             )}
@@ -226,7 +229,7 @@ export default function Home() {
             <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-bold text-white/95">
               NON-CUSTODIAL &nbsp;•&nbsp; ${totalRaised.toLocaleString()} DEPLOYED &nbsp;•&nbsp; {activeCount} ACTIVE FIELDS &nbsp;•&nbsp; ON-CHAIN VERIFIED
             </div>
-            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.16em] font-bold text-[#34D399] truncate max-w-xl">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.16em] font-bold text-[#6EE7B7] truncate max-w-xl">
               {currentMission ? `FEATURED: ${currentMission.title.toUpperCase()} • ${currentMission.target_country.toUpperCase()}` : "LIVE STELLAR LEDGER"}
             </div>
           </div>
