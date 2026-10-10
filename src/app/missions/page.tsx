@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, SlidersHorizontal, Loader2, Compass } from "lucide-react";
+import { Search, SlidersHorizontal, Loader2, Compass, Camera, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import MissionCard from "@/components/MissionCard";
 import { apiRequest } from "@/lib/api";
+import "flag-icons/css/flag-icons.min.css";
 
 interface Mission {
   id: number;
@@ -16,8 +17,23 @@ interface Mission {
   description?: string;
   cover_image?: string;
   latest_update?: string;
-  missionary?: any;
+  missionary?: {
+    name: string;
+    organization_name: string;
+  };
 }
+
+const ISO_COUNTRY_CODES: Record<string, string> = {
+  Kenya: "ke",
+  Philippines: "ph",
+  Nigeria: "ng",
+  Pakistan: "pk",
+  Uganda: "ug",
+  India: "in",
+  Brazil: "br",
+  Tanzania: "tz",
+  Ghana: "gh",
+};
 
 export default function MissionsPage() {
   const [missions, setMissions] = useState<Mission[]>([]);
@@ -84,7 +100,6 @@ export default function MissionsPage() {
 
         {/* Filter Controls Bar */}
         <div className="glass bg-white/70 border border-[rgba(26,22,18,0.08)] rounded-3xl p-4 sm:p-5 shadow-sm space-y-4 sm:space-y-0 sm:flex sm:items-center sm:gap-4 justify-between">
-          {/* Search Bar */}
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A736A]" />
             <input
@@ -96,7 +111,6 @@ export default function MissionsPage() {
             />
           </div>
 
-          {/* Select Filters */}
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
             <div className="relative flex-1 sm:flex-initial">
               <SlidersHorizontal className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7A736A] pointer-events-none" />
@@ -129,7 +143,7 @@ export default function MissionsPage() {
           </div>
         </div>
 
-        {/* Mission List */}
+        {/* Mission Grid */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 glass bg-white/70 rounded-3xl border border-[rgba(26,22,18,0.08)] shadow-sm">
             <Loader2 className="w-8 h-8 text-[#064E3B] animate-spin mb-3" />
@@ -146,21 +160,91 @@ export default function MissionsPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {filtered.map((m) => (
-              <MissionCard
-                key={m.id}
-                id={m.id}
-                title={m.title}
-                targetCountry={m.target_country}
-                goalAmount={Number(m.goal_amount_usd)}
-                raisedAmount={Number(m.raised_amount_usd)}
-                status={m.status}
-                description={m.description}
-                coverImage={m.cover_image}
-                latestUpdate={m.latest_update}
-              />
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {filtered.map((m) => {
+              const progress = m.goal_amount_usd > 0 ? Math.min((m.raised_amount_usd / m.goal_amount_usd) * 100, 100) : 0;
+              const isoCode = ISO_COUNTRY_CODES[m.target_country] || "un";
+              const isActive = m.status === "ACTIVE";
+
+              return (
+                <Link
+                  href={`/missions/${m.id}`}
+                  key={m.id}
+                  className="group flex flex-col glass bg-white/60 rounded-3xl border border-[rgba(26,22,18,0.08)] shadow-sm hover:border-[#064E3B]/20 hover:shadow-xl hover-lift overflow-hidden transition-all duration-500"
+                >
+                  {/* Taller Lookbook Image Header */}
+                  <div className="relative h-60 sm:h-64 w-full bg-[#EFEBE4]/80 overflow-hidden shrink-0 flex items-center justify-center">
+                    {m.cover_image ? (
+                      <img 
+                        src={m.cover_image} 
+                        alt={m.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 opacity-50">
+                        <Camera className="w-8 h-8 text-[#C4A35A]" />
+                        <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#C4A35A]">Media Pending</span>
+                      </div>
+                    )}
+
+                    {/* Floating Badges */}
+                    <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[rgba(26,22,18,0.04)] shadow-sm">
+                        <span className={`fi fi-${isoCode} rounded-sm text-xs drop-shadow-sm`} />
+                        <span className="text-[9px] uppercase tracking-[0.16em] font-semibold text-[#1A1612]">
+                          {m.target_country}
+                        </span>
+                      </div>
+                      
+                      <span className={`text-[9px] uppercase tracking-[0.16em] font-bold px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border ${
+                        isActive 
+                          ? "bg-[#064E3B]/90 text-white border-[#064E3B]/20" 
+                          : "bg-white/90 text-[#1A1612] border-[rgba(26,22,18,0.08)]"
+                      }`}>
+                        {m.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="p-6 sm:p-8 flex flex-col flex-1 bg-white/40">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-[#7A736A] mb-2 block truncate">
+                      Lead: {m.missionary?.name || "Verified Operator"}
+                    </span>
+                    
+                    <h3 className="font-serif text-xl sm:text-2xl font-semibold text-[#1A1612] mb-3 leading-snug line-clamp-2 group-hover:text-[#064E3B] transition-colors">
+                      {m.title}
+                    </h3>
+                    
+                    <p className="text-sm text-[#3D3832]/80 leading-relaxed font-normal line-clamp-3 mb-8 flex-1">
+                      {m.description || "Mission details pending configuration."}
+                    </p>
+
+                    {/* Progress & Financials */}
+                    <div className="mt-auto">
+                      <div className="flex items-end justify-between mb-2.5">
+                        <div>
+                          <span className="text-xl font-semibold text-[#1A1612] num-tabular">
+                            ${Number(m.raised_amount_usd).toLocaleString()}
+                          </span>
+                          <span className="text-xs text-[#7A736A] font-medium ml-1">
+                            / ${Number(m.goal_amount_usd).toLocaleString()}
+                          </span>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-[#C4A35A] group-hover:translate-x-1 transition-transform" />
+                      </div>
+                      
+                      <div className="w-full h-2 bg-[#EFEBE4] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#064E3B] to-[#C4A35A] rounded-full transition-all duration-1000 ease-out"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
