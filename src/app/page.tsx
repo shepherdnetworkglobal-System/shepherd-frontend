@@ -50,11 +50,20 @@ export default function Home() {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [bgIdx, setBgIdx] = useState(0);
+  const [scripture, setScripture] = useState<{ reference: string; text: string; translation: string } | null>(null);
 
   useEffect(() => {
     apiRequest("/api/missions/")
       .then(setMissions)
       .catch(() => setMissions([]));
+
+    apiRequest("/api/scripture/public/featured?placement=HOMEPAGE")
+      .then(setScripture)
+      .catch(() => setScripture({
+        reference: "2 Corinthians 8:21",
+        translation: "ESV",
+        text: "For we aim at what is honorable not only in the Lord's sight but also in the sight of man."
+      }));
   }, []);
 
   // Build the dynamic carousel from active mission photos
@@ -256,16 +265,16 @@ export default function Home() {
       <div className="fixed top-[30%] right-[-5%] w-[700px] h-[700px] glow-emerald rounded-full pointer-events-none -z-20 opacity-50" />
       <div className="fixed bottom-[-10%] left-[20%] w-[800px] h-[800px] glow-gold rounded-full pointer-events-none -z-20 opacity-40" />
 
-      {/* 3. SCRIPTURE BAND */}
+      {/* 3. DYNAMIC SCRIPTURE BAND */}
       <section className="relative z-10 py-16 bg-white/30 backdrop-blur-sm border-b border-[rgba(26,22,18,0.04)]">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="font-serif text-xl sm:text-2xl text-[#1A1612] italic leading-relaxed">
-            "For we aim at what is honorable not only in the Lord's sight but also in the sight of man."
+            "{scripture?.text || "For we aim at what is honorable not only in the Lord's sight but also in the sight of man."}"
           </p>
           <div className="mt-6 flex items-center justify-center gap-4">
             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#C4A35A]" />
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#C4A35A]">
-              2 Corinthians 8:21
+              {scripture?.reference || "2 Corinthians 8:21"} ({scripture?.translation || "ESV"})
             </span>
             <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#C4A35A]" />
           </div>
