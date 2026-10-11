@@ -117,10 +117,10 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF] text-[#3D3832] selection:bg-[#064E3B]/10 overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#1A1612] text-[#3D3832] selection:bg-[#064E3B]/10 overflow-x-hidden relative">
       
-      {/* ABSOLUTE BACKGROUND - Covers behind Navbar to the very top edge */}
-      <div className="absolute top-0 left-0 w-full h-[100vh] min-h-[640px] z-0 overflow-hidden bg-[#1A1612]">
+      {/* ABSOLUTE BACKGROUND - Spans Y=0 to full viewport height */}
+      <div className="absolute inset-0 h-[100vh] min-h-[640px] z-0 overflow-hidden bg-[#1A1612]">
         {heroSlides.map((slide, idx) => (
           <img
             key={idx}
@@ -136,8 +136,8 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#1A1612]/70 via-transparent to-[#1A1612]/30" />
       </div>
 
-      {/* NAVBAR - Floating over the background */}
-      <div className="relative z-50 pt-4">
+      {/* NAVBAR - Floating cleanly over dark hero backdrop */}
+      <div className="relative z-50 pt-6">
         <Navbar />
       </div>
 
