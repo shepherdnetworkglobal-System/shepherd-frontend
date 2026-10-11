@@ -117,10 +117,10 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#1A1612] text-[#3D3832] selection:bg-[#064E3B]/10 overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#F7F4EF] text-[#3D3832] selection:bg-[#064E3B]/10 overflow-x-hidden relative">
       
-      {/* ABSOLUTE BACKGROUND - Spans Y=0 to full viewport height */}
-      <div className="absolute inset-0 h-[100vh] min-h-[640px] z-0 overflow-hidden bg-[#1A1612]">
+      {/* ABSOLUTE BACKGROUND - Covers behind Navbar to the very top edge */}
+      <div className="absolute top-0 left-0 w-full h-[100vh] min-h-[640px] z-0 overflow-hidden bg-[#1A1612]">
         {heroSlides.map((slide, idx) => (
           <img
             key={idx}
@@ -136,8 +136,8 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#1A1612]/70 via-transparent to-[#1A1612]/30" />
       </div>
 
-      {/* NAVBAR - Floating cleanly over dark hero backdrop */}
-      <div className="relative z-50 pt-6">
+      {/* NAVBAR - Floating over the background */}
+      <div className="relative z-50 pt-4">
         <Navbar />
       </div>
 
@@ -149,8 +149,8 @@ export default function Home() {
           <div className="w-[280px] lg:w-[320px] rounded-[1.75rem] border border-white/20 bg-white/10 backdrop-blur-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] p-5 transform-gpu rotate-y-[-8deg] rotate-x-[4deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-700 ease-out">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-white/80">Live Field Link</span>
-              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] font-bold text-[#047857]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#047857] animate-pulse" /> On-chain
+              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] font-bold text-[#6EE7B7]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#6EE7B7] animate-pulse" /> On-chain
               </span>
             </div>
             <div className="space-y-3">
@@ -160,7 +160,7 @@ export default function Home() {
               </div>
               <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
                 <div 
-                  className="h-full rounded-full bg-gradient-to-r from-[#047857] to-[#C4A35A] transition-all duration-1000" 
+                  className="h-full rounded-full bg-gradient-to-r from-[#34D399] to-[#C4A35A] transition-all duration-1000" 
                   style={{ width: `${currentProgress}%` }}
                 />
               </div>
@@ -173,7 +173,7 @@ export default function Home() {
                 <p className="text-sm font-semibold text-white leading-snug line-clamp-2">
                   {currentMission?.title || "Awaiting next deployment"}
                 </p>
-                <p className="text-[11px] text-[#047857] font-semibold mt-1">
+                <p className="text-[11px] text-[#6EE7B7] font-semibold mt-1">
                   {currentMission?.target_country || "Global network"}
                 </p>
               </div>
@@ -192,8 +192,8 @@ export default function Home() {
               </span>
             </div>
             
-            {/* Pure Ivory & Rich Brand Emerald (#047857) - Neutral Scale */}
-            <h1 className="font-serif leading-[1.12] tracking-tight text-4xl sm:text-5xl lg:text-6xl drop-shadow-lg max-w-4xl">
+            {/* Pure Ivory & Rich Brand Emerald (#047857) */}
+            <h1 className="font-serif leading-[1.12] tracking-tight text-3xl sm:text-4xl lg:text-5xl drop-shadow-lg max-w-3xl">
               <span className="text-[#F7F4EF]">Removing the cloak</span>
               <br />
               <span className="text-[#F7F4EF]">from </span>
@@ -216,7 +216,7 @@ export default function Home() {
             {heroSlides.length > 1 && (
               <div className="hidden md:flex items-center gap-3">
                 {heroSlides.map((_, i) => (
-                  <div key={i} className={`h-[2px] transition-all duration-500 ${i === bgIdx ? "w-10 bg-[#047857]" : "w-6 bg-[#F7F4EF]/30"}`} />
+                  <div key={i} className={`h-[2px] transition-all duration-500 ${i === bgIdx ? "w-10 bg-[#6EE7B7]" : "w-6 bg-[#F7F4EF]/30"}`} />
                 ))}
               </div>
             )}
@@ -229,7 +229,7 @@ export default function Home() {
             <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-bold text-white/95">
               NON-CUSTODIAL &nbsp;•&nbsp; ${totalRaised.toLocaleString()} DEPLOYED &nbsp;•&nbsp; {activeCount} ACTIVE FIELDS &nbsp;•&nbsp; ON-CHAIN VERIFIED
             </div>
-            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.16em] font-bold text-[#047857] truncate max-w-xl">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.16em] font-bold text-[#6EE7B7] truncate max-w-xl">
               {currentMission ? `FEATURED: ${currentMission.title.toUpperCase()} • ${currentMission.target_country.toUpperCase()}` : "LIVE STELLAR LEDGER"}
             </div>
           </div>
