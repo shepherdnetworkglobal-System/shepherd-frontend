@@ -96,8 +96,11 @@ export default function MissionDetailPage() {
       const txId = searchParams.get("tx");
       if (isSuccess && txId) {
         try {
-          await apiRequest(`/api/donations/verify-stripe/${txId}`, { method: "POST" });
+          const res = await apiRequest(`/api/donations/verify-stripe/${txId}`, { method: "POST" });
           setStripeSuccessTx(txId);
+          if (res?.raised_amount_usd !== undefined) {
+            setMission((prev) => prev ? { ...prev, raised_amount_usd: res.raised_amount_usd } : prev);
+          }
         } catch (err) {
           console.error("Stripe auto-sync error:", err);
         }
