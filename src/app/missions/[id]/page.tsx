@@ -73,7 +73,7 @@ export default function MissionDetailPage() {
   const missionId = Number(params.id);
 
   const [mission, setMission] = useState<Mission | null>(null);
-  const [stripeSuccessTx, setStripeSuccessTx] = useState<string | null>(null);
+  const [bannerDetails, setBannerDetails] = useState<{ donorName: string; amount: number; missionTitle: string } | null>(null);
   const [summary, setSummary] = useState<any>(null);
   const [budgetItems, setBudgetItems] = useState<any[]>([]);
   const [checkpoints, setCheckpoints] = useState<any[]>([]);
@@ -97,9 +97,24 @@ export default function MissionDetailPage() {
       if (isSuccess && txId) {
         try {
           const res = await apiRequest(`/api/donations/verify-stripe/${txId}`, { method: "POST" });
-          setStripeSuccessTx(txId);
-          if (res?.raised_amount_usd !== undefined) {
-            setMission((prev) => prev ? { ...prev, raised_amount_usd: res.raised_amount_usd } : prev);
+          
+          if (res) {
+            setBannerDetails({
+              donorName: res.donor_name || "Generous Donor",
+              amount: res.amount_usd || 0,
+              missionTitle: res.mission_title || "",
+            });
+
+            if (res.raised_amount_usd !== undefined) {
+              setMission((prev) => prev ? { ...prev, raised_amount_usd: res.raised_amount_usd } : prev);
+            }
+
+            // Auto-dismiss banner after 30 seconds
+            const timer = setTimeout(() => {
+              setBannerDetails(null);
+            }, 30000);
+
+            return () => clearTimeout(timer);
           }
         } catch (err) {
           console.error("Stripe auto-sync error:", err);
@@ -317,23 +332,25 @@ export default function MissionDetailPage() {
           <ArrowLeft className="w-3.5 h-3.5" /> <span>Back to Active Fields</span>
         </Link>
 
-        {/* STRIPE INSTANT DEPLOYMENT SUCCESS BANNER */}
-        {stripeSuccessTx && (
+        {/* STRIPE INSTANT DEPLOYMENT PERSONALIZED SUCCESS BANNER */}
+        {bannerDetails && (
           <div className="rounded-3xl bg-[#064E3B] text-white p-8 sm:p-10 shadow-xl border border-[#064E3B]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 animate-in slide-in-from-top duration-500 relative overflow-hidden">
             <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-[#C4A35A]/20 to-transparent pointer-events-none" />
+            
             <div className="space-y-2 z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8D5A3] text-[#1A1612] text-[10px] font-bold uppercase tracking-wider">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#064E3B]" /> Settlement Confirmed
               </div>
-              <h3 className="font-serif text-2xl font-semibold tracking-tight">
-                Card Payment Deployed Successfully
+              <h3 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
+                Thank You, {bannerDetails.donorName}!
               </h3>
-              <p className="text-xs sm:text-sm text-white/80 font-medium">
-                Donation Record <strong className="text-white">#{stripeSuccessTx}</strong> processed and added directly to total sovereign capital on-chain.
+              <p className="text-sm sm:text-base text-white/90 font-medium leading-relaxed">
+                Your gift of <strong className="text-[#E8D5A3] font-bold">${bannerDetails.amount.toLocaleString()}</strong> towards <em className="italic font-serif">{mission.title}</em> has been verified and added to sovereign capital on-chain.
               </p>
             </div>
+            
             <button
-              onClick={() => setStripeSuccessTx(null)}
+              onClick={() => setBannerDetails(null)}
               className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0 z-10"
               aria-label="Dismiss banner"
             >
