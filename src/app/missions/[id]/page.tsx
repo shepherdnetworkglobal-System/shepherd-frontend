@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   ShieldCheck,
   MapPin,
@@ -69,9 +69,11 @@ const ISO_COUNTRY_CODES: Record<string, string> = {
 
 export default function MissionDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const missionId = Number(params.id);
 
   const [mission, setMission] = useState<Mission | null>(null);
+  const [stripeSuccessTx, setStripeSuccessTx] = useState<string | null>(null);
   const [summary, setSummary] = useState<any>(null);
   const [budgetItems, setBudgetItems] = useState<any[]>([]);
   const [checkpoints, setCheckpoints] = useState<any[]>([]);
@@ -87,6 +89,22 @@ export default function MissionDetailPage() {
   const [loading, setLoading] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+
+  useEffect(() => {
+    const checkStripeReturn = async () => {
+      const isSuccess = searchParams.get("donation") === "success";
+      const txId = searchParams.get("tx");
+      if (isSuccess && txId) {
+        try {
+          await apiRequest(`/api/donations/verify-stripe/${txId}`, { method: "POST" });
+          setStripeSuccessTx(txId);
+        } catch (err) {
+          console.error("Stripe auto-sync error:", err);
+        }
+      }
+    };
+    checkStripeReturn();
+  }, [searchParams]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -295,6 +313,31 @@ export default function MissionDetailPage() {
         >
           <ArrowLeft className="w-3.5 h-3.5" /> <span>Back to Active Fields</span>
         </Link>
+
+        {/* STRIPE INSTANT DEPLOYMENT SUCCESS BANNER */}
+        {stripeSuccessTx && (
+          <div className="rounded-3xl bg-[#064E3B] text-white p-8 sm:p-10 shadow-xl border border-[#064E3B]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 animate-in slide-in-from-top duration-500 relative overflow-hidden">
+            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-[#C4A35A]/20 to-transparent pointer-events-none" />
+            <div className="space-y-2 z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8D5A3] text-[#1A1612] text-[10px] font-bold uppercase tracking-wider">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#064E3B]" /> Settlement Confirmed
+              </div>
+              <h3 className="font-serif text-2xl font-semibold tracking-tight">
+                Card Payment Deployed Successfully
+              </h3>
+              <p className="text-xs sm:text-sm text-white/80 font-medium">
+                Donation Record <strong className="text-white">#{stripeSuccessTx}</strong> processed and added directly to total sovereign capital on-chain.
+              </p>
+            </div>
+            <button
+              onClick={() => setStripeSuccessTx(null)}
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0 z-10"
+              aria-label="Dismiss banner"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
 
         {/* SECTION 1: BENTO BOX COLLAGE */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
