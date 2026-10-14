@@ -1192,6 +1192,7 @@ export default function MissionDetailPage() {
           missionId={missionId}
           missionTitle={mission.title}
           recipientCountry={mission.target_country}
+          recipientWallet={(mission.missionary as any)?.payout_wallet}
           onClose={() => setShowPayment(false)}
         />
       )}

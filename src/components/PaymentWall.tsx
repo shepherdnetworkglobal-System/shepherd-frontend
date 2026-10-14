@@ -9,6 +9,7 @@ interface PaymentWallProps {
   missionId: number;
   missionTitle: string;
   recipientCountry: string;
+  recipientWallet?: string;
   onClose?: () => void;
 }
 
@@ -341,6 +342,57 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
                 )}
               </button>
             </div>
+
+            {/* Conditional Stellar Wallet Controls */}
+            {method === "wallet" && (
+              <div className="space-y-4 p-4 bg-[#EFEBE4]/70 border border-[#1A1612]/10 rounded-2xl animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-semibold text-[#7A736A] uppercase tracking-wider">
+                    Settlement Asset
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAssetType("USDC")}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        assetType === "USDC"
+                          ? "bg-[#064E3B] text-white"
+                          : "bg-white text-[#7A736A] border border-[#1A1612]/10"
+                      }`}
+                    >
+                      USDC
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAssetType("XLM")}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        assetType === "XLM"
+                          ? "bg-[#064E3B] text-white"
+                          : "bg-white text-[#7A736A] border border-[#1A1612]/10"
+                      }`}
+                    >
+                      XLM
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-[#1A1612]/10">
+                  <span className="text-[#7A736A] font-medium">Recipient Wallet:</span>
+                  <span className="font-mono text-[#1A1612] font-semibold truncate max-w-[200px]">
+                    {DEFAULT_PLATFORM_RECIPIENT.slice(0, 6)}...{DEFAULT_PLATFORM_RECIPIENT.slice(-6)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[#7A736A] font-medium">Estimated Transfer:</span>
+                  <span className="font-bold text-[#064E3B]">
+                    {assetType === "USDC"
+                      ? `${activeAmount || "0"} USDC`
+                      : `${(parseFloat(activeAmount || "0") * 10).toFixed(2)} XLM`}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Optional Donor Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
