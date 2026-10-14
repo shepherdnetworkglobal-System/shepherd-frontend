@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   title: "Shepherd Network — Transparent Humanitarian Rails",
   description:
     "Non-custodial Christian giving platform. Donor pays normally. Missionary receives normally. Every dollar tracked on-chain.",
+  icons: {
+    icon: "/logo.jpg",
+    shortcut: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({
