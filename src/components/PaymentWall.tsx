@@ -243,9 +243,21 @@ export default function PaymentWall({ missionId, missionTitle, recipientCountry,
         {/* Right Column: Interactive Dual Payment Flow */}
         <div className="md:w-7/12 p-8 sm:p-10 relative z-10 bg-white/70 backdrop-blur-md">
           {error && (
-            <div className="mb-5 p-4 bg-red-50 text-red-800 rounded-2xl text-xs font-medium border border-red-200 flex items-start gap-2.5">
-              <Info className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-              <div className="leading-relaxed">{error}</div>
+            <div className="mb-4 p-4 bg-red-50 text-red-800 rounded-2xl text-xs font-medium border border-red-200 flex flex-col gap-2">
+              <div className="flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">{error}</div>
+              </div>
+              {error.includes("Freighter") && (
+                <a
+                  href="https://www.freighter.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ml-6 text-[#064E3B] font-bold hover:underline inline-flex items-center gap-1 text-[11px] uppercase tracking-wider"
+                >
+                  Install Freighter Extension <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
           )}
 
